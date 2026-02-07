@@ -13,7 +13,7 @@
 
         #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; -webkit-overflow-scrolling: touch; }
         
-        .message { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; user-select: none; word-wrap: break-word; }
+        .message { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; user-select: none; word-wrap: break-word; white-space: pre-wrap; } /* white-space mantiene el orden de los párrafos */
         .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; }
         .time-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
         .views-count { font-size: 10px; color: #85a5c2; }
@@ -55,7 +55,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, onValue, runTransaction, increment, update, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, onValue, runTransaction, increment, update, onDisconnect, set, serverTimestamp, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -76,10 +76,9 @@
     const container = document.getElementById('chat-container');
 
     let usuarioLogueado = null;
-    // Lista local de mensajes vistos por esta persona
     let vistosGlobal = JSON.parse(localStorage.getItem('mensajes_leidos') || "[]");
 
-    // --- LÓGICA DE PRESENCIA EXACTA ---
+    // --- LÓGICA DE PRESENCIA ---
     const connectedRef = ref(db, ".info/connected");
     const onlineListRef = ref(db, "presencia/conexiones_activas");
     const totalRef = ref(db, "presencia/historico");
@@ -88,7 +87,7 @@
         if (snap.val() === true) {
             const conRef = push(onlineListRef);
             onDisconnect(conRef).remove();
-            set(conRef, { last_online: Date.now() });
+            set(conRef, { last_online: serverTimestamp() });
             
             if (!localStorage.getItem('visita_registrada')) {
                 runTransaction(totalRef, (curr) => (curr || 0) + 1);
@@ -98,15 +97,13 @@
     });
 
     onValue(onlineListRef, (snapshot) => {
-        const count = snapshot.numChildren();
-        document.getElementById('online-count').innerText = `Activos: ${count}`;
+        document.getElementById('online-count').innerText = `Activos: ${snapshot.numChildren()}`;
     });
 
     onValue(totalRef, (snap) => {
         document.getElementById('total-visits').innerText = `Visitas totales: ${snap.val() || 0}`;
     });
 
-    // --- FUNCIONES DEL CHAT ---
     const detectarLinks = (texto) => {
         if (!texto) return "";
         const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -126,12 +123,10 @@
         const email = prompt("Correo de Administrador:");
         const pass = prompt("Contraseña:");
         if(email && pass) {
-            signInWithEmailAndPassword(auth, email, pass)
-                .then(() => {
-                    localStorage.setItem('admin_activo', 'true');
-                    location.reload();
-                })
-                .catch(err => alert("Error: " + err.message));
+            signInWithEmailAndPassword(auth, email, pass).then(() => {
+                localStorage.setItem('admin_activo', 'true');
+                location.reload();
+            }).catch(err => alert("Error: " + err.message));
         }
     };
 
@@ -150,6 +145,7 @@
             usuario: "Chat", 
             mensaje: input.value, 
             vistas: 0,
+            timestamp: serverTimestamp(), // Orden exacto del servidor
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
         });
         input.value = '';
@@ -168,6 +164,7 @@
             usuario: "Chat", 
             imagen: url, 
             vistas: 0,
+            timestamp: serverTimestamp(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
         });
     };
@@ -179,11 +176,13 @@
             .then(() => localStorage.setItem(voteKey, "true"));
     };
 
-    onChildAdded(ref(db, 'chats/'), (data) => {
+    // USAMOS QUERY PARA ORDENAR POR TIMESTAMP
+    const chatQuery = query(ref(db, 'chats/'), orderByChild('timestamp'));
+
+    onChildAdded(chatQuery, (data) => {
         const msg = data.val();
         const msgId = data.key;
 
-        // LÓGICA DE VISTAS ÚNICAS POR PERSONA
         if (!vistosGlobal.includes(msgId)) {
             update(ref(db, `chats/${msgId}`), { vistas: increment(1) });
             vistosGlobal.push(msgId);
