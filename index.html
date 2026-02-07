@@ -5,32 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat - Canal Oficial</title>
     <style>
-        /* Estilos generales */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1621; margin: 0; display: flex; flex-direction: column; height: 100vh; color: white; overflow: hidden; }
-        
-        /* Encabezado Morado */
         #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; border-bottom: 2px solid #8e44ad; color: #a29bfe; cursor: pointer; z-index: 10; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
         
-        /* Contenedor de mensajes con fondo de Telegram */
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
-        
-        /* Burbujas de mensaje */
-        .message { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* Mensajes */
+        .message { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; }
+        .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; }
+        .time { font-size: 10px; color: #85a5c2; display: block; text-align: right; margin-top: 5px; }
         .chat-img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; }
-        
-        /* Área de escritura (oculta por defecto) */
+
+        /* Reacciones */
+        .reactions-bar { display: flex; gap: 8px; margin-top: 8px; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 4px 10px; width: fit-content; }
+        .reaction-btn { cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: transform 0.2s; }
+        .reaction-btn:active { transform: scale(1.3); }
+        .count { font-size: 11px; font-weight: bold; color: white; }
+
+        /* Inputs */
         #input-area { background: #17212b; padding: 12px; display: none; gap: 10px; align-items: center; border-top: 1px solid #242f3d; }
         input[type="text"] { flex: 1; background: #242f3d; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; font-size: 16px; }
-        
-        .btn { background: transparent; border: none; color: #a29bfe; font-weight: bold; cursor: pointer; font-size: 24px; transition: 0.2s; }
-        .btn:active { transform: scale(0.9); opacity: 0.7; }
+        .btn { background: transparent; border: none; color: #a29bfe; font-weight: bold; cursor: pointer; font-size: 24px; }
         #file-input { display: none; }
-        
-        /* Barra para el público */
-        .footer-viewer { text-align: center; padding: 15px; font-size: 13px; color: #546e7a; background: #17212b; font-style: italic; }
+        .footer-viewer { text-align: center; padding: 15px; font-size: 13px; color: #546e7a; background: #17212b; }
     </style>
 </head>
 <body>
@@ -48,7 +44,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, update, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -70,89 +66,81 @@
 
     let usuarioLogueado = null;
 
-    // --- MEJORA DE VELOCIDAD: MEMORIA LOCAL ---
     if (localStorage.getItem('admin_activo') === 'true') {
         document.getElementById('input-area').style.display = 'flex';
         document.getElementById('viewer-bar').style.display = 'none';
     }
 
-    // Login al tocar el título
     window.solicitarLogin = () => {
         if (usuarioLogueado) {
-            if(confirm("¿Quieres cerrar sesión?")) {
-                auth.signOut();
-                localStorage.removeItem('admin_activo');
-                location.reload();
-            }
+            if(confirm("¿Cerrar sesión?")) { auth.signOut(); localStorage.removeItem('admin_activo'); location.reload(); }
             return;
         }
-        const email = prompt("Email de Admin:");
+        const email = prompt("Email:");
         const pass = prompt("Contraseña:");
-        if(email && pass) {
-            signInWithEmailAndPassword(auth, email, pass)
-                .then(() => localStorage.setItem('admin_activo', 'true'))
-                .catch(err => alert("Error de acceso: " + err.message));
-        }
+        if(email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => localStorage.setItem('admin_activo', 'true')).catch(err => alert(err.message));
     };
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            usuarioLogueado = user;
-            document.getElementById('input-area').style.display = 'flex';
-            document.getElementById('viewer-bar').style.display = 'none';
-        }
-    });
+    onAuthStateChanged(auth, (user) => { if (user) usuarioLogueado = user; });
 
-    // Enviar mensajes
-    const enviarMensaje = () => {
+    const enviarMsg = () => {
         const input = document.getElementById('texto');
         if(!input.value.trim() || !usuarioLogueado) return;
-        push(ref(db, 'chats/'), { usuario: "Chat", mensaje: input.value, timestamp: Date.now() });
+        push(ref(db, 'chats/'), { usuario: "Chat", mensaje: input.value, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
         input.value = '';
     };
 
-    document.getElementById('btn-enviar').onclick = enviarMensaje;
-    document.getElementById('texto').onkeypress = (e) => { if(e.key === 'Enter') enviarMensaje(); };
+    document.getElementById('btn-enviar').onclick = enviarMsg;
+    document.getElementById('texto').onkeypress = (e) => { if(e.key === 'Enter') enviarMsg(); };
 
-    // Enviar fotos
     document.getElementById('file-input').onchange = async (e) => {
         const file = e.target.files[0];
         if (!file || !usuarioLogueado) return;
-        try {
-            const storageRef = sRef(storage, 'fotos/' + Date.now() + "_" + file.name);
-            await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(storageRef);
-            push(ref(db, 'chats/'), { usuario: "Chat", imagen: url, timestamp: Date.now() });
-        } catch (err) { alert("Error al subir imagen: " + err.message); }
+        const sLink = sRef(storage, 'fotos/' + Date.now());
+        await uploadBytes(sLink, file);
+        const url = await getDownloadURL(sLink);
+        push(ref(db, 'chats/'), { usuario: "Chat", imagen: url, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
     };
 
-    // Escuchar mensajes
+    window.reaccionar = (msgId, emoji) => {
+        const rRef = ref(db, `chats/${msgId}/reacciones/${emoji}`);
+        runTransaction(rRef, (current) => (current || 0) + 1);
+    };
+
     onChildAdded(ref(db, 'chats/'), (data) => {
         const msg = data.val();
         const div = document.createElement('div');
         div.id = data.key;
         div.className = 'message';
-        
-        let contenido = `<div class="user-name">Chat</div>`;
-        if(msg.mensaje) contenido += `<div>${msg.mensaje}</div>`;
-        if(msg.imagen) contenido += `<img src="${msg.imagen}" class="chat-img">`;
-        div.innerHTML = contenido;
+        div.innerHTML = `
+            <div class="user-name">Chat</div>
+            ${msg.mensaje ? `<div>${msg.mensaje}</div>` : ''}
+            ${msg.imagen ? `<img src="${msg.imagen}" class="chat-img">` : ''}
+            <span class="time">${msg.time || ''}</span>
+            <div class="reactions-bar">
+                <div class="reaction-btn" onclick="reaccionar('${data.key}', 'heart')">❤️ <span id="heart-${data.key}" class="count">0</span></div>
+                <div class="reaction-btn" onclick="reaccionar('${data.key}', 'sad')">🥲 <span id="sad-${data.key}" class="count">0</span></div>
+                <div class="reaction-btn" onclick="reaccionar('${data.key}', 'like')">👍 <span id="like-${data.key}" class="count">0</span></div>
+            </div>`;
 
-        // Borrar con toque largo si es admin
+        onValue(ref(db, `chats/${data.key}/reacciones`), (snapshot) => {
+            const r = snapshot.val() || {};
+            document.getElementById(`heart-${data.key}`).innerText = r.heart || 0;
+            document.getElementById(`sad-${data.key}`).innerText = r.sad || 0;
+            document.getElementById(`like-${data.key}`).innerText = r.like || 0;
+        });
+
         let timer;
-        const borrar = () => {
-            if(usuarioLogueado && confirm("¿Borrar mensaje del canal?")) remove(ref(db, 'chats/' + data.key));
-        };
-        div.onmousedown = div.ontouchstart = () => timer = setTimeout(borrar, 800);
+        div.onmousedown = div.ontouchstart = () => timer = setTimeout(() => {
+            if(usuarioLogueado && confirm("¿Borrar?")) remove(ref(db, 'chats/' + data.key));
+        }, 800);
         div.onmouseup = div.ontouchend = () => clearTimeout(timer);
 
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     });
 
-    onChildRemoved(ref(db, 'chats/'), (data) => {
-        document.getElementById(data.key)?.remove();
-    });
+    onChildRemoved(ref(db, 'chats/'), (data) => document.getElementById(data.key)?.remove());
 </script>
 </body>
 </html>
