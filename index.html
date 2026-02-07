@@ -8,7 +8,6 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1621; margin: 0; display: flex; flex-direction: column; height: 100dvh; color: white; overflow: hidden; }
         #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; border-bottom: 2px solid #8e44ad; color: #a29bfe; cursor: pointer; z-index: 10; user-select: none; }
         
-        /* Barra de Estadísticas */
         #stats-bar { background: #17212b; padding: 8px 15px; font-size: 12px; color: #a29bfe; border-bottom: 1px solid #242f3d; display: flex; justify-content: space-around; font-weight: bold; }
         .stat-item { display: flex; align-items: center; gap: 5px; }
 
@@ -40,8 +39,8 @@
 <div id="header" onclick="solicitarLogin()">CHAT</div>
 
 <div id="stats-bar">
-    <div class="stat-item">🟢 <span id="online-count">Cargando...</span></div>
-    <div class="stat-item">👥 <span id="total-visits">Cargando...</span></div>
+    <div class="stat-item">🟢 <span id="online-count">Activos: 0</span></div>
+    <div class="stat-item">👥 <span id="total-visits">Visitas totales: 0</span></div>
 </div>
 
 <div id="chat-container"></div>
@@ -56,7 +55,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, onValue, runTransaction, increment, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, onValue, runTransaction, increment, update, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -78,18 +77,23 @@
 
     let usuarioLogueado = null;
 
-    // --- LÓGICA DE PRESENCIA Y VISITAS TOTALES ---
+    // --- LÓGICA DE PRESENCIA EXACTA (SUMA Y RESTA) ---
     const connectedRef = ref(db, ".info/connected");
-    const onlineRef = ref(db, "presencia/activos");
     const totalRef = ref(db, "presencia/historico");
+    const onlineListRef = ref(db, "presencia/conexiones_activas");
 
     onValue(connectedRef, (snap) => {
         if (snap.val() === true) {
-            // Activos en tiempo real
-            runTransaction(onlineRef, (curr) => (curr || 0) + 1);
-            onDisconnect(onlineRef).runTransaction((curr) => (curr || 0) - 1);
+            // Crear una referencia única para esta sesión de usuario
+            const conRef = push(onlineListRef);
+
+            // Cuando el usuario se desconecta, borrar esta referencia automáticamente
+            onDisconnect(conRef).remove();
+
+            // Marcar como conectado con el tiempo actual
+            set(conRef, { last_online: Date.now() });
             
-            // Histórico (Visitas totales): Usamos localStorage para contar solo 1 vez por navegador
+            // Visitas Históricas (Solo una vez por navegador)
             if (!localStorage.getItem('visita_registrada')) {
                 runTransaction(totalRef, (curr) => (curr || 0) + 1);
                 localStorage.setItem('visita_registrada', 'true');
@@ -97,9 +101,18 @@
         }
     });
 
-    onValue(onlineRef, (snap) => document.getElementById('online-count').innerText = `Activos: ${snap.val() || 0}`);
-    onValue(totalRef, (snap) => document.getElementById('total-visits').innerText = `Visitas totales: ${snap.val() || 0}`);
+    // Escuchar cambios en la lista de conexiones para actualizar el contador real
+    onValue(onlineListRef, (snapshot) => {
+        const count = snapshot.numChildren();
+        document.getElementById('online-count').innerText = `Activos: ${count}`;
+    });
 
+    // Escuchar histórico
+    onValue(totalRef, (snap) => {
+        document.getElementById('total-visits').innerText = `Visitas totales: ${snap.val() || 0}`;
+    });
+
+    // --- FUNCIONES DEL CHAT ---
     const detectarLinks = (texto) => {
         if (!texto) return "";
         const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -176,7 +189,6 @@
         const msg = data.val();
         const msgId = data.key;
 
-        // Incrementar vistas del mensaje al cargar
         update(ref(db, `chats/${msgId}`), { vistas: increment(1) });
 
         const div = document.createElement('div');
@@ -196,12 +208,10 @@
                 <div class="reaction-btn" onclick="reaccionar('${msgId}', 'like')">👍 <span id="like-${msgId}" class="count">0</span></div>
             </div>`;
 
-        // Escuchar vistas en tiempo real
         onValue(ref(db, `chats/${msgId}/vistas`), (s) => {
             if(document.getElementById(`v-${msgId}`)) document.getElementById(`v-${msgId}`).innerText = s.val() || 0;
         });
 
-        // Escuchar reacciones en tiempo real
         onValue(ref(db, `chats/${msgId}/reacciones`), (snapshot) => {
             const r = snapshot.val() || {};
             if(document.getElementById(`heart-${msgId}`)) document.getElementById(`heart-${msgId}`).innerText = r.heart || 0;
@@ -209,7 +219,6 @@
             if(document.getElementById(`like-${msgId}`)) document.getElementById(`like-${msgId}`).innerText = r.like || 0;
         });
 
-        // Borrar mensaje (Admin)
         let timer;
         div.onmousedown = div.ontouchstart = (e) => {
             if (e.target.tagName === 'A' || e.target.classList.contains('reaction-btn')) return;
