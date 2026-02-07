@@ -5,19 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat - Canal Oficial</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1621; margin: 0; display: flex; flex-direction: column; height: 100vh; color: white; overflow: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1621; margin: 0; display: flex; flex-direction: column; height: 100dvh; color: white; overflow: hidden; }
         #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; border-bottom: 2px solid #8e44ad; color: #a29bfe; cursor: pointer; z-index: 10; user-select: none; }
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; scroll-behavior: smooth; }
+        
+        /* Barra de Estadísticas */
+        #stats-bar { background: #17212b; padding: 8px 15px; font-size: 12px; color: #a29bfe; border-bottom: 1px solid #242f3d; display: flex; justify-content: space-around; font-weight: bold; }
+        .stat-item { display: flex; align-items: center; gap: 5px; }
+
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; -webkit-overflow-scrolling: touch; }
         
         .message { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; user-select: none; word-wrap: break-word; }
         .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; }
-        .time { font-size: 10px; color: #85a5c2; display: block; text-align: right; margin-top: 5px; }
+        .time-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+        .views-count { font-size: 10px; color: #85a5c2; }
+        .time { font-size: 10px; color: #85a5c2; }
         .chat-img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; cursor: pointer; }
 
-        /* Estilo de Enlaces */
         .message a { color: #51ff00; text-decoration: underline; font-weight: bold; }
 
-        /* Estilo de Reacciones */
         .reactions-bar { display: flex; gap: 12px; margin-top: 10px; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 5px 12px; width: fit-content; border: 1px solid rgba(255,255,255,0.1); }
         .reaction-btn { cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 5px; transition: transform 0.1s; }
         .reaction-btn:active { transform: scale(1.4); }
@@ -33,6 +38,12 @@
 <body>
 
 <div id="header" onclick="solicitarLogin()">CHAT</div>
+
+<div id="stats-bar">
+    <div class="stat-item">🟢 <span id="online-count">Cargando...</span></div>
+    <div class="stat-item">👥 <span id="total-visits">Cargando...</span></div>
+</div>
+
 <div id="chat-container"></div>
 
 <div id="input-area">
@@ -45,7 +56,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, onValue, runTransaction, increment, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -67,13 +78,32 @@
 
     let usuarioLogueado = null;
 
-    // Función para detectar URLs y volverlas clicables
+    // --- LÓGICA DE PRESENCIA Y VISITAS TOTALES ---
+    const connectedRef = ref(db, ".info/connected");
+    const onlineRef = ref(db, "presencia/activos");
+    const totalRef = ref(db, "presencia/historico");
+
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            // Activos en tiempo real
+            runTransaction(onlineRef, (curr) => (curr || 0) + 1);
+            onDisconnect(onlineRef).runTransaction((curr) => (curr || 0) - 1);
+            
+            // Histórico (Visitas totales): Usamos localStorage para contar solo 1 vez por navegador
+            if (!localStorage.getItem('visita_registrada')) {
+                runTransaction(totalRef, (curr) => (curr || 0) + 1);
+                localStorage.setItem('visita_registrada', 'true');
+            }
+        }
+    });
+
+    onValue(onlineRef, (snap) => document.getElementById('online-count').innerText = `Activos: ${snap.val() || 0}`);
+    onValue(totalRef, (snap) => document.getElementById('total-visits').innerText = `Visitas totales: ${snap.val() || 0}`);
+
     const detectarLinks = (texto) => {
         if (!texto) return "";
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return texto.replace(urlRegex, (url) => {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-        });
+        return texto.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
     };
 
     window.solicitarLogin = () => {
@@ -112,6 +142,7 @@
         push(ref(db, 'chats/'), { 
             usuario: "Chat", 
             mensaje: input.value, 
+            vistas: 0,
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
         });
         input.value = '';
@@ -129,6 +160,7 @@
         push(ref(db, 'chats/'), { 
             usuario: "Chat", 
             imagen: url, 
+            vistas: 0,
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
         });
     };
@@ -136,53 +168,59 @@
     window.reaccionar = (msgId, emoji) => {
         const voteKey = `voted_${msgId}`;
         if (localStorage.getItem(voteKey)) return;
-
-        const rRef = ref(db, `chats/${msgId}/reacciones/${emoji}`);
-        runTransaction(rRef, (current) => (current || 0) + 1)
+        runTransaction(ref(db, `chats/${msgId}/reacciones/${emoji}`), (curr) => (curr || 0) + 1)
             .then(() => localStorage.setItem(voteKey, "true"));
     };
 
     onChildAdded(ref(db, 'chats/'), (data) => {
         const msg = data.val();
+        const msgId = data.key;
+
+        // Incrementar vistas del mensaje al cargar
+        update(ref(db, `chats/${msgId}`), { vistas: increment(1) });
+
         const div = document.createElement('div');
-        div.id = data.key;
+        div.id = msgId;
         div.className = 'message';
         div.innerHTML = `
             <div class="user-name">Chat</div>
             ${msg.mensaje ? `<div>${detectarLinks(msg.mensaje)}</div>` : ''}
             ${msg.imagen ? `<img src="${msg.imagen}" class="chat-img" onclick="window.open('${msg.imagen}', '_blank')">` : ''}
-            <span class="time">${msg.time || ''}</span>
+            <div class="time-row">
+                <span class="views-count">👁️ <span id="v-${msgId}">${msg.vistas || 0}</span></span>
+                <span class="time">${msg.time || ''}</span>
+            </div>
             <div class="reactions-bar">
-                <div class="reaction-btn" onclick="reaccionar('${data.key}', 'heart')">❤️ <span id="heart-${data.key}" class="count">0</span></div>
-                <div class="reaction-btn" onclick="reaccionar('${data.key}', 'sad')">🥲 <span id="sad-${data.key}" class="count">0</span></div>
-                <div class="reaction-btn" onclick="reaccionar('${data.key}', 'like')">👍 <span id="like-${data.key}" class="count">0</span></div>
+                <div class="reaction-btn" onclick="reaccionar('${msgId}', 'heart')">❤️ <span id="heart-${msgId}" class="count">0</span></div>
+                <div class="reaction-btn" onclick="reaccionar('${msgId}', 'sad')">🥲 <span id="sad-${msgId}" class="count">0</span></div>
+                <div class="reaction-btn" onclick="reaccionar('${msgId}', 'like')">👍 <span id="like-${msgId}" class="count">0</span></div>
             </div>`;
 
-        onValue(ref(db, `chats/${data.key}/reacciones`), (snapshot) => {
+        // Escuchar vistas en tiempo real
+        onValue(ref(db, `chats/${msgId}/vistas`), (s) => {
+            if(document.getElementById(`v-${msgId}`)) document.getElementById(`v-${msgId}`).innerText = s.val() || 0;
+        });
+
+        // Escuchar reacciones en tiempo real
+        onValue(ref(db, `chats/${msgId}/reacciones`), (snapshot) => {
             const r = snapshot.val() || {};
-            if(document.getElementById(`heart-${data.key}`)) document.getElementById(`heart-${data.key}`).innerText = r.heart || 0;
-            if(document.getElementById(`sad-${data.key}`)) document.getElementById(`sad-${data.key}`).innerText = r.sad || 0;
-            if(document.getElementById(`like-${data.key}`)) document.getElementById(`like-${data.key}`).innerText = r.like || 0;
+            if(document.getElementById(`heart-${msgId}`)) document.getElementById(`heart-${msgId}`).innerText = r.heart || 0;
+            if(document.getElementById(`sad-${msgId}`)) document.getElementById(`sad-${msgId}`).innerText = r.sad || 0;
+            if(document.getElementById(`like-${msgId}`)) document.getElementById(`like-${msgId}`).innerText = r.like || 0;
         });
 
         // Borrar mensaje (Admin)
         let timer;
         div.onmousedown = div.ontouchstart = (e) => {
-            if (e.target.tagName === 'A') return; // No activar borrado si hace clic en un link
+            if (e.target.tagName === 'A' || e.target.classList.contains('reaction-btn')) return;
             timer = setTimeout(() => {
-                if(usuarioLogueado && confirm("¿Borrar mensaje?")) remove(ref(db, 'chats/' + data.key));
+                if(usuarioLogueado && confirm("¿Borrar mensaje?")) remove(ref(db, 'chats/' + msgId));
             }, 800);
         };
         div.onmouseup = div.ontouchend = () => clearTimeout(timer);
 
         container.appendChild(div);
-        
-        // Auto-scroll al fondo
-        if (msg.imagen) {
-            div.querySelector('img').onload = () => container.scrollTop = container.scrollHeight;
-        } else {
-            container.scrollTop = container.scrollHeight;
-        }
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     });
 
     onChildRemoved(ref(db, 'chats/'), (data) => document.getElementById(data.key)?.remove());
