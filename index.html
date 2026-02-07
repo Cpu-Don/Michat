@@ -5,34 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat Contenido</title>
     <style>
-        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; color: #222; overflow: hidden; }
-        #header { background: #517da2; padding: 12px; font-weight: bold; color: white; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 18px; }
-        #chat-container { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: soft-light; }
-        
-        .message { 
-            max-width: 85%; width: fit-content; padding: 6px 10px; border-radius: 10px; font-size: 14px; 
-            background: #ffffff; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); 
-            white-space: pre-line; color: #000; line-height: 1.4;
-        }
-        .message a { color: #0088cc; text-decoration: none; font-weight: bold; word-break: break-all; display: block; margin-top: 4px; }
-        .info-row { display: flex; justify-content: flex-end; font-size: 9px; color: #a2acb3; margin-top: 4px; }
-
-        #input-area { background: white; padding: 10px; display: flex; gap: 8px; border-top: 1px solid #c5d3c1; align-items: center; }
-        input[type="text"] { flex: 1; background: #f4f4f5; border: 1px solid #ddd; padding: 10px 15px; border-radius: 20px; outline: none; font-size: 14px; }
-        .btn-send { color: #517da2; cursor: pointer; font-size: 20px; background: none; border: none; }
-        .notice { text-align: center; padding: 5px; font-size: 10px; color: #666; background: #fff; border-top: 1px solid #eee; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.4; }
+        .message a { color: #0088cc; text-decoration: none; font-weight: bold; word-break: break-all; }
+        .time { display: block; text-align: right; font-size: 10px; color: #a2acb3; margin-top: 4px; }
+        #input-area { background: white; padding: 10px; display: flex; gap: 8px; border-top: 1px solid #ccc; }
+        input { flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 20px; outline: none; }
+        button { background: none; border: none; color: #517da2; font-size: 20px; cursor: pointer; }
+        .notice { font-size: 10px; text-align: center; padding: 4px; color: #666; background: #eee; }
     </style>
 </head>
 <body>
-
-<div id="header">Chat Contenido</div>
-<div id="chat-container"></div>
-
-<div id="input-area">
-    <input type="text" id="texto" placeholder="Escribe algo breve y pega el link...">
-    <button id="btn-enviar" class="btn-send">➤</button>
-</div>
-<div class="notice">Máximo 15 palabras + link permitido (Videy, Mega, etc.)</div>
+    <div id="header">Chat Contenido</div>
+    <div id="chat-container"></div>
+    <div id="input-area">
+        <input type="text" id="texto" placeholder="Mensaje (máx 15 palabras) + Link...">
+        <button id="btn">➤</button>
+    </div>
+    <div class="notice">Solo links permitidos (Videy, Mega, etc.)</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -48,11 +40,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const container = document.getElementById('chat-container');
-
-    const API_TOKEN_CUTY = "415c3efe17212860052c31f12"; 
-    const listaNegra = ["facebook.com", "fb.watch", "youtube.com", "youtu.be", "twitter.com", "x.com", "pinterest.com", "t.me", "telegram.me", "blogspot.com", "blogger.com"];
-    const permitidosVideo = ["videy.co", "mediafire.com", "mega.nz", "drive.google.com", "terabox.com", "sfile.mobi", "streamtape.com", "vood.to", "fembed.com"];
+    const API_TOKEN_CUTY = "415c3efe17212860052c31f12";
+    const permitidos = ["videy.co", "mediafire.com", "mega.nz", "drive.google.com", "terabox.com"];
 
     const acortar = async (url) => {
         try {
@@ -62,78 +51,39 @@
         } catch { return url; }
     };
 
-    const enviarMsg = async () => {
+    const enviar = async () => {
         const input = document.getElementById('texto');
-        const originalText = input.value.trim();
-        if (!originalText) return;
+        const txt = input.value.trim();
+        const urlMatch = txt.match(/(https?:\/\/[^\s]+)/);
 
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const linksEncontrados = originalText.match(urlRegex);
-
-        // 1. Validar que exista al menos un link
-        if (!linksEncontrados) {
-            alert("⚠️ Debes incluir un enlace de descarga o video.");
-            return;
-        }
-
-        const linkLargo = linksEncontrados[0];
-        const linkLower = linkLargo.toLowerCase();
-
-        // 2. Validar Lista Negra
-        if (listaNegra.some(bad => linkLower.includes(bad))) {
-            alert("❌ Redes sociales o blogs no están permitidos.");
-            return;
-        }
-
-        // 3. Validar Permitidos
-        if (!permitidosVideo.some(ok => linkLower.includes(ok))) {
-            alert("❌ Servidor no permitido.");
-            return;
-        }
-
-        // 4. Validar límite de 15 palabras (excluyendo el link)
-        const textoSinLink = originalText.replace(linkLargo, "").trim();
-        const palabras = textoSinLink.split(/\s+/).filter(p => p.length > 0);
+        if (!urlMatch) return alert("⚠️ Pega un link válido.");
         
-        if (palabras.length > 15) {
-            alert("⚠️ La descripción es muy larga. Máximo 15 palabras.");
-            return;
-        }
+        const textoSinLink = txt.replace(urlMatch[0], "").trim();
+        if (textoSinLink.split(/\s+/).filter(p => p).length > 15) return alert("⚠️ Máximo 15 palabras.");
+
+        if (!permitidos.some(p => urlMatch[0].includes(p))) return alert("❌ Servidor no permitido.");
 
         input.disabled = true;
-        input.placeholder = "Acortando y enviando...";
-
-        const linkCorto = await acortar(linkLargo);
-        // Reemplazar link original por el acortado en el mensaje final
-        const mensajeFinal = originalText.replace(linkLargo, linkCorto);
+        const corto = await acortar(urlMatch[0]);
+        const msgFinal = txt.replace(urlMatch[0], corto);
 
         push(ref(db, 'chats/'), {
-            mensaje: mensajeFinal,
+            mensaje: msgFinal,
             timestamp: serverTimestamp(),
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         });
-
-        input.value = "";
-        input.disabled = false;
-        input.placeholder = "Pega el link aquí...";
+        input.value = ""; input.disabled = false;
     };
 
-    document.getElementById('btn-enviar').onclick = enviarMsg;
-    document.getElementById('texto').onkeypress = (e) => { if(e.key === 'Enter') enviarMsg(); };
+    document.getElementById('btn').onclick = enviar;
 
-    const formatMessage = (txt) => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return txt.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
-    };
-
-    onChildAdded(query(ref(db, 'chats/'), orderByChild('timestamp')), (d) => {
-        const m = d.val();
+    onChildAdded(query(ref(db, 'chats/'), orderByChild('timestamp')), (s) => {
+        const m = s.val();
         const div = document.createElement('div');
         div.className = 'message';
-        div.innerHTML = `<div>${formatMessage(m.mensaje)}</div>
-                         <div class="info-row"><span>${m.time}</span></div>`;
-        container.appendChild(div);
-        container.scrollTo(0, container.scrollHeight);
+        div.innerHTML = m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>') + `<span class="time">${m.time}</span>`;
+        document.getElementById('chat-container').appendChild(div);
+        document.getElementById('chat-container').scrollTo(0, 99999);
     });
 </script>
 </body>
