@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Remoto - Canal</title>
+    <title>Chat - Canal Privado</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1621; margin: 0; display: flex; flex-direction: column; height: 100vh; color: white; overflow: hidden; }
-        #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; border-bottom: 2px solid #8e44ad; color: #a29bfe; }
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        .message { max-width: 75%; padding: 8px 12px; border-radius: 12px; font-size: 15px; position: relative; background: #182533; align-self: flex-start; }
-        .admin-msg { background: #2b5278; align-self: flex-end; }
-        .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 3px; text-transform: uppercase; }
+        /* Título CHAT en Mayúsculas y Morado */
+        #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; border-bottom: 2px solid #8e44ad; color: #a29bfe; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
+        .message { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 15px; position: relative; background: #182533; align-self: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .admin-msg { background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; }
+        
+        /* Nombre de usuario: CHAT */
+        .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; }
         .chat-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
         
-        /* El área de input estará oculta por defecto */
         #input-area { background: #17212b; padding: 15px; display: none; gap: 10px; align-items: center; }
         input[type="text"] { flex: 1; background: #242f3d; border: none; padding: 12px; border-radius: 8px; color: white; outline: none; }
         .btn { background: transparent; border: none; color: #a29bfe; font-weight: bold; cursor: pointer; font-size: 20px; }
         #file-input { display: none; }
         
-        .footer-viewer { text-align: center; padding: 10px; font-size: 12px; color: #546e7a; background: #17212b; }
+        .footer-viewer { text-align: center; padding: 12px; font-size: 13px; color: #546e7a; background: #17212b; border-top: 1px solid #000; }
     </style>
 </head>
 <body>
@@ -56,12 +59,11 @@
     const storage = getStorage(app);
     const container = document.getElementById('chat-container');
 
-    // --- LÓGICA DE ADMINISTRADOR ---
     let isAdmin = false;
-    const LLAVE_MAESTRA = "120622remoto"; // <--- CAMBIA ESTO POR TU CONTRASEÑA
+    const LLAVE_MAESTRA = "1234"; // Recuerda cambiar tu contraseña aquí
 
     window.onload = () => {
-        const pass = prompt("Si eres Alexander, pon la llave. Si no, dale a Cancelar para solo leer:");
+        const pass = prompt("Introduce la llave de administrador para publicar:");
         if(pass === LLAVE_MAESTRA) {
             isAdmin = true;
             document.getElementById('input-area').style.display = 'flex';
@@ -73,7 +75,7 @@
         if(!isAdmin) return;
         const input = document.getElementById('texto');
         if(input.value.trim() == "") return;
-        push(ref(db, 'chats/'), { usuario: "Remoto", mensaje: input.value, timestamp: Date.now() });
+        push(ref(db, 'chats/'), { usuario: "Chat", mensaje: input.value, timestamp: Date.now() });
         input.value = '';
     };
 
@@ -84,7 +86,7 @@
         const storageRef = sRef(storage, 'fotos/' + Date.now() + "_" + file.name);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
-        push(ref(db, 'chats/'), { usuario: "Remoto", imagen: url, timestamp: Date.now() });
+        push(ref(db, 'chats/'), { usuario: "Chat", imagen: url, timestamp: Date.now() });
     };
 
     onChildAdded(ref(db, 'chats/'), (data) => {
@@ -93,16 +95,15 @@
         div.id = data.key;
         div.className = `message admin-msg`;
         
-        let contenido = `<div class="user-name">Alexander (Remoto)</div>`;
+        let contenido = `<div class="user-name">Chat</div>`;
         if(msg.mensaje) contenido += `<div>${msg.mensaje}</div>`;
         if(msg.imagen) contenido += `<img src="${msg.imagen}" class="chat-img">`;
         div.innerHTML = contenido;
 
-        // Solo el admin puede borrar
         if(isAdmin) {
             let timer;
             const borrarAccion = () => {
-                if(confirm("¿Borrar mensaje del canal?")) remove(ref(db, 'chats/' + data.key));
+                if(confirm("¿Eliminar este mensaje del canal?")) remove(ref(db, 'chats/' + data.key));
             };
             div.onmousedown = () => timer = setTimeout(borrarAccion, 800);
             div.onmouseup = () => clearTimeout(timer);
