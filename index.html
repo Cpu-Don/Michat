@@ -3,71 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat - Canal Oficial</title>
+    <title>Chat - Estilo Telegram</title>
     <style>
-        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background-color: #0b141a; margin: 0; display: flex; flex-direction: column; height: 100dvh; color: #e9edef; overflow: hidden; }
+        /* FONDO TIPO TELEGRAM VERDE CLARO */
+        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; color: #222; overflow: hidden; }
         
-        #header { background: #202c33; padding: 12px 15px; text-align: left; font-weight: bold; font-size: 18px; color: #e9edef; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 10; display: flex; align-items: center; gap: 10px; }
-        #header::before { content: "●"; color: #00a884; font-size: 20px; }
+        #header { background: #517da2; padding: 12px 15px; text-align: left; font-weight: bold; font-size: 18px; color: white; border-bottom: 1px solid rgba(0,0,0,0.1); z-index: 10; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #header::before { content: "☰"; font-size: 20px; cursor: pointer; margin-right: 5px; }
 
-        #stats-bar { background: #111b21; padding: 5px 15px; font-size: 11px; color: #8696a0; border-bottom: 1px solid #222d34; display: flex; justify-content: center; gap: 20px; }
+        #stats-bar { background: #fff; padding: 5px 15px; font-size: 11px; color: #517da2; border-bottom: 1px solid #c5d3c1; display: flex; justify-content: center; gap: 20px; font-weight: 500; }
 
-        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 4px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: #0b141a; background-blend-mode: overlay; background-attachment: fixed; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: soft-light; background-attachment: fixed; }
         
-        /* Burbuja Ultra Compacta Estilo WhatsApp */
+        /* BURBUJA ESTILO TELEGRAM (BLANCA Y COMPACTA) */
         .message { 
             max-width: 85%; 
-            width: fit-content; /* Se ajusta al tamaño del link/texto */
-            min-width: 60px;
-            padding: 4px 8px 4px 8px; 
-            border-radius: 8px; 
+            width: fit-content;
+            min-width: 70px;
+            padding: 6px 10px; 
+            border-radius: 12px; 
             font-size: 14.5px; 
-            background: #005c4b; 
-            align-self: flex-end; 
+            background: #ffffff; /* Blanco limpio de Telegram */
+            align-self: flex-start; /* Telegram suele alinear a la izquierda en canales */
             position: relative; 
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
             white-space: pre-line;
             margin-bottom: 2px;
-            border-top-right-radius: 0;
-            display: flex;
-            flex-direction: column;
+            color: #000;
         }
 
-        .message a { color: #53bdeb; text-decoration: none; word-break: break-all; }
+        /* Si quieres que TUS mensajes sigan saliendo a la derecha, mantén esta línea: */
+        .message { align-self: flex-end; border-bottom-right-radius: 2px; }
+
+        .message a { color: #0088cc; text-decoration: none; word-break: break-all; }
+        .message a:hover { text-decoration: underline; }
 
         .info-row { 
             display: flex; 
             justify-content: flex-end;
             align-items: center; 
-            gap: 4px; 
-            margin-top: 2px;
-            height: 12px;
+            gap: 5px; 
+            margin-top: 3px;
         }
 
-        .views-count, .time { font-size: 10px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+        .views-count, .time { font-size: 10px; color: #a2acb3; white-space: nowrap; font-weight: 400; }
 
-        /* Reacciones ultra pequeñas */
-        .reactions-bar { display: flex; gap: 4px; margin-top: 1px; align-self: flex-end; margin-right: 2px; margin-bottom: 8px; }
-        .reaction-btn { background: #202c33; border-radius: 10px; padding: 1px 5px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 2px; border: 1px solid rgba(255,255,255,0.1); }
-        .count { color: #8696a0; font-weight: bold; }
+        /* REACCIONES TELEGRAM STYLE */
+        .reactions-bar { display: flex; gap: 4px; margin-top: 2px; align-self: flex-end; margin-right: 2px; margin-bottom: 10px; }
+        .reaction-btn { background: rgba(255,255,255,0.8); border-radius: 15px; padding: 2px 7px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 3px; border: 1px solid #c5d3c1; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
+        .count { color: #517da2; font-weight: bold; }
 
-        .chat-img { max-width: 100%; border-radius: 5px; margin-bottom: 4px; cursor: pointer; display: block; }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; display: block; }
 
-        #input-area { background: #202c33; padding: 10px; display: none; gap: 10px; align-items: center; }
-        input[type="text"] { flex: 1; background: #2a3942; border: none; padding: 10px 15px; border-radius: 20px; color: white; outline: none; font-size: 15px; }
-        .btn { color: #8696a0; cursor: pointer; font-size: 22px; background: none; border: none; }
-        #btn-enviar { color: #00a884; }
+        #input-area { background: #fff; padding: 10px; display: none; gap: 10px; align-items: center; border-top: 1px solid #c5d3c1; }
+        input[type="text"] { flex: 1; background: #f4f4f5; border: 1px solid #e0e0e0; padding: 10px 15px; border-radius: 20px; color: #000; outline: none; font-size: 15px; }
+        .btn { color: #517da2; cursor: pointer; font-size: 22px; background: none; border: none; }
         
-        .footer-viewer { text-align: center; padding: 10px; font-size: 12px; color: #8696a0; background: #202c33; }
+        .footer-viewer { text-align: center; padding: 12px; font-size: 13px; color: #6d7882; background: #fff; border-top: 1px solid #e0e0e0; }
     </style>
 </head>
 <body>
 
-<div id="header" onclick="solicitarLogin()">Chat Oficial</div>
+<div id="header" onclick="solicitarLogin()">Canal Oficial</div>
 
 <div id="stats-bar">
     <div class="stat-item">🟢 <span id="online-count">Activos: 0</span></div>
-    <div class="stat-item">👁️ <span id="total-visits">Visitas: 0</span></div>
+    <div class="stat-item">👥 <span id="total-visits">Visitas: 0</span></div>
 </div>
 
 <div id="chat-container"></div>
@@ -75,10 +76,10 @@
 <div id="input-area">
     <label for="file-input" class="btn">📎</label>
     <input type="file" id="file-input" accept="image/*" style="display:none">
-    <input type="text" id="texto" placeholder="Escribe un mensaje">
+    <input type="text" id="texto" placeholder="Escribe un mensaje...">
     <button id="btn-enviar" class="btn">➤</button>
 </div>
-<div id="viewer-bar" class="footer-viewer">Solo administrador puede escribir</div>
+<div id="viewer-bar" class="footer-viewer">Solo el administrador puede publicar en este canal</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -103,7 +104,7 @@
     const container = document.getElementById('chat-container');
 
     let usuarioLogueado = null;
-    let vistosGlobal = JSON.parse(localStorage.getItem('m_vistos') || "[]");
+    let vistosGlobal = JSON.parse(localStorage.getItem('m_vistos_v2') || "[]");
 
     // --- PRESENCIA ---
     const onlineListRef = ref(db, "presencia/conexiones_activas");
@@ -112,9 +113,9 @@
             const conRef = push(onlineListRef);
             onDisconnect(conRef).remove();
             set(conRef, { online: true });
-            if (!localStorage.getItem('v_reg')) {
+            if (!localStorage.getItem('v_reg_v2')) {
                 runTransaction(ref(db, "presencia/historico"), (c) => (c || 0) + 1);
-                localStorage.setItem('v_reg', 't');
+                localStorage.setItem('v_reg_v2', 't');
             }
         }
     });
@@ -125,7 +126,7 @@
 
     window.solicitarLogin = () => {
         if (usuarioLogueado) { if(confirm("¿Cerrar sesión?")) signOut(auth).then(() => location.reload()); return; }
-        const e = prompt("Email:"), p = prompt("Pass:");
+        const e = prompt("Email Admin:"), p = prompt("Password:");
         if(e && p) signInWithEmailAndPassword(auth, e, p).then(() => location.reload());
     };
 
@@ -152,7 +153,7 @@
     };
 
     window.reaccionar = (id, em) => {
-        const k = `voted_${id}`; if (localStorage.getItem(k)) return;
+        const k = `voted_v2_${id}`; if (localStorage.getItem(k)) return;
         runTransaction(ref(db, `chats/${id}/reacciones/${em}`), (c) => (c || 0) + 1).then(() => localStorage.setItem(k, "t"));
     };
 
@@ -161,7 +162,7 @@
         if (!vistosGlobal.includes(id)) {
             update(ref(db, `chats/${id}`), { vistas: increment(1) });
             vistosGlobal.push(id);
-            localStorage.setItem('m_vistos', JSON.stringify(vistosGlobal));
+            localStorage.setItem('m_vistos_v2', JSON.stringify(vistosGlobal));
         }
 
         const divMsg = document.createElement('div');
