@@ -13,6 +13,13 @@
         .message a { color: #0088cc; text-decoration: none; font-weight: bold; word-break: break-all; }
         .time { display: block; text-align: right; font-size: 9px; color: #a2acb3; margin-top: 4px; }
         .btn-del { color: red; border: none; background: none; cursor: pointer; font-size: 14px; float: right; display: none; margin-left: 10px; }
+        
+        /* Estilos de Reacciones */
+        .reactions { display: flex; gap: 10px; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 5px; }
+        .reac-btn { cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 3px; background: #f8f9fa; border-radius: 10px; padding: 2px 6px; border: 1px solid #eee; transition: 0.2s; }
+        .reac-btn:hover { background: #e9ecef; }
+        .reac-count { font-size: 11px; color: #666; font-weight: bold; }
+
         #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
         .input-row { display: flex; gap: 8px; }
         #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; outline: none; font-size: 13px; }
@@ -31,11 +38,11 @@
             <button id="btn">➤</button>
         </div>
     </div>
-    <div class="notice">Máximo 20 palabras. Los links son opcionales.</div>
+    <div class="notice">Máximo 20 palabras. Haz clic en el título para Admin.</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, remove, onChildRemoved, serverTimestamp, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, remove, onChildRemoved, serverTimestamp, query, orderByChild, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -55,9 +62,7 @@
         const email = prompt("Email de Admin:");
         const pass = prompt("Contraseña:");
         if (email && pass) {
-            signInWithEmailAndPassword(auth, email, pass)
-                .then(() => alert("Sesión iniciada como Admin"))
-                .catch(() => alert("Credenciales incorrectas"));
+            signInWithEmailAndPassword(auth, email, pass).catch(() => alert("Error"));
         }
     };
 
@@ -77,31 +82,24 @@
     document.getElementById('btn').onclick = async () => {
         const n = document.getElementById('nombre').value.trim();
         const t = document.getElementById('texto').value.trim();
-        
-        if (!n || !t) return alert("Escribe tu nombre y un mensaje.");
-        
-        // Contar palabras
-        const palabras = t.split(/\s+/).filter(p => p.length > 0);
-        if (palabras.length > 20) return alert("⚠️ El mensaje es muy largo (máximo 20 palabras).");
+        if (!n || !t) return;
+        if (t.split(/\s+/).length > 20) return alert("Máximo 20 palabras");
 
         document.getElementById('texto').disabled = true;
-        
-        // Detectar si hay link para acortarlo
         const urlMatch = t.match(/(https?:\/\/[^\s]+)/);
-        let mensajeFinal = t;
-        
+        let msgFinal = t;
         if (urlMatch) {
             const corto = await acortar(urlMatch[0]);
-            mensajeFinal = t.replace(urlMatch[0], corto);
+            msgFinal = t.replace(urlMatch[0], corto);
         }
 
         push(ref(db, 'chats/'), {
-            usuario: isAdmin ? "👑 Admin" : n,
-            mensaje: mensajeFinal,
+            usuario: isAdmin ? "Chat" : n,
+            mensaje: msgFinal,
             timestamp: serverTimestamp(),
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+            reacciones: { love: 0, like: 0, sad: 0 }
         });
-        
         document.getElementById('texto').value = "";
         document.getElementById('texto').disabled = false;
     };
@@ -111,17 +109,36 @@
         const div = document.createElement('div');
         div.className = 'message';
         div.id = s.key;
-        const btnHtml = `<button class="btn-del" onclick="window.borrar('${s.key}')" style="display:${isAdmin?'block':'none'}">🗑️</button>`;
         
-        div.innerHTML = `${btnHtml}
-                         <span class="user-name">${m.usuario}</span>
-                         <div>${m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')}</div>
-                         <span class="time">${m.time}</span>`;
+        div.innerHTML = `
+            <button class="btn-del" onclick="window.borrar('${s.key}')" style="display:${isAdmin?'block':'none'}">🗑️</button>
+            <span class="user-name">${m.usuario}</span>
+            <div>${m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')}</div>
+            <div class="reactions">
+                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'love')">❤️ <span id="count-love-${s.key}" class="reac-count">${m.reacciones?.love || 0}</span></div>
+                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'like')">👍 <span id="count-like-${s.key}" class="reac-count">${m.reacciones?.like || 0}</span></div>
+                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'sad')">🥲 <span id="count-sad-${s.key}" class="reac-count">${m.reacciones?.sad || 0}</span></div>
+            </div>
+            <span class="time">${m.time}</span>`;
         document.getElementById('chat-container').appendChild(div);
         document.getElementById('chat-container').scrollTo(0, 99999);
     });
 
-    window.borrar = (id) => { if(confirm("¿Eliminar mensaje?")) remove(ref(db, 'chats/'+id)); };
+    window.reaccionar = (msgId, tipo) => {
+        const storageKey = `reac_${msgId}`;
+        if (localStorage.getItem(storageKey)) return alert("Ya reaccionaste a este mensaje");
+
+        const reacRef = ref(db, `chats/${msgId}/reacciones/${tipo}`);
+        runTransaction(reacRef, (currentCount) => {
+            return (currentCount || 0) + 1;
+        }).then(() => {
+            localStorage.setItem(storageKey, "true");
+            const countSpan = document.getElementById(`count-${tipo}-${msgId}`);
+            countSpan.innerText = parseInt(countSpan.innerText) + 1;
+        });
+    };
+
+    window.borrar = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, 'chats/'+id)); };
     onChildRemoved(ref(db, 'chats/'), (s) => document.getElementById(s.key)?.remove());
 </script>
 </body>
