@@ -14,44 +14,44 @@
 
         #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 4px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: #0b141a; background-blend-mode: overlay; background-attachment: fixed; }
         
-        /* Burbuja Estilo WhatsApp */
+        /* Burbuja Ultra Compacta Estilo WhatsApp */
         .message { 
             max-width: 85%; 
-            padding: 6px 10px 8px 10px; 
+            width: fit-content; /* Se ajusta al tamaño del link/texto */
+            min-width: 60px;
+            padding: 4px 8px 4px 8px; 
             border-radius: 8px; 
             font-size: 14.5px; 
-            background: #005c4b; /* Verde WhatsApp */
+            background: #005c4b; 
             align-self: flex-end; 
             position: relative; 
             box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); 
             white-space: pre-line;
             margin-bottom: 2px;
-            border-top-right-radius: 0; /* Efecto colita */
+            border-top-right-radius: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .message a { color: #53bdeb; text-decoration: none; word-break: break-all; }
-        .message a:hover { text-decoration: underline; }
 
         .info-row { 
-            display: inline-flex; 
-            float: right; 
-            margin-left: 8px; 
-            margin-top: 4px; 
-            gap: 4px; 
+            display: flex; 
+            justify-content: flex-end;
             align-items: center; 
-            vertical-align: bottom;
-            position: relative;
-            bottom: -4px;
+            gap: 4px; 
+            margin-top: 2px;
+            height: 12px;
         }
 
-        .views-count, .time { font-size: 11px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+        .views-count, .time { font-size: 10px; color: rgba(255,255,255,0.5); white-space: nowrap; }
 
-        /* Reacciones compactas debajo de la burbuja */
-        .reactions-bar { display: flex; gap: 5px; margin-top: 2px; align-self: flex-end; margin-right: 5px; margin-bottom: 10px; }
-        .reaction-btn { background: #202c33; border: 1px solid #3b4a54; border-radius: 12px; padding: 2px 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 3px; }
-        .count { color: #8696a0; }
+        /* Reacciones ultra pequeñas */
+        .reactions-bar { display: flex; gap: 4px; margin-top: 1px; align-self: flex-end; margin-right: 2px; margin-bottom: 8px; }
+        .reaction-btn { background: #202c33; border-radius: 10px; padding: 1px 5px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 2px; border: 1px solid rgba(255,255,255,0.1); }
+        .count { color: #8696a0; font-weight: bold; }
 
-        .chat-img { max-width: 100%; border-radius: 6px; margin: 2px 0; cursor: pointer; display: block; }
+        .chat-img { max-width: 100%; border-radius: 5px; margin-bottom: 4px; cursor: pointer; display: block; }
 
         #input-area { background: #202c33; padding: 10px; display: none; gap: 10px; align-items: center; }
         input[type="text"] { flex: 1; background: #2a3942; border: none; padding: 10px 15px; border-radius: 20px; color: white; outline: none; font-size: 15px; }
@@ -78,7 +78,7 @@
     <input type="text" id="texto" placeholder="Escribe un mensaje">
     <button id="btn-enviar" class="btn">➤</button>
 </div>
-<div id="viewer-bar" class="footer-viewer">Solo el administrador puede enviar mensajes</div>
+<div id="viewer-bar" class="footer-viewer">Solo administrador puede escribir</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -103,7 +103,7 @@
     const container = document.getElementById('chat-container');
 
     let usuarioLogueado = null;
-    let vistosGlobal = JSON.parse(localStorage.getItem('mensajes_leidos') || "[]");
+    let vistosGlobal = JSON.parse(localStorage.getItem('m_vistos') || "[]");
 
     // --- PRESENCIA ---
     const onlineListRef = ref(db, "presencia/conexiones_activas");
@@ -125,8 +125,8 @@
 
     window.solicitarLogin = () => {
         if (usuarioLogueado) { if(confirm("¿Cerrar sesión?")) signOut(auth).then(() => location.reload()); return; }
-        const e = prompt("Admin Email:"), p = prompt("Password:");
-        if(e && p) signInWithEmailAndPassword(auth, e, p).then(() => location.reload()).catch(a => alert(a.message));
+        const e = prompt("Email:"), p = prompt("Pass:");
+        if(e && p) signInWithEmailAndPassword(auth, e, p).then(() => location.reload());
     };
 
     onAuthStateChanged(auth, (u) => { 
@@ -161,7 +161,7 @@
         if (!vistosGlobal.includes(id)) {
             update(ref(db, `chats/${id}`), { vistas: increment(1) });
             vistosGlobal.push(id);
-            localStorage.setItem('mensajes_leidos', JSON.stringify(vistosGlobal));
+            localStorage.setItem('m_vistos', JSON.stringify(vistosGlobal));
         }
 
         const divMsg = document.createElement('div');
