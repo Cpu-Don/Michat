@@ -6,23 +6,16 @@
     <title>Chat - Canal Privado</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0e1621; margin: 0; display: flex; flex-direction: column; height: 100vh; color: white; overflow: hidden; }
-        /* Título CHAT en Mayúsculas y Morado */
-        #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; border-bottom: 2px solid #8e44ad; color: #a29bfe; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        
+        #header { background: #17212b; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; border-bottom: 2px solid #8e44ad; color: #a29bfe; }
         #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
-        .message { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 15px; position: relative; background: #182533; align-self: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        .admin-msg { background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; }
-        
-        /* Nombre de usuario: CHAT */
+        .message { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; }
         .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; }
         .chat-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
-        
         #input-area { background: #17212b; padding: 15px; display: none; gap: 10px; align-items: center; }
         input[type="text"] { flex: 1; background: #242f3d; border: none; padding: 12px; border-radius: 8px; color: white; outline: none; }
         .btn { background: transparent; border: none; color: #a29bfe; font-weight: bold; cursor: pointer; font-size: 20px; }
         #file-input { display: none; }
-        
-        .footer-viewer { text-align: center; padding: 12px; font-size: 13px; color: #546e7a; background: #17212b; border-top: 1px solid #000; }
+        .footer-viewer { text-align: center; padding: 12px; font-size: 13px; color: #546e7a; background: #17212b; }
     </style>
 </head>
 <body>
@@ -33,11 +26,10 @@
 <div id="input-area">
     <label for="file-input" class="btn">📎</label>
     <input type="file" id="file-input" accept="image/*">
-    <input type="text" id="texto" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviar()">
-    <button class="btn" onclick="enviar()">➤</button>
+    <input type="text" id="texto" placeholder="Escribe un mensaje...">
+    <button class="btn" id="btn-enviar">➤</button>
 </div>
-
-<div id="viewer-bar" class="footer-viewer">Canal de solo lectura</div>
+<div id="viewer-bar" class="footer-viewer">Modo Observador</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -59,67 +51,71 @@
     const storage = getStorage(app);
     const container = document.getElementById('chat-container');
 
+    // CONFIGURACIÓN DE ACCESO
+    const MI_LLAVE = "120622toto"; // <--- ASEGÚRATE QUE SEA ESTA
     let isAdmin = false;
-    const LLAVE_MAESTRA = "1234"; // Recuerda cambiar tu contraseña aquí
 
-    window.onload = () => {
-        const pass = prompt("Introduce la llave de administrador para publicar:");
-        if(pass === LLAVE_MAESTRA) {
+    // Preguntar clave al cargar
+    const login = () => {
+        const pass = prompt("Introduce la clave:");
+        if (pass === MI_LLAVE) {
             isAdmin = true;
             document.getElementById('input-area').style.display = 'flex';
             document.getElementById('viewer-bar').style.display = 'none';
+            alert("Acceso concedido como Administrador");
+        } else if (pass !== null) {
+            alert("Clave incorrecta. Entrando como observador.");
         }
     };
+    login();
 
-    window.enviar = function() {
-        if(!isAdmin) return;
+    // Función enviar
+    const enviarMensaje = () => {
         const input = document.getElementById('texto');
-        if(input.value.trim() == "") return;
-        push(ref(db, 'chats/'), { usuario: "Chat", mensaje: input.value, timestamp: Date.now() });
-        input.value = '';
+        if(!input.value.trim()) return;
+        push(ref(db, 'chats/'), { usuario: "Chat", mensaje: input.value, timestamp: Date.now() })
+            .then(() => input.value = '')
+            .catch(err => alert("Error al enviar: " + err.message));
     };
 
+    document.getElementById('btn-enviar').onclick = enviarMensaje;
+    document.getElementById('texto').onkeypress = (e) => { if(e.key === 'Enter') enviarMensaje(); };
+
+    // Subir fotos
     document.getElementById('file-input').onchange = async (e) => {
-        if(!isAdmin) return;
         const file = e.target.files[0];
-        if (!file) return;
-        const storageRef = sRef(storage, 'fotos/' + Date.now() + "_" + file.name);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        push(ref(db, 'chats/'), { usuario: "Chat", imagen: url, timestamp: Date.now() });
+        if (!file || !isAdmin) return;
+        try {
+            const storageRef = sRef(storage, 'fotos/' + Date.now());
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            push(ref(db, 'chats/'), { usuario: "Chat", imagen: url, timestamp: Date.now() });
+        } catch (err) { alert("Error con la foto: " + err.message); }
     };
 
+    // Mostrar mensajes
     onChildAdded(ref(db, 'chats/'), (data) => {
         const msg = data.val();
         const div = document.createElement('div');
         div.id = data.key;
-        div.className = `message admin-msg`;
-        
-        let contenido = `<div class="user-name">Chat</div>`;
-        if(msg.mensaje) contenido += `<div>${msg.mensaje}</div>`;
-        if(msg.imagen) contenido += `<img src="${msg.imagen}" class="chat-img">`;
-        div.innerHTML = contenido;
+        div.className = 'message';
+        div.innerHTML = `<div class="user-name">Chat</div>${msg.mensaje ? `<div>${msg.mensaje}</div>` : ''}${msg.imagen ? `<img src="${msg.imagen}" class="chat-img">` : ''}`;
 
+        // Borrar con click largo
         if(isAdmin) {
-            let timer;
-            const borrarAccion = () => {
-                if(confirm("¿Eliminar este mensaje del canal?")) remove(ref(db, 'chats/' + data.key));
-            };
-            div.onmousedown = () => timer = setTimeout(borrarAccion, 800);
-            div.onmouseup = () => clearTimeout(timer);
-            div.ontouchstart = () => timer = setTimeout(borrarAccion, 800);
-            div.ontouchend = () => clearTimeout(timer);
+            let t;
+            div.onmousedown = div.ontouchstart = () => t = setTimeout(() => {
+                if(confirm("¿Borrar mensaje?")) remove(ref(db, 'chats/' + data.key));
+            }, 800);
+            div.onmouseup = div.ontouchend = () => clearTimeout(t);
         }
-
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     });
 
     onChildRemoved(ref(db, 'chats/'), (data) => {
-        const el = document.getElementById(data.key);
-        if(el) el.remove();
+        document.getElementById(data.key)?.remove();
     });
 </script>
-
 </body>
 </html>
