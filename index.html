@@ -13,7 +13,8 @@
 
         #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; -webkit-overflow-scrolling: touch; }
         
-        .message { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; user-select: none; word-wrap: break-word; white-space: pre-wrap; } /* white-space mantiene el orden de los párrafos */
+        .message { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); position: relative; user-select: none; word-wrap: break-word; white-space: pre-line; } 
+        .message div { margin: 0; padding: 0; }
         .user-name { font-size: 11px; font-weight: bold; color: #b388ff; margin-bottom: 4px; text-transform: uppercase; }
         .time-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
         .views-count { font-size: 10px; color: #85a5c2; }
@@ -140,12 +141,13 @@
 
     const enviarMsg = () => {
         const input = document.getElementById('texto');
-        if(!input.value.trim() || !usuarioLogueado) return;
+        const textoLimpio = input.value.trim(); 
+        if(!textoLimpio || !usuarioLogueado) return;
         push(ref(db, 'chats/'), { 
             usuario: "Chat", 
-            mensaje: input.value, 
+            mensaje: textoLimpio, 
             vistas: 0,
-            timestamp: serverTimestamp(), // Orden exacto del servidor
+            timestamp: serverTimestamp(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
         });
         input.value = '';
@@ -176,7 +178,6 @@
             .then(() => localStorage.setItem(voteKey, "true"));
     };
 
-    // USAMOS QUERY PARA ORDENAR POR TIMESTAMP
     const chatQuery = query(ref(db, 'chats/'), orderByChild('timestamp'));
 
     onChildAdded(chatQuery, (data) => {
