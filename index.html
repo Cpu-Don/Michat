@@ -13,19 +13,14 @@
         .message a { color: #0088cc; text-decoration: none; font-weight: bold; word-break: break-all; }
         .time { display: block; text-align: right; font-size: 9px; color: #a2acb3; margin-top: 4px; }
         .btn-del { color: red; border: none; background: none; cursor: pointer; font-size: 14px; float: right; display: none; margin-left: 10px; }
-        
-        /* Estilos de Reacciones */
-        .reactions { display: flex; gap: 10px; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 5px; }
-        .reac-btn { cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 3px; background: #f8f9fa; border-radius: 10px; padding: 2px 6px; border: 1px solid #eee; transition: 0.2s; }
-        .reac-btn:hover { background: #e9ecef; }
-        .reac-count { font-size: 11px; color: #666; font-weight: bold; }
-
+        .reactions { display: flex; gap: 8px; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 5px; }
+        .reac-btn { cursor: pointer; font-size: 15px; display: flex; align-items: center; gap: 3px; background: #fdfdfd; border-radius: 8px; padding: 2px 5px; border: 1px solid #eee; }
         #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
         .input-row { display: flex; gap: 8px; }
         #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; outline: none; font-size: 13px; }
         #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; outline: none; font-size: 13px; }
         button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
-        .notice { font-size: 10px; text-align: center; padding: 4px; color: #666; background: #f0f0f0; }
+        .notice { font-size: 10px; text-align: center; color: #666; background: #f0f0f0; padding: 2px; }
     </style>
 </head>
 <body>
@@ -34,11 +29,11 @@
     <div id="input-area">
         <div class="input-row">
             <input type="text" id="nombre" placeholder="Nombre">
-            <input type="text" id="texto" placeholder="Mensaje (máx 20 palabras)...">
+            <input type="text" id="texto" placeholder="Mensaje (20 pal.) + Link opcional">
             <button id="btn">➤</button>
         </div>
     </div>
-    <div class="notice">Máximo 20 palabras. Haz clic en el título para Admin.</div>
+    <div class="notice">Permitidos: Videy, Mega, Mediafire, Drive, Terabox.</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -57,13 +52,12 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
     let isAdmin = false;
+    const API_CUTY = "415c3efe17212860052c31f12";
+    const permitidos = ["videy.co", "mediafire.com", "mega.nz", "drive.google.com", "terabox.com"];
 
     window.loginAdmin = () => {
-        const email = prompt("Email de Admin:");
-        const pass = prompt("Contraseña:");
-        if (email && pass) {
-            signInWithEmailAndPassword(auth, email, pass).catch(() => alert("Error"));
-        }
+        const e = prompt("Email:"); const p = prompt("Pass:");
+        if (e && p) signInWithEmailAndPassword(auth, e, p).catch(() => alert("Error"));
     };
 
     onAuthStateChanged(auth, (user) => {
@@ -73,7 +67,7 @@
 
     const acortar = async (u) => {
         try {
-            const res = await fetch(`https://cuty.io/api?api=415c3efe17212860052c31f12&url=${encodeURIComponent(u)}`);
+            const res = await fetch(`https://cuty.io/api?api=${API_CUTY}&url=${encodeURIComponent(u)}`);
             const data = await res.json();
             return data.status === "success" ? data.shortenedUrl : u;
         } catch { return u; }
@@ -85,10 +79,13 @@
         if (!n || !t) return;
         if (t.split(/\s+/).length > 20) return alert("Máximo 20 palabras");
 
-        document.getElementById('texto').disabled = true;
         const urlMatch = t.match(/(https?:\/\/[^\s]+)/);
         let msgFinal = t;
+
         if (urlMatch) {
+            const url = urlMatch[0].toLowerCase();
+            if (!permitidos.some(p => url.includes(p))) return alert("Servidor no permitido");
+            document.getElementById('texto').disabled = true;
             const corto = await acortar(urlMatch[0]);
             msgFinal = t.replace(urlMatch[0], corto);
         }
@@ -107,38 +104,28 @@
     onChildAdded(query(ref(db, 'chats/'), orderByChild('timestamp')), (s) => {
         const m = s.val();
         const div = document.createElement('div');
-        div.className = 'message';
-        div.id = s.key;
-        
+        div.className = 'message'; div.id = s.key;
         div.innerHTML = `
             <button class="btn-del" onclick="window.borrar('${s.key}')" style="display:${isAdmin?'block':'none'}">🗑️</button>
             <span class="user-name">${m.usuario}</span>
             <div>${m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')}</div>
             <div class="reactions">
-                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'love')">❤️ <span id="count-love-${s.key}" class="reac-count">${m.reacciones?.love || 0}</span></div>
-                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'like')">👍 <span id="count-like-${s.key}" class="reac-count">${m.reacciones?.like || 0}</span></div>
-                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'sad')">🥲 <span id="count-sad-${s.key}" class="reac-count">${m.reacciones?.sad || 0}</span></div>
+                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'love')">❤️ <span id="count-love-${s.key}">${m.reacciones?.love || 0}</span></div>
+                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'like')">👍 <span id="count-like-${s.key}">${m.reacciones?.like || 0}</span></div>
+                <div class="reac-btn" onclick="window.reaccionar('${s.key}', 'sad')">🥲 <span id="count-sad-${s.key}">${m.reacciones?.sad || 0}</span></div>
             </div>
             <span class="time">${m.time}</span>`;
         document.getElementById('chat-container').appendChild(div);
         document.getElementById('chat-container').scrollTo(0, 99999);
     });
 
-    window.reaccionar = (msgId, tipo) => {
-        const storageKey = `reac_${msgId}`;
-        if (localStorage.getItem(storageKey)) return alert("Ya reaccionaste a este mensaje");
-
-        const reacRef = ref(db, `chats/${msgId}/reacciones/${tipo}`);
-        runTransaction(reacRef, (currentCount) => {
-            return (currentCount || 0) + 1;
-        }).then(() => {
-            localStorage.setItem(storageKey, "true");
-            const countSpan = document.getElementById(`count-${tipo}-${msgId}`);
-            countSpan.innerText = parseInt(countSpan.innerText) + 1;
-        });
+    window.reaccionar = (id, tipo) => {
+        if (localStorage.getItem('reac_'+id)) return alert("Solo una reacción");
+        runTransaction(ref(db, `chats/${id}/reacciones/${tipo}`), (c) => (c || 0) + 1)
+        .then(() => { localStorage.setItem('reac_'+id, "t"); location.reload(); });
     };
 
-    window.borrar = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, 'chats/'+id)); };
+    window.borrar = (id) => { if(confirm("¿Borrar?")) remove(ref(db, 'chats/'+id)); };
     onChildRemoved(ref(db, 'chats/'), (s) => document.getElementById(s.key)?.remove());
 </script>
 </body>
