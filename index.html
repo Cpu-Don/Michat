@@ -7,24 +7,33 @@
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
         #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.4; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        
+        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.4; position: relative; }
+        .user-name { display: block; font-weight: bold; color: #075e54; font-size: 12px; margin-bottom: 2px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
         .message a { color: #0088cc; text-decoration: none; font-weight: bold; word-break: break-all; }
-        .time { display: block; text-align: right; font-size: 10px; color: #a2acb3; margin-top: 4px; }
-        #input-area { background: white; padding: 10px; display: flex; gap: 8px; border-top: 1px solid #ccc; }
-        input { flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 20px; outline: none; }
-        button { background: none; border: none; color: #517da2; font-size: 20px; cursor: pointer; }
+        .time { display: block; text-align: right; font-size: 9px; color: #a2acb3; margin-top: 4px; }
+
+        #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
+        .input-row { display: flex; gap: 8px; }
+        #nombre { width: 100px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; outline: none; font-size: 13px; background: #f9f9f9; }
+        #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; outline: none; font-size: 13px; }
+        button { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; padding: 0 5px; }
         .notice { font-size: 10px; text-align: center; padding: 4px; color: #666; background: #eee; }
     </style>
 </head>
 <body>
     <div id="header">Chat Contenido</div>
     <div id="chat-container"></div>
+    
     <div id="input-area">
-        <input type="text" id="texto" placeholder="Mensaje (máx 15 palabras) + Link...">
-        <button id="btn">➤</button>
+        <div class="input-row">
+            <input type="text" id="nombre" placeholder="Tu nombre..." maxlength="15">
+            <input type="text" id="texto" placeholder="Mensaje + Link...">
+            <button id="btn">➤</button>
+        </div>
     </div>
-    <div class="notice">Solo links permitidos (Videy, Mega, etc.)</div>
+    <div class="notice">Máx 15 palabras. Solo links de Videy, Mega, Mediafire, Drive, Terabox.</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -52,27 +61,33 @@
     };
 
     const enviar = async () => {
-        const input = document.getElementById('texto');
-        const txt = input.value.trim();
+        const inputNombre = document.getElementById('nombre');
+        const inputTexto = document.getElementById('texto');
+        const nombre = inputNombre.value.trim();
+        const txt = inputTexto.value.trim();
         const urlMatch = txt.match(/(https?:\/\/[^\s]+)/);
 
-        if (!urlMatch) return alert("⚠️ Pega un link válido.");
+        if (!nombre) return alert("⚠️ Por favor, escribe tu nombre.");
+        if (!urlMatch) return alert("⚠️ Debes incluir un link válido.");
         
         const textoSinLink = txt.replace(urlMatch[0], "").trim();
-        if (textoSinLink.split(/\s+/).filter(p => p).length > 15) return alert("⚠️ Máximo 15 palabras.");
+        if (textoSinLink.split(/\s+/).filter(p => p).length > 15) return alert("⚠️ El mensaje es muy largo (máx 15 palabras).");
 
-        if (!permitidos.some(p => urlMatch[0].includes(p))) return alert("❌ Servidor no permitido.");
+        if (!permitidos.some(p => urlMatch[0].toLowerCase().includes(p))) return alert("❌ Este servidor de video no está permitido.");
 
-        input.disabled = true;
+        inputTexto.disabled = true;
         const corto = await acortar(urlMatch[0]);
         const msgFinal = txt.replace(urlMatch[0], corto);
 
         push(ref(db, 'chats/'), {
+            usuario: nombre,
             mensaje: msgFinal,
             timestamp: serverTimestamp(),
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
         });
-        input.value = ""; input.disabled = false;
+        
+        inputTexto.value = ""; 
+        inputTexto.disabled = false;
     };
 
     document.getElementById('btn').onclick = enviar;
@@ -81,7 +96,12 @@
         const m = s.val();
         const div = document.createElement('div');
         div.className = 'message';
-        div.innerHTML = m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>') + `<span class="time">${m.time}</span>`;
+        const msgFormateado = m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        
+        div.innerHTML = `<span class="user-name">${m.usuario || 'Anónimo'}</span>
+                         <div>${msgFormateado}</div>
+                         <span class="time">${m.time}</span>`;
+                         
         document.getElementById('chat-container').appendChild(div);
         document.getElementById('chat-container').scrollTo(0, 99999);
     });
