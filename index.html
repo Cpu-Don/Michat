@@ -1,1 +1,49 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi Chat Maestro</title>
+</head>
+<body>
+    <h2>Bienvenido al Chat, Alexander</h2>
+    <div id="mensajes"></div>
+    <input type="text" id="texto" placeholder="Escribe un mensaje...">
+    <button onclick="enviar()">Enviar</button>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+      // TUS LLAVES QUE ME PASASTE
+      const firebaseConfig = {
+        apiKey: "AIzaSyB2GH_bFRmRwhqtaBb3ll_9eNEMXj7RuMo",
+        authDomain: "micanalmaestro.firebaseapp.com",
+        databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com",
+        projectId: "micanalmaestro",
+        storageBucket: "micanalmaestro.firebasestorage.app",
+        messagingSenderId: "682263671302",
+        appId: "1:682263671302:web:dcf8f4303d2c3f5d704987"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      // Función para enviar mensajes
+      window.enviar = function() {
+        const input = document.getElementById('texto');
+        push(ref(db, 'chats/'), {
+          usuario: "Alexander",
+          mensaje: input.value
+        });
+        input.value = '';
+      };
+
+      // Escuchar mensajes nuevos
+      onChildAdded(ref(db, 'chats/'), (data) => {
+        const p = document.createElement('p');
+        p.innerText = data.val().usuario + ": " + data.val().mensaje;
+        document.getElementById('mensajes').appendChild(p);
+      });
+    </script>
+</body>
+</html>
