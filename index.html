@@ -76,24 +76,20 @@
     const container = document.getElementById('chat-container');
 
     let usuarioLogueado = null;
+    // Lista local de mensajes vistos por esta persona
+    let vistosGlobal = JSON.parse(localStorage.getItem('mensajes_leidos') || "[]");
 
-    // --- LÓGICA DE PRESENCIA EXACTA (SUMA Y RESTA) ---
+    // --- LÓGICA DE PRESENCIA EXACTA ---
     const connectedRef = ref(db, ".info/connected");
-    const totalRef = ref(db, "presencia/historico");
     const onlineListRef = ref(db, "presencia/conexiones_activas");
+    const totalRef = ref(db, "presencia/historico");
 
     onValue(connectedRef, (snap) => {
         if (snap.val() === true) {
-            // Crear una referencia única para esta sesión de usuario
             const conRef = push(onlineListRef);
-
-            // Cuando el usuario se desconecta, borrar esta referencia automáticamente
             onDisconnect(conRef).remove();
-
-            // Marcar como conectado con el tiempo actual
             set(conRef, { last_online: Date.now() });
             
-            // Visitas Históricas (Solo una vez por navegador)
             if (!localStorage.getItem('visita_registrada')) {
                 runTransaction(totalRef, (curr) => (curr || 0) + 1);
                 localStorage.setItem('visita_registrada', 'true');
@@ -101,13 +97,11 @@
         }
     });
 
-    // Escuchar cambios en la lista de conexiones para actualizar el contador real
     onValue(onlineListRef, (snapshot) => {
         const count = snapshot.numChildren();
         document.getElementById('online-count').innerText = `Activos: ${count}`;
     });
 
-    // Escuchar histórico
     onValue(totalRef, (snap) => {
         document.getElementById('total-visits').innerText = `Visitas totales: ${snap.val() || 0}`;
     });
@@ -189,7 +183,12 @@
         const msg = data.val();
         const msgId = data.key;
 
-        update(ref(db, `chats/${msgId}`), { vistas: increment(1) });
+        // LÓGICA DE VISTAS ÚNICAS POR PERSONA
+        if (!vistosGlobal.includes(msgId)) {
+            update(ref(db, `chats/${msgId}`), { vistas: increment(1) });
+            vistosGlobal.push(msgId);
+            localStorage.setItem('mensajes_leidos', JSON.stringify(vistosGlobal));
+        }
 
         const div = document.createElement('div');
         div.id = msgId;
