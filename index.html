@@ -50,7 +50,6 @@
         #user-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; margin-top: 10px; }
         #user-list li { padding: 8px; border-bottom: 1px solid #eee; color: #075e54; font-weight: bold; font-size: 14px; }
         
-        /* Estilo para los links acortados */
         .chat-link { color: #007bff; text-decoration: underline; font-weight: bold; }
     </style>
 </head>
@@ -84,10 +83,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:#517da2; text-align:center;">📜 Reglas del Chat</h3>
             <p style="font-size: 14px; color: #333; line-height: 1.6;">
-                Reglas solo son permitidos links de contenido <b>MP4</b> al públicar los links permitidos se le serán acortado con <b>cuty</b>, de igual modo al pasar la publicidad llegarán al contenido esperado.
-            </p>
-            <p style="font-size: 12px; color: #666; text-align: center;">
-                (Videy, Mega, Mediafire, Drive, Terabox)
+                Reglas solo son permitidos links de contenido <b>MP4</b>. Al publicar links de <b>Mega, Telegram o Signal</b> serán acortados con Cuty.
             </p>
             <hr style="border:0; border-top:1px solid #eee;">
             <button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR GRUPO</button>
@@ -107,7 +103,7 @@
     <div id="input-area">
         <div class="input-row">
             <input type="text" id="nombre" placeholder="Apodo" readonly>
-            <input type="text" id="texto" placeholder="Mensaje o Link MP4...">
+            <input type="text" id="texto" placeholder="Mensaje o Link...">
             <button id="btn" onclick="enviarMensaje()">➤</button>
         </div>
     </div>
@@ -129,11 +125,15 @@
         let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
-        // Función para acortar links automáticamente
-        function acortarSiEsLink(texto) {
+        function filtrarYAcortar(texto) {
             const regex = /(https?:\/\/[^\s]+)/g;
             return texto.replace(regex, (url) => {
-                return `<a href="https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}" target="_blank" class="chat-link">Contenido Link</a>`;
+                const linkLcase = url.toLowerCase();
+                if (linkLcase.includes("mega.nz") || linkLcase.includes("t.me") || linkLcase.includes("telegram.me") || linkLcase.includes("signal.group") || linkLcase.includes("signal.org")) {
+                    return `<a href="https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}" target="_blank" class="chat-link">Contenido Link</a>`;
+                } else {
+                    return `<a href="${url}" target="_blank" style="color: #075e54;">${url}</a>`;
+                }
             });
         }
 
@@ -178,8 +178,7 @@
             let nom = document.getElementById('nombre').value;
             if (rawTxt === "" || !nom) return;
             if (esAdmin) nom = "Chat";
-
-            const textoProcesado = acortarSiEsLink(rawTxt);
+            const textoProcesado = filtrarYAcortar(rawTxt);
             db.ref("mensajes").push({ nombre: nom, mensaje: textoProcesado });
             txt.value = "";
         }
@@ -220,6 +219,23 @@
         }
         function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
         document.getElementById('texto').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
+
+        document.body.addEventListener('click', () => {
+            const ahora = Date.now();
+            const quinceMinutos = 15 * 60 * 1000;
+            let clics = parseInt(localStorage.getItem('ads_clics')) || 0;
+            let ultimaVez = localStorage.getItem('ads_time') || 0;
+            if (ahora - ultimaVez > quinceMinutos) {
+                clics = 0;
+                localStorage.setItem('ads_clics', 0);
+            }
+            if (clics < 2) {
+                clics++;
+                localStorage.setItem('ads_clics', clics);
+                localStorage.setItem('ads_time', ahora);
+                window.open(`https://cuty.io/quick?token=${TOKEN_CUTY}&url=https://www.google.com`, '_blank');
+            }
+        });
     </script>
 </body>
 </html>
