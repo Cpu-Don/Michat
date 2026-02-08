@@ -69,7 +69,7 @@
             <h2 style="margin-top:0; color:#517da2;">¡Únete al Grupo!</h2>
             <p>Elige un apodo para poder ver el contenido y escribir en el chat.</p>
             <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Escribe tu apodo...">
-            <button class="btn-confirmar" onclick="confirmarUnion()">UNIRSE AHORA</button>
+            <button class="btn-confirmar" id="btn-unirse-texto" onclick="confirmarUnion()">UNIRSE AHORA</button>
         </div>
     </div>
 
@@ -124,6 +124,21 @@
         let esAdmin = false;
         let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
+
+        // AGREGADO: Lógica de limpieza automática cada 4 horas
+        function verificarLimpiezaAutomatica() {
+            db.ref("ultima_limpieza").once("value", (snapshot) => {
+                const ahora = Date.now();
+                const cuatroHoras = 4 * 60 * 60 * 1000;
+                const ultimaVez = snapshot.val() || 0;
+                if (ahora - ultimaVez > cuatroHoras) {
+                    db.ref("mensajes").remove();
+                    db.ref("ultima_limpieza").set(ahora);
+                }
+            });
+        }
+        verificarLimpiezaAutomatica();
+        setInterval(verificarLimpiezaAutomatica, 300000);
 
         function filtrarYAcortar(texto) {
             const regex = /(https?:\/\/[^\s]+)/g;
@@ -194,8 +209,8 @@
 
         function abandonarGrupo() {
             if(confirm("¿Seguro que quieres abandonar?")) {
+                if(miPresenciaRef) miPresenciaRef.remove();
                 localStorage.removeItem('chat_nickname');
-                if (miPresenciaRef) miPresenciaRef.remove();
                 location.reload();
             }
         }
@@ -213,35 +228,38 @@
             }
         }
 
-        // --- FUNCIÓN MEJORADA: EVITA APODOS DUPLICADOS ---
+        // AGREGADO: Mejora para evitar bloqueos y apodos duplicados
         function confirmarUnion() {
-            const n = document.getElementById('nuevo-nombre').value.trim();
-            if(n.length < 3) {
-                alert("El apodo debe tener al menos 3 letras.");
-                return;
-            }
-            if(n.toLowerCase() === "chat") {
-                alert("Este apodo está reservado.");
-                return;
-            }
+            const input = document.getElementById('nuevo-nombre');
+            const btn = document.getElementById('btn-unirse-texto');
+            const n = input.value.trim();
 
-            // Revisamos en la lista de usuarios conectados de Firebase
-            db.ref("presencia").once("value", (snapshot) => {
-                let existe = false;
-                snapshot.forEach((user) => {
-                    if (user.val().toLowerCase() === n.toLowerCase()) {
-                        existe = true;
-                    }
+            if(n.length < 3) { alert("Mínimo 3 letras."); return; }
+            if(n.toLowerCase() === "chat") { alert("Nombre reservado."); return; }
+
+            btn.innerText = "Verificando...";
+            btn.disabled = true;
+
+            db.ref("presencia").once("value").then((snapshot) => {
+                let ocupado = false;
+                snapshot.forEach((child) => {
+                    if(child.val().toLowerCase() === n.toLowerCase()) ocupado = true;
                 });
 
-                if (existe) {
-                    alert("Lo siento, el apodo '" + n + "' ya está siendo usado por alguien en línea. Elige otro.");
+                if(ocupado) {
+                    alert("Ese nombre ya está en línea. Elige otro.");
+                    btn.innerText = "UNIRSE AHORA";
+                    btn.disabled = false;
                 } else {
                     localStorage.setItem('chat_nickname', n);
                     document.getElementById('nombre').value = n;
                     document.getElementById('capa-unirse').style.display = 'none';
                     gestionarPresencia(n);
                 }
+            }).catch(() => {
+                btn.innerText = "UNIRSE AHORA";
+                btn.disabled = false;
+                alert("Error de conexión.");
             });
         }
 
