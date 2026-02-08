@@ -40,6 +40,7 @@
             <h2>⚠️ CONTENIDO ADULTO</h2>
             <p>Debes ser mayor de edad para entrar.</p>
             <button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button>
+            <button class="btn-18" style="background: #444; margin-top: 10px; display: block; width: 100%;" onclick="window.location.href='https://www.google.com'">SALIR</button>
         </div>
     </div>
 
@@ -64,9 +65,7 @@
             <div class="regla-item"><b>2.</b> Enlaces de Telegram, Mega o Signal serán acortados automáticamente.</div>
             <div class="regla-item"><b>3.</b> Prohibido el spam masivo o insultos.</div>
             <div class="regla-item"><b>4.</b> Disfruta del contenido con respeto.</div>
-            
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-            
             <button class="btn-abandonar" onclick="abandonarGrupo()">❌ SALIR DEL GRUPO / CAMBIAR APODO</button>
             <div class="close-modal" onclick="toggleReglas(false)">CERRAR REGLAS</div>
         </div>
@@ -102,107 +101,66 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let esAdmin = false;
-        let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
-        // Acortador automático
-        function filtrarYAcortar(texto) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return texto.replace(urlRegex, (url) => {
-                const link = url.toLowerCase();
-                if (link.includes("t.me") || link.includes("telegram.me") || link.includes("mega.nz") || link.includes("signal.group")) {
-                    const cutyUrl = `https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}`;
-                    return `<a href="${cutyUrl}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">[LINK SEGURO]</a>`;
-                }
-                return `<a href="${url}" target="_blank" style="color: #075e54;">${url}</a>`;
-            });
+        function aceptar18() {
+            document.getElementById('aviso-18').style.display = 'none';
+            const nombreGuardado = localStorage.getItem('chat_nickname');
+            if (!nombreGuardado) {
+                document.getElementById('capa-unirse').style.display = 'flex';
+            } else {
+                document.getElementById('nombre').value = nombreGuardado;
+            }
         }
-
-        // Carga de mensajes
-        db.ref("mensajes").orderByChild("timestamp").on("value", (snap) => {
-            const container = document.getElementById('chat-container');
-            container.innerHTML = "";
-            snap.forEach((child) => {
-                const data = child.val();
-                const div = document.createElement('div');
-                div.className = 'message';
-                div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
-                div.onclick = () => { if(esAdmin && confirm("¿Borrar?")) db.ref("mensajes/" + child.key).remove(); };
-                container.appendChild(div);
-            });
-            container.scrollTop = container.scrollHeight;
-        });
-
-        function gestionarPresencia(apodo) {
-            if (miPresenciaRef) miPresenciaRef.remove();
-            miPresenciaRef = db.ref("presencia").push(apodo);
-            miPresenciaRef.onDisconnect().remove();
-        }
-
-        db.ref("presencia").on("value", (snap) => {
-            document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
-            const list = document.getElementById('user-list');
-            list.innerHTML = "";
-            snap.forEach((u) => { list.innerHTML += `<li style="padding:8px; border-bottom:1px solid #eee;">🟢 ${u.val()}</li>`; });
-        });
 
         function confirmarUnion() {
-            const n = document.getElementById('nuevo-nombre').value.trim();
-            if(n.length < 3) return alert("Nombre muy corto.");
-            if(n.toLowerCase() === "chat") return alert("Nombre reservado.");
-            localStorage.setItem('chat_nickname', n);
-            document.getElementById('nombre').value = n;
-            document.getElementById('capa-unirse').style.display = 'none';
-            gestionarPresencia(n);
-        }
-
-        function abandonarGrupo() {
-            if(confirm("¿Seguro quieres salir?")) {
-                if(miPresenciaRef) miPresenciaRef.remove();
-                localStorage.removeItem('chat_nickname');
-                location.reload();
+            const nick = document.getElementById('nuevo-nombre').value.trim();
+            if (nick) {
+                localStorage.setItem('chat_nickname', nick);
+                document.getElementById('nombre').value = nick;
+                document.getElementById('capa-unirse').style.display = 'none';
             }
         }
 
         function enviarMensaje() {
-            const t = document.getElementById('texto');
-            const n = document.getElementById('nombre').value;
-            if (t.value.trim() === "" || !n) return;
-            const msg = filtrarYAcortar(t.value);
-            db.ref("mensajes").push({ nombre: n, mensaje: msg, timestamp: Date.now() });
-            t.value = "";
+            const nombre = document.getElementById('nombre').value;
+            const texto = document.getElementById('texto').value.trim();
+            if (texto) {
+                db.ref('mensajes').push({ nombre, texto, fecha: Date.now() });
+                document.getElementById('texto').value = '';
+            }
+        }
+
+        db.ref('mensajes').limitToLast(50).on('child_added', (snapshot) => {
+            const msg = snapshot.val();
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<span class="user-name">${msg.nombre}</span>${msg.texto}`;
+            const container = document.getElementById('chat-container');
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        });
+
+        function toggleReglas(show) {
+            document.getElementById('modal-reglas').style.display = show ? 'block' : 'none';
+        }
+
+        function abandonarGrupo() {
+            localStorage.removeItem('chat_nickname');
+            location.reload();
         }
 
         function loginAdmin() {
-            if(prompt("Clave:") === "12345678pp") {
+            const pass = prompt("Password:");
+            if (pass === "admin123") {
                 esAdmin = true;
-                document.getElementById('nombre').value = "Chat";
-                alert("Modo Admin Activo: Eres 'Chat'");
+                alert("Modo Admin Activo");
             }
         }
 
-        function mostrarConectados() { document.getElementById('modal-users').style.display = 'block'; }
-        function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
-
-        function aceptar18() { 
-            document.getElementById('aviso-18').style.display = 'none'; 
-            const n = localStorage.getItem('chat_nickname');
-            if(!n) document.getElementById('capa-unirse').style.display = 'flex';
-            else { document.getElementById('nombre').value = n; gestionarPresencia(n); }
+        function mostrarConectados() {
+            document.getElementById('modal-users').style.display = 'block';
         }
-
-        document.body.addEventListener('click', () => {
-            const h = Date.now();
-            let c = parseInt(localStorage.getItem('ads_clics')) || 0;
-            let ultimaVez = parseInt(localStorage.getItem('ads_time')) || 0;
-            if (h - ultimaVez > 15 * 60 * 1000) c = 0;
-            if (c < 2) {
-                c++;
-                localStorage.setItem('ads_clics', c);
-                localStorage.setItem('ads_time', h);
-                window.open(`https://cuty.io/quick?token=${TOKEN_CUTY}&url=https://www.google.com`, '_blank');
-            }
-        });
     </script>
 </body>
 </html>
