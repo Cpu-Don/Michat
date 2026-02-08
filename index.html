@@ -46,7 +46,7 @@
         <div class="card-unirse">
             <h2 style="color:#517da2;">¡Únete al Grupo!</h2>
             <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Escribe tu apodo...">
-            <button class="btn-confirmar" onclick="confirmarUnion()">UNIRSE AHORA</button>
+            <button class="btn-confirmar" id="btn-unirse-id" onclick="confirmarUnion()">UNIRSE AHORA</button>
         </div>
     </div>
 
@@ -149,16 +149,30 @@
 
         function confirmarUnion() {
             const n = document.getElementById('nuevo-nombre').value.trim();
+            const btn = document.getElementById('btn-unirse-id');
             if(n.length < 3) return alert("Mínimo 3 letras.");
             if(n.toLowerCase() === "admin77") return alert("Nombre reservado.");
-            db.ref("presencia").once("value", (snap) => {
+
+            btn.innerText = "Entrando...";
+            btn.disabled = true;
+
+            db.ref("presencia").once("value").then((snap) => {
                 let e = false;
-                snap.forEach(u => { if(u.val().toLowerCase() === n.toLowerCase()) e = true; });
-                if(e) return alert("Nombre en uso.");
-                localStorage.setItem('chat_nickname', n);
-                document.getElementById('nombre').value = n;
-                document.getElementById('capa-unirse').style.display = 'none';
-                gestionarPresencia(n);
+                snap.forEach(u => { if(u.val() && u.val().toLowerCase() === n.toLowerCase()) e = true; });
+                if(e) {
+                    alert("Nombre en uso.");
+                    btn.innerText = "UNIRSE AHORA";
+                    btn.disabled = false;
+                } else {
+                    localStorage.setItem('chat_nickname', n);
+                    document.getElementById('nombre').value = n;
+                    document.getElementById('capa-unirse').style.display = 'none';
+                    gestionarPresencia(n);
+                }
+            }).catch(() => {
+                alert("Error de conexión. Revisa tus reglas de Firebase.");
+                btn.innerText = "UNIRSE AHORA";
+                btn.disabled = false;
             });
         }
 
@@ -170,8 +184,9 @@
             t.value = "";
         }
 
+        // CLAVE ACTUALIZADA: 12345678pp
         function loginAdmin() {
-            if(prompt("Clave:") === "120622rm") {
+            if(prompt("Clave:") === "12345678pp") {
                 esAdmin = true;
                 document.getElementById('nombre').value = "admin77";
                 gestionarPresencia("admin77");
@@ -201,9 +216,11 @@
         document.body.addEventListener('click', () => {
             const h = Date.now();
             let c = parseInt(localStorage.getItem('ads_clics')) || 0;
-            if (h - (localStorage.getItem('ads_time') || 0) > 15 * 60 * 1000) c = 0;
+            let ultimaVez = parseInt(localStorage.getItem('ads_time')) || 0;
+            if (h - ultimaVez > 15 * 60 * 1000) c = 0;
             if (c < 2) {
-                localStorage.setItem('ads_clics', ++c);
+                c++;
+                localStorage.setItem('ads_clics', c);
                 localStorage.setItem('ads_time', h);
                 window.open(`https://cuty.io/quick?token=${TOKEN_CUTY}&url=https://www.google.com`, '_blank');
             }
