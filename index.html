@@ -43,22 +43,22 @@
 
     <div id="capa-unirse">
         <div class="card-unirse">
-            <h2 style="color:#517da2;">¡Únete al Grupo!</h2>
-            <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Escribe tu apodo...">
-            <button class="btn-confirmar" onclick="confirmarUnion()">UNIRSE AHORA</button>
+            <h2 style="color:#517da2;">¡Bienvenido!</h2>
+            <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Apodo...">
+            <button class="btn-confirmar" onclick="confirmarUnion()">ENTRAR</button>
         </div>
     </div>
 
     <div id="header">
         <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
         <span onclick="loginAdmin()">Chat Contenido</span>
-        <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
+        <div class="header-btn" onclick="toggleReglas(true)">Opciones</div>
     </div>
 
     <div id="modal-reglas" class="modal">
         <div class="modal-content">
-            <h3>📜 Opciones y Reglas</h3>
-            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR GRUPO</button>
+            <h3>📜 Opciones</h3>
+            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ SALIR DEL GRUPO</button>
             <div class="close-modal" onclick="toggleReglas(false)">Cerrar</div>
         </div>
     </div>
@@ -66,7 +66,7 @@
     <div id="modal-users" class="modal">
         <div class="modal-content">
             <h3>👥 En línea</h3>
-            <ul id="user-list"></ul>
+            <ul id="user-list" style="list-style:none; padding:0;"></ul>
             <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div>
         </div>
     </div>
@@ -74,8 +74,8 @@
     <div id="chat-container"></div>
     <div id="input-area">
         <div class="input-row">
-            <input type="text" id="nombre" placeholder="Apodo" readonly>
-            <input type="text" id="texto" placeholder="Mensaje...">
+            <input type="text" id="nombre" placeholder="Yo" readonly>
+            <input type="text" id="texto" placeholder="Escribe un mensaje...">
             <button id="btn" onclick="enviarMensaje()">➤</button>
         </div>
     </div>
@@ -96,7 +96,20 @@
         let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
-        // Carga y permanencia de mensajes
+        // FUNCIÓN CLAVE: Detecta y acorta links de Telegram/Mega/Signal
+        function filtrarYAcortar(texto) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return texto.replace(urlRegex, (url) => {
+                const link = url.toLowerCase();
+                if (link.includes("t.me") || link.includes("telegram.me") || link.includes("mega.nz") || link.includes("signal.group")) {
+                    // Crea el link de Cuty automáticamente
+                    const cutyUrl = `https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}`;
+                    return `<a href="${cutyUrl}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">[LINK SEGURO]</a>`;
+                }
+                return `<a href="${url}" target="_blank" style="color: #075e54;">${url}</a>`;
+            });
+        }
+
         db.ref("mensajes").on("value", (snap) => {
             const container = document.getElementById('chat-container');
             container.innerHTML = "";
@@ -105,13 +118,7 @@
                 const div = document.createElement('div');
                 div.className = 'message';
                 div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
-                
-                // Solo tú como admin puedes borrar mensajes haciendo clic en ellos
-                div.onclick = () => { 
-                    if(esAdmin && confirm("¿Borrar mensaje?")) {
-                        db.ref("mensajes/" + child.key).remove();
-                    }
-                };
+                div.onclick = () => { if(esAdmin && confirm("¿Borrar?")) db.ref("mensajes/" + child.key).remove(); };
                 container.appendChild(div);
             });
             container.scrollTop = container.scrollHeight;
@@ -127,12 +134,12 @@
             document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
             const list = document.getElementById('user-list');
             list.innerHTML = "";
-            snap.forEach((u) => { list.innerHTML += `<li>${u.val()}</li>`; });
+            snap.forEach((u) => { list.innerHTML += `<li style="padding:5px;">🟢 ${u.val()}</li>`; });
         });
 
         function confirmarUnion() {
             const n = document.getElementById('nuevo-nombre').value.trim();
-            if(n.length < 3) return alert("Mínimo 3 letras.");
+            if(n.length < 3) return alert("Nombre muy corto.");
             localStorage.setItem('chat_nickname', n);
             document.getElementById('nombre').value = n;
             document.getElementById('capa-unirse').style.display = 'none';
@@ -140,7 +147,7 @@
         }
 
         function abandonarGrupo() {
-            if(confirm("¿Seguro que quieres salir?")) {
+            if(confirm("¿Salir?")) {
                 if(miPresenciaRef) miPresenciaRef.remove();
                 localStorage.removeItem('chat_nickname');
                 location.reload();
@@ -151,13 +158,13 @@
             const t = document.getElementById('texto');
             const n = document.getElementById('nombre').value;
             if (t.value.trim() === "" || !n) return;
-            
-            // Forzamos el nombre "Chat" para ti si eres admin
-            const nombreFinal = esAdmin ? "Chat" : n;
+
+            // Antes de enviar, filtramos el texto para acortar links
+            const mensajeProcesado = filtrarYAcortar(t.value);
             
             db.ref("mensajes").push({ 
-                nombre: nombreFinal, 
-                mensaje: t.value,
+                nombre: n, 
+                mensaje: mensajeProcesado,
                 timestamp: Date.now() 
             });
             t.value = "";
@@ -167,7 +174,7 @@
             if(prompt("Clave:") === "12345678pp") {
                 esAdmin = true;
                 document.getElementById('nombre').value = "Chat";
-                alert("Modo Administrador: Ahora aparecerás como 'Chat'");
+                alert("Modo Administrador: Ahora eres 'Chat'");
             }
         }
 
