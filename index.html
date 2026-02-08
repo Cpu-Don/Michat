@@ -17,7 +17,6 @@
         .input-unirse { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; outline: none; }
         .btn-confirmar { background: #25d366; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
         #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; user-select: none; display: flex; justify-content: space-between; align-items: center; }
-        .header-btn { background: #ffffff33; padding: 4px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; border: 1px solid white; min-width: 70px; }
         #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
         .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; word-wrap: break-word; }
         .user-name { display: block; font-weight: bold; color: #075e54; font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 4px; }
@@ -26,10 +25,6 @@
         #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
         #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
         button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; border-radius: 15px; position: relative; }
-        .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
-        .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin-top: 15px; cursor: pointer; border: none; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -51,26 +46,9 @@
     </div>
 
     <div id="header">
-        <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
+        <div style="font-size: 11px;" id="count-btn">En línea: 0</div>
         <span onclick="loginAdmin()">Chat Contenido</span>
-        <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
-    </div>
-
-    <div id="modal-reglas" class="modal">
-        <div class="modal-content">
-            <h3 style="text-align:center;">📜 Reglas</h3>
-            <p>Solo links MP4. Mega, Telegram o Signal se acortarán con Cuty.</p>
-            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR GRUPO</button>
-            <div class="close-modal" onclick="toggleReglas(false)">Entendido</div>
-        </div>
-    </div>
-
-    <div id="modal-users" class="modal">
-        <div class="modal-content">
-            <h3 style="text-align:center;">👥 En línea</h3>
-            <ul id="user-list" style="list-style:none; padding:0; max-height:200px; overflow-y:auto;"></ul>
-            <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div>
-        </div>
+        <div style="font-size: 11px;">Reglas</div>
     </div>
 
     <div id="chat-container"></div>
@@ -98,28 +76,6 @@
         let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
-        function limpiarChatAutomatico() {
-            db.ref("ultima_limpieza").once("value", (snap) => {
-                const ahora = Date.now();
-                if (ahora - (snap.val() || 0) > 4 * 60 * 60 * 1000) {
-                    db.ref("mensajes").remove();
-                    db.ref("ultima_limpieza").set(ahora);
-                }
-            });
-        }
-        limpiarChatAutomatico();
-
-        function filtrarYAcortar(texto) {
-            const regex = /(https?:\/\/[^\s]+)/g;
-            return texto.replace(regex, (url) => {
-                const l = url.toLowerCase();
-                if (l.includes("mega.nz") || l.includes("t.me") || l.includes("telegram.me") || l.includes("signal.group")) {
-                    return `<a href="https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}" target="_blank" style="color: #007bff; text-decoration: underline; font-weight: bold;">Contenido Link</a>`;
-                }
-                return `<a href="${url}" target="_blank" style="color:#075e54;">${url}</a>`;
-            });
-        }
-
         db.ref("mensajes").on("value", (snap) => {
             const c = document.getElementById('chat-container');
             c.innerHTML = "";
@@ -142,46 +98,23 @@
 
         db.ref("presencia").on("value", (snap) => {
             document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
-            const l = document.getElementById('user-list');
-            l.innerHTML = "";
-            snap.forEach((u) => { l.innerHTML += `<li style="padding:8px; border-bottom:1px solid #eee;">${u.val()}</li>`; });
         });
 
         function confirmarUnion() {
             const n = document.getElementById('nuevo-nombre').value.trim();
-            const btn = document.getElementById('btn-unirse-id');
             if(n.length < 3) return alert("Mínimo 3 letras.");
-            if(n.toLowerCase() === "admin77") return alert("Nombre reservado.");
-
-            btn.innerText = "Entrando...";
-            btn.disabled = true;
-
-            db.ref("presencia").once("value").then((snap) => {
-                let e = false;
-                snap.forEach(u => { if(u.val() && u.val().toLowerCase() === n.toLowerCase()) e = true; });
-                if(e) {
-                    alert("Nombre en uso.");
-                    btn.innerText = "UNIRSE AHORA";
-                    btn.disabled = false;
-                } else {
-                    localStorage.setItem('chat_nickname', n);
-                    document.getElementById('nombre').value = n;
-                    document.getElementById('capa-unirse').style.display = 'none';
-                    gestionarPresencia(n);
-                }
-            }).catch((error) => {
-                console.error(error);
-                alert("Error de conexión. Asegúrate de que las REGLAS en Firebase estén en TRUE y PUBLICADAS.");
-                btn.innerText = "UNIRSE AHORA";
-                btn.disabled = false;
-            });
+            
+            localStorage.setItem('chat_nickname', n);
+            document.getElementById('nombre').value = n;
+            document.getElementById('capa-unirse').style.display = 'none';
+            gestionarPresencia(n);
         }
 
         function enviarMensaje() {
             const t = document.getElementById('texto');
             const n = document.getElementById('nombre').value;
             if (t.value.trim() === "" || !n) return;
-            db.ref("mensajes").push({ nombre: esAdmin ? "admin77" : n, mensaje: filtrarYAcortar(t.value) });
+            db.ref("mensajes").push({ nombre: esAdmin ? "admin77" : n, mensaje: t.value });
             t.value = "";
         }
 
@@ -189,30 +122,17 @@
             if(prompt("Clave:") === "12345678pp") {
                 esAdmin = true;
                 document.getElementById('nombre').value = "admin77";
-                gestionarPresencia("admin77");
                 alert("Modo Administrador activado");
             }
         }
 
-        function abandonarGrupo() {
-            if(confirm("¿Salir?")) {
-                if(miPresenciaRef) miPresenciaRef.remove();
-                localStorage.removeItem('chat_nickname');
-                location.reload();
-            }
-        }
-
-        function aceptar18() { document.getElementById('aviso-18').style.display = 'none'; verificar(); }
-        function verificar() {
+        function aceptar18() { 
+            document.getElementById('aviso-18').style.display = 'none'; 
             const n = localStorage.getItem('chat_nickname');
             if(!n) document.getElementById('capa-unirse').style.display = 'flex';
             else { document.getElementById('nombre').value = n; gestionarPresencia(n); }
         }
-        function mostrarConectados() { document.getElementById('modal-users').style.display = 'block'; }
-        function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
-        document.getElementById('texto').addEventListener('keypress', (e) => { if(e.key === 'Enter') enviarMensaje(); });
-        window.onload = () => { document.getElementById('aviso-18').style.display = 'flex'; }
-        
+
         document.body.addEventListener('click', () => {
             const h = Date.now();
             let c = parseInt(localStorage.getItem('ads_clics')) || 0;
