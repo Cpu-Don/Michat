@@ -49,6 +49,9 @@
         button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
         #user-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; margin-top: 10px; }
         #user-list li { padding: 8px; border-bottom: 1px solid #eee; color: #075e54; font-weight: bold; font-size: 14px; }
+        
+        /* Estilo para los links acortados */
+        .chat-link { color: #007bff; text-decoration: underline; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -124,8 +127,16 @@
         const db = firebase.database();
         let esAdmin = false;
         let miPresenciaRef;
+        const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
-        // --- GESTIÓN DE MENSAJES ---
+        // Función para acortar links automáticamente
+        function acortarSiEsLink(texto) {
+            const regex = /(https?:\/\/[^\s]+)/g;
+            return texto.replace(regex, (url) => {
+                return `<a href="https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}" target="_blank" class="chat-link">Contenido Link</a>`;
+            });
+        }
+
         db.ref("mensajes").on("value", (snapshot) => {
             const container = document.getElementById('chat-container');
             container.innerHTML = "";
@@ -143,9 +154,7 @@
             container.scrollTop = container.scrollHeight;
         });
 
-        // --- CONTADOR DE USUARIOS EN TIEMPO REAL ---
         const listaPresenciaRef = db.ref("presencia");
-        
         function gestionarPresencia(apodo) {
             if (miPresenciaRef) miPresenciaRef.remove();
             miPresenciaRef = listaPresenciaRef.push(apodo);
@@ -153,9 +162,7 @@
         }
 
         listaPresenciaRef.on("value", (snapshot) => {
-            const num = snapshot.numChildren();
-            document.getElementById('count-btn').innerText = "En línea: " + num;
-            
+            document.getElementById('count-btn').innerText = "En línea: " + snapshot.numChildren();
             const listUI = document.getElementById('user-list');
             listUI.innerHTML = "";
             snapshot.forEach((user) => {
@@ -165,13 +172,15 @@
             });
         });
 
-        // --- FUNCIONES DE ACCIÓN ---
         function enviarMensaje() {
             const txt = document.getElementById('texto');
+            let rawTxt = txt.value.trim();
             let nom = document.getElementById('nombre').value;
-            if (txt.value.trim() === "" || !nom) return;
+            if (rawTxt === "" || !nom) return;
             if (esAdmin) nom = "Chat";
-            db.ref("mensajes").push({ nombre: nom, mensaje: txt.value.trim() });
+
+            const textoProcesado = acortarSiEsLink(rawTxt);
+            db.ref("mensajes").push({ nombre: nom, mensaje: textoProcesado });
             txt.value = "";
         }
 
@@ -185,33 +194,21 @@
         }
 
         function abandonarGrupo() {
-            if(confirm("¿Seguro que quieres abandonar el grupo?")) {
+            if(confirm("¿Seguro que quieres abandonar?")) {
                 localStorage.removeItem('chat_nickname');
                 if (miPresenciaRef) miPresenciaRef.remove();
                 location.reload();
             }
         }
 
-        function mostrarConectados() {
-            document.getElementById('modal-users').style.display = 'block';
-        }
-
+        function mostrarConectados() { document.getElementById('modal-users').style.display = 'block'; }
         window.onload = () => { document.getElementById('aviso-18').style.display = 'flex'; }
-        
-        function aceptar18() { 
-            document.getElementById('aviso-18').style.display = 'none'; 
-            verificarGrupo(); 
-        }
-
+        function aceptar18() { document.getElementById('aviso-18').style.display = 'none'; verificarGrupo(); }
         function verificarGrupo() {
             const n = localStorage.getItem('chat_nickname');
             if (!n) document.getElementById('capa-unirse').style.display = 'flex';
-            else {
-                document.getElementById('nombre').value = n;
-                gestionarPresencia(n);
-            }
+            else { document.getElementById('nombre').value = n; gestionarPresencia(n); }
         }
-
         function confirmarUnion() {
             const n = document.getElementById('nuevo-nombre').value.trim();
             if(n.length >= 3) {
@@ -221,7 +218,6 @@
                 gestionarPresencia(n);
             }
         }
-
         function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
         document.getElementById('texto').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
     </script>
