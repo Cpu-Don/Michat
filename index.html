@@ -27,9 +27,10 @@
         #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
         button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; border-radius: 15px; position: relative; }
+        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 85%; border-radius: 15px; position: relative; max-height: 80vh; overflow-y: auto; }
         .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
-        .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin-top: 15px; cursor: pointer; border: none; width: 100%; font-weight: bold; }
+        .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin: 15px 0; cursor: pointer; border: none; width: 100%; font-weight: bold; }
+        .regla-item { font-size: 13px; margin-bottom: 8px; padding-left: 10px; border-left: 3px solid #517da2; }
     </style>
 </head>
 <body>
@@ -37,6 +38,7 @@
     <div id="aviso-18">
         <div class="box-18">
             <h2>⚠️ CONTENIDO ADULTO</h2>
+            <p>Debes ser mayor de edad para entrar.</p>
             <button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button>
         </div>
     </div>
@@ -45,29 +47,36 @@
         <div class="card-unirse">
             <h2 style="color:#517da2;">¡Bienvenido!</h2>
             <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Apodo...">
-            <button class="btn-confirmar" onclick="confirmarUnion()">ENTRAR</button>
+            <button class="btn-confirmar" onclick="confirmarUnion()">ENTRAR AL CHAT</button>
         </div>
     </div>
 
     <div id="header">
         <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
         <span onclick="loginAdmin()">Chat Contenido</span>
-        <div class="header-btn" onclick="toggleReglas(true)">Opciones</div>
+        <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
     </div>
 
     <div id="modal-reglas" class="modal">
         <div class="modal-content">
-            <h3>📜 Opciones</h3>
-            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ SALIR DEL GRUPO</button>
-            <div class="close-modal" onclick="toggleReglas(false)">Cerrar</div>
+            <h3 style="text-align:center; color: #517da2;">📜 REGLAS DEL GRUPO</h3>
+            <div class="regla-item"><b>1.</b> Solo se permiten enlaces MP4.</div>
+            <div class="regla-item"><b>2.</b> Enlaces de Telegram, Mega o Signal serán acortados automáticamente.</div>
+            <div class="regla-item"><b>3.</b> Prohibido el spam masivo o insultos.</div>
+            <div class="regla-item"><b>4.</b> Disfruta del contenido con respeto.</div>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ SALIR DEL GRUPO / CAMBIAR APODO</button>
+            <div class="close-modal" onclick="toggleReglas(false)">CERRAR REGLAS</div>
         </div>
     </div>
 
     <div id="modal-users" class="modal">
         <div class="modal-content">
-            <h3>👥 En línea</h3>
-            <ul id="user-list" style="list-style:none; padding:0;"></ul>
-            <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div>
+            <h3>👥 Usuarios Activos</h3>
+            <ul id="user-list" style="list-style:none; padding:0; font-size:14px;"></ul>
+            <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">VOLVER AL CHAT</div>
         </div>
     </div>
 
@@ -75,7 +84,7 @@
     <div id="input-area">
         <div class="input-row">
             <input type="text" id="nombre" placeholder="Yo" readonly>
-            <input type="text" id="texto" placeholder="Escribe un mensaje...">
+            <input type="text" id="texto" placeholder="Escribe aquí...">
             <button id="btn" onclick="enviarMensaje()">➤</button>
         </div>
     </div>
@@ -96,13 +105,12 @@
         let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
-        // FUNCIÓN CLAVE: Detecta y acorta links de Telegram/Mega/Signal
+        // Acortador automático
         function filtrarYAcortar(texto) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             return texto.replace(urlRegex, (url) => {
                 const link = url.toLowerCase();
                 if (link.includes("t.me") || link.includes("telegram.me") || link.includes("mega.nz") || link.includes("signal.group")) {
-                    // Crea el link de Cuty automáticamente
                     const cutyUrl = `https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}`;
                     return `<a href="${cutyUrl}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">[LINK SEGURO]</a>`;
                 }
@@ -110,7 +118,8 @@
             });
         }
 
-        db.ref("mensajes").on("value", (snap) => {
+        // Carga de mensajes
+        db.ref("mensajes").orderByChild("timestamp").on("value", (snap) => {
             const container = document.getElementById('chat-container');
             container.innerHTML = "";
             snap.forEach((child) => {
@@ -134,12 +143,13 @@
             document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
             const list = document.getElementById('user-list');
             list.innerHTML = "";
-            snap.forEach((u) => { list.innerHTML += `<li style="padding:5px;">🟢 ${u.val()}</li>`; });
+            snap.forEach((u) => { list.innerHTML += `<li style="padding:8px; border-bottom:1px solid #eee;">🟢 ${u.val()}</li>`; });
         });
 
         function confirmarUnion() {
             const n = document.getElementById('nuevo-nombre').value.trim();
             if(n.length < 3) return alert("Nombre muy corto.");
+            if(n.toLowerCase() === "chat") return alert("Nombre reservado.");
             localStorage.setItem('chat_nickname', n);
             document.getElementById('nombre').value = n;
             document.getElementById('capa-unirse').style.display = 'none';
@@ -147,7 +157,7 @@
         }
 
         function abandonarGrupo() {
-            if(confirm("¿Salir?")) {
+            if(confirm("¿Seguro quieres salir?")) {
                 if(miPresenciaRef) miPresenciaRef.remove();
                 localStorage.removeItem('chat_nickname');
                 location.reload();
@@ -158,15 +168,8 @@
             const t = document.getElementById('texto');
             const n = document.getElementById('nombre').value;
             if (t.value.trim() === "" || !n) return;
-
-            // Antes de enviar, filtramos el texto para acortar links
-            const mensajeProcesado = filtrarYAcortar(t.value);
-            
-            db.ref("mensajes").push({ 
-                nombre: n, 
-                mensaje: mensajeProcesado,
-                timestamp: Date.now() 
-            });
+            const msg = filtrarYAcortar(t.value);
+            db.ref("mensajes").push({ nombre: n, mensaje: msg, timestamp: Date.now() });
             t.value = "";
         }
 
@@ -174,7 +177,7 @@
             if(prompt("Clave:") === "12345678pp") {
                 esAdmin = true;
                 document.getElementById('nombre').value = "Chat";
-                alert("Modo Administrador: Ahora eres 'Chat'");
+                alert("Modo Admin Activo: Eres 'Chat'");
             }
         }
 
