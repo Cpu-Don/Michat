@@ -77,7 +77,7 @@
     </div>
 
     <div id="header">
-        <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
+        <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 1</div>
         <span onclick="loginAdmin()">Chat Contenido</span>
         <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
     </div>
@@ -110,14 +110,14 @@
         <div class="input-row">
             <input type="text" id="nombre" placeholder="Apodo" readonly>
             <input type="text" id="texto" placeholder="Mensaje o Link MP4...">
-            <button id="btn">➤</button>
+            <button id="btn" onclick="enviarMensaje()">➤</button>
         </div>
     </div>
 
     <script>
-        // --- CONTROL DE ACCESO ---
+        let esAdmin = false;
+
         window.onload = function() {
-            // El aviso +18 sale siempre
             document.getElementById('aviso-18').style.display = 'flex';
             document.getElementById('capa-unirse').style.display = 'none';
         }
@@ -159,18 +159,48 @@
             document.getElementById('modal-reglas').style.display = show ? 'block' : 'none';
         }
 
-        // --- TUS FUNCIONES ORIGINALES (Asegúrate de tener el resto de tu lógica de Firebase/Chat debajo de esto) ---
         function mostrarConectados() {
             document.getElementById('modal-users').style.display = 'block';
-            // Aquí tu lógica original para llenar #user-list
+            const list = document.getElementById('user-list');
+            list.innerHTML = `<li>${document.getElementById('nombre').value || "Invitado"} (tú)</li>`;
         }
 
+        // --- LÓGICA DE ENVÍO DE MENSAJES ---
+        function enviarMensaje() {
+            const inputTexto = document.getElementById('texto');
+            const mensaje = inputTexto.value.trim();
+            let nombre = document.getElementById('nombre').value;
+
+            if (mensaje === "") return;
+
+            // Si el modo admin está activo, el nombre siempre será "Chat"
+            if (esAdmin) {
+                nombre = "Chat";
+            }
+
+            const container = document.getElementById('chat-container');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<span class="user-name">${nombre}</span>${mensaje}`;
+            
+            container.appendChild(div);
+            inputTexto.value = "";
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Permitir enviar con la tecla ENTER
+        document.getElementById('texto').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') enviarMensaje();
+        });
+
         function loginAdmin() {
-            // Aquí tu lógica original para pedir contraseña y habilitar borrado
             const pass = prompt("Contraseña de Administrador:");
-            if(pass === "TU_PASS") { // Cambia esto por tu lógica real
-                alert("Modo Admin Activado");
-                // Habilitar botones de borrar (btn-del)
+            if(pass === "1234") { // <--- CAMBIA ESTA CONTRASEÑA
+                esAdmin = true;
+                document.getElementById('nombre').value = "Chat";
+                alert("Modo Admin Activado: Tu nombre ahora es 'Chat'");
+            } else {
+                alert("Contraseña incorrecta");
             }
         }
     </script>
