@@ -9,23 +9,39 @@
     
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-        #aviso-18 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; color: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
+        
+        #aviso-18 {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1a1a; color: white; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
         .box-18 { background: #2c2c2c; padding: 30px; border-radius: 20px; border: 2px solid #517da2; max-width: 400px; }
         .btn-18 { background: #517da2; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
         .btn-exit { background: transparent; color: #aaa; border: none; margin-top: 15px; cursor: pointer; text-decoration: underline; }
-        #capa-unirse { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+
+        #capa-unirse {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+            z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white; text-align: center;
+        }
         .card-unirse { background: #fff; color: #333; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; }
         .input-unirse { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; }
         .btn-confirmar { background: #25d366; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+
         #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
         .header-btn { background: #ffffff33; padding: 4px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; border: 1px solid white; min-width: 70px; }
+        
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
         .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; }
         .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
         .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin-top: 15px; cursor: pointer; font-size: 13px; font-weight: bold; border: none; width: 100%; }
+
         #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; word-wrap: break-word; }
+        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; word-wrap: break-word; cursor: pointer; }
         .user-name { display: block; font-weight: bold; color: #075e54; font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 4px; }
+        
         #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
         .input-row { display: flex; gap: 8px; }
         #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
@@ -37,8 +53,23 @@
 </head>
 <body>
 
-    <div id="aviso-18"><div class="box-18"><h2>⚠️ CONTENIDO ADULTO</h2><p>Este chat contiene material explícito. Debes ser mayor de 18 años.</p><button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button></div></div>
-    <div id="capa-unirse"><div class="card-unirse"><h2 style="color:#517da2;">¡Únete!</h2><p>Elige un apodo para chatear.</p><input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Apodo..."><button class="btn-confirmar" onclick="confirmarUnion()">UNIRSE AHORA</button></div></div>
+    <div id="aviso-18">
+        <div class="box-18">
+            <h2 style="margin-top:0;">⚠️ CONTENIDO ADULTO</h2>
+            <p>Este chat contiene material explícito y es solo para adultos. Debes tener al menos 18 años para ingresar.</p>
+            <button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button><br>
+            <button class="btn-exit" onclick="window.location.href='https://www.google.com'">Salir</button>
+        </div>
+    </div>
+
+    <div id="capa-unirse">
+        <div class="card-unirse">
+            <h2 style="margin-top:0; color:#517da2;">¡Únete al Grupo!</h2>
+            <p>Elige un apodo para poder ver el contenido y escribir en el chat.</p>
+            <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Escribe tu apodo...">
+            <button class="btn-confirmar" onclick="confirmarUnion()">UNIRSE AHORA</button>
+        </div>
+    </div>
 
     <div id="header">
         <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
@@ -46,82 +77,151 @@
         <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
     </div>
 
-    <div id="modal-reglas" class="modal"><div class="modal-content"><h3>📜 Reglas</h3><p>Solo links MP4.</p><button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR</button><div class="close-modal" onclick="toggleReglas(false)">Cerrar</div></div></div>
-    <div id="modal-users" class="modal"><div class="modal-content"><h3>👥 Usuarios</h3><ul id="user-list"></ul><div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div></div></div>
+    <div id="modal-reglas" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#517da2; text-align:center;">📜 Reglas del Chat</h3>
+            <p style="font-size: 14px; color: #333; line-height: 1.6;">
+                Reglas solo son permitidos links de contenido <b>MP4</b> al públicar los links permitidos se le serán acortado con <b>cuty</b>, de igual modo al pasar la publicidad llegarán al contenido esperado.
+            </p>
+            <p style="font-size: 12px; color: #666; text-align: center;">
+                (Videy, Mega, Mediafire, Drive, Terabox)
+            </p>
+            <hr style="border:0; border-top:1px solid #eee;">
+            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR GRUPO</button>
+            <div class="close-modal" onclick="toggleReglas(false)">Entendido</div>
+        </div>
+    </div>
+
+    <div id="modal-users" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#517da2; text-align:center;">👥 Usuarios activos</h3>
+            <ul id="user-list"></ul>
+            <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div>
+        </div>
+    </div>
 
     <div id="chat-container"></div>
     <div id="input-area">
         <div class="input-row">
             <input type="text" id="nombre" placeholder="Apodo" readonly>
-            <input type="text" id="texto" placeholder="Mensaje...">
+            <input type="text" id="texto" placeholder="Mensaje o Link MP4...">
             <button id="btn" onclick="enviarMensaje()">➤</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN QUE ENVIASTE
         const firebaseConfig = {
-          apiKey: "AIzaSyB2GH_bFRmRwhqtaBb3ll_9eNEMXj7RuMo",
-          authDomain: "micanalmaestro.firebaseapp.com",
-          databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com",
-          projectId: "micanalmaestro",
-          storageBucket: "micanalmaestro.firebasestorage.app",
-          messagingSenderId: "682263671302",
-          appId: "1:682263671302:web:dcf8f4303d2c3f5d704987"
+            apiKey: "AIzaSyB2GH_bFRmRwhqtaBb3ll_9eNEMXj7RuMo",
+            authDomain: "micanalmaestro.firebaseapp.com",
+            databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com",
+            projectId: "micanalmaestro",
+            storageBucket: "micanalmaestro.firebasestorage.app",
+            messagingSenderId: "682263671302",
+            appId: "1:682263671302:web:dcf8f4303d2c3f5d704987"
         };
 
-        // Inicializar
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let esAdmin = false;
+        let miPresenciaRef;
 
-        // Leer mensajes en tiempo real
-        db.ref("mensajes").limitToLast(50).on("child_added", (snapshot) => {
-            const data = snapshot.val();
-            const div = document.createElement('div');
-            div.className = 'message';
-            div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
-            document.getElementById('chat-container').appendChild(div);
-            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+        // --- GESTIÓN DE MENSAJES ---
+        db.ref("mensajes").on("value", (snapshot) => {
+            const container = document.getElementById('chat-container');
+            container.innerHTML = "";
+            snapshot.forEach((child) => {
+                const data = child.val();
+                const key = child.key;
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
+                div.onclick = () => {
+                    if(esAdmin && confirm("¿Borrar mensaje?")) db.ref("mensajes/" + key).remove();
+                };
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
         });
 
-        // Enviar mensajes
+        // --- CONTADOR DE USUARIOS EN TIEMPO REAL ---
+        const listaPresenciaRef = db.ref("presencia");
+        
+        function gestionarPresencia(apodo) {
+            if (miPresenciaRef) miPresenciaRef.remove();
+            miPresenciaRef = listaPresenciaRef.push(apodo);
+            miPresenciaRef.onDisconnect().remove();
+        }
+
+        listaPresenciaRef.on("value", (snapshot) => {
+            const num = snapshot.numChildren();
+            document.getElementById('count-btn').innerText = "En línea: " + num;
+            
+            const listUI = document.getElementById('user-list');
+            listUI.innerHTML = "";
+            snapshot.forEach((user) => {
+                const li = document.createElement('li');
+                li.innerText = user.val();
+                listUI.appendChild(li);
+            });
+        });
+
+        // --- FUNCIONES DE ACCIÓN ---
         function enviarMensaje() {
             const txt = document.getElementById('texto');
             let nom = document.getElementById('nombre').value;
             if (txt.value.trim() === "" || !nom) return;
             if (esAdmin) nom = "Chat";
-
             db.ref("mensajes").push({ nombre: nom, mensaje: txt.value.trim() });
             txt.value = "";
         }
 
-        // Modo Admin
         function loginAdmin() {
-            if(prompt("Contraseña:") === "1234") { // Cambia 1234 por tu clave
+            if(prompt("Contraseña:") === "1234") {
                 esAdmin = true;
                 document.getElementById('nombre').value = "Chat";
-                alert("Modo Chat Administrador activo");
+                gestionarPresencia("Chat");
+                alert("Modo Administrador activado.");
             }
         }
 
-        // Interfaz
+        function abandonarGrupo() {
+            if(confirm("¿Seguro que quieres abandonar el grupo?")) {
+                localStorage.removeItem('chat_nickname');
+                if (miPresenciaRef) miPresenciaRef.remove();
+                location.reload();
+            }
+        }
+
+        function mostrarConectados() {
+            document.getElementById('modal-users').style.display = 'block';
+        }
+
         window.onload = () => { document.getElementById('aviso-18').style.display = 'flex'; }
-        function aceptar18() { document.getElementById('aviso-18').style.display = 'none'; verificarGrupo(); }
+        
+        function aceptar18() { 
+            document.getElementById('aviso-18').style.display = 'none'; 
+            verificarGrupo(); 
+        }
+
         function verificarGrupo() {
             const n = localStorage.getItem('chat_nickname');
             if (!n) document.getElementById('capa-unirse').style.display = 'flex';
-            else document.getElementById('nombre').value = n;
+            else {
+                document.getElementById('nombre').value = n;
+                gestionarPresencia(n);
+            }
         }
+
         function confirmarUnion() {
             const n = document.getElementById('nuevo-nombre').value.trim();
             if(n.length >= 3) {
-                localStorage.setItem('user_joined', 'true');
                 localStorage.setItem('chat_nickname', n);
                 document.getElementById('nombre').value = n;
                 document.getElementById('capa-unirse').style.display = 'none';
+                gestionarPresencia(n);
             }
         }
+
         function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
         document.getElementById('texto').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
     </script>
