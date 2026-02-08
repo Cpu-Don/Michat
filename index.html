@@ -6,54 +6,60 @@
     <title>Chat Contenido</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-        #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; cursor: pointer; user-select: none; position: relative; display: flex; justify-content: space-between; align-items: center; }
+        #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Botones del Header */
-        .header-btn { background: #ffffff33; padding: 4px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; border: 1px solid white; }
+        .header-btn { background: #ffffff33; padding: 4px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; border: 1px solid white; min-width: 70px; }
         
-        /* Modales (Reglas y Conectados) */
+        /* Modales */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; }
+        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; }
+        .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
 
         #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; }
+        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; word-wrap: break-word; }
         .user-name { display: block; font-weight: bold; color: #075e54; font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 4px; }
-        .message a { color: #0088cc; text-decoration: none; font-weight: bold; }
+        .message a { color: #0088cc; text-decoration: none; font-weight: bold; word-break: break-all; }
         .time { display: block; text-align: right; font-size: 9px; color: #a2acb3; margin-top: 4px; }
-        .btn-del { color: red; border: none; background: none; cursor: pointer; font-size: 14px; float: right; display: none; }
+        .btn-del { color: red; border: none; background: none; cursor: pointer; font-size: 14px; float: right; display: none; margin-left: 10px; }
+        
+        /* Reacciones */
         .reactions { display: flex; gap: 8px; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 5px; }
-        .reac-btn { cursor: pointer; font-size: 14px; background: #fdfdfd; border-radius: 8px; padding: 2px 5px; border: 1px solid #eee; }
+        .reac-btn { cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 3px; background: #fdfdfd; border-radius: 8px; padding: 2px 5px; border: 1px solid #eee; }
         
         #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
         .input-row { display: flex; gap: 8px; }
-        #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; }
-        #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; }
+        #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
+        #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
         button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
-        #user-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
-        #user-list li { padding: 5px; border-bottom: 1px solid #eee; color: #075e54; font-weight: bold; }
+        
+        #user-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; margin-top: 10px; }
+        #user-list li { padding: 8px; border-bottom: 1px solid #eee; color: #075e54; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div id="header">
-        <div class="header-btn" onclick="mostrarConectados()">En línea</div>
+        <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
         <span onclick="loginAdmin()">Chat Contenido</span>
         <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
     </div>
 
     <div id="modal-reglas" class="modal">
         <div class="modal-content">
-            <h3 style="color:#517da2;">📜 Reglas</h3>
-            <p>Solo links MP4. Se acortarán con <b>Cuty</b> automáticamente.</p>
-            <p>Servidores: Videy, Mega, Mediafire, Drive, Terabox.</p>
+            <h3 style="margin-top:0; color:#517da2; text-align:center;">📜 Reglas del Chat</h3>
+            <p style="font-size: 14px; color: #333; line-height: 1.6;">
+                Reglas solo son permitidos links de contenido <b>MP4</b> al públicar los links permitidos se le serán acortado con <b>cuty</b>, de igual modo al pasar la publicidad llegarán al contenido esperado.
+            </p>
+            <p style="font-size: 12px; color: #666; text-align: center;">
+                (Videy, Mega, Mediafire, Drive, Terabox)
+            </p>
             <div class="close-modal" onclick="toggleReglas(false)">Entendido</div>
         </div>
     </div>
 
     <div id="modal-users" class="modal">
         <div class="modal-content">
-            <h3 style="color:#517da2;">👥 Usuarios activos</h3>
+            <h3 style="margin-top:0; color:#517da2; text-align:center;">👥 Usuarios activos</h3>
             <ul id="user-list"></ul>
             <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div>
         </div>
@@ -63,7 +69,7 @@
     <div id="input-area">
         <div class="input-row">
             <input type="text" id="nombre" placeholder="Apodo">
-            <input type="text" id="texto" placeholder="Mensaje (20 pal.) + Link">
+            <input type="text" id="texto" placeholder="Mensaje o Link MP4...">
             <button id="btn">➤</button>
         </div>
     </div>
@@ -88,16 +94,22 @@
     const API_CUTY = "415c3efe17212860052c31f12";
     const permitidos = ["videy.co", "mediafire.com", "mega.nz", "drive.google.com", "terabox.com"];
 
-    window.toggleReglas = (s) => document.getElementById('modal-reglas').style.display = s ? 'block' : 'none';
+    // Actualizar contador "En línea"
+    onValue(ref(db, 'chats/'), (snapshot) => {
+        const users = new Set();
+        snapshot.forEach(child => { if(child.val().usuario) users.add(child.val().usuario); });
+        document.getElementById('count-btn').innerText = "En línea: " + users.size;
+    });
+
+    window.toggleReglas = (show) => document.getElementById('modal-reglas').style.display = show ? 'block' : 'none';
     
-    // Función para mostrar apodos recientes
     window.mostrarConectados = () => {
         onValue(query(ref(db, 'chats/'), orderByChild('timestamp')), (snapshot) => {
             const users = new Set();
             snapshot.forEach(child => { if(child.val().usuario) users.add(child.val().usuario); });
             const list = document.getElementById('user-list');
             list.innerHTML = "";
-            Array.from(users).reverse().slice(0, 10).forEach(u => {
+            Array.from(users).reverse().slice(0, 15).forEach(u => {
                 const li = document.createElement('li');
                 li.innerText = "🟢 " + u;
                 list.appendChild(li);
@@ -108,7 +120,7 @@
 
     window.loginAdmin = () => {
         const e = prompt("Email:"); const p = prompt("Pass:");
-        if (e && p) signInWithEmailAndPassword(auth, e, p).catch(() => alert("Error"));
+        if (e && p) signInWithEmailAndPassword(auth, e, p).catch(() => alert("Error de acceso"));
     };
 
     onAuthStateChanged(auth, (user) => {
@@ -128,13 +140,18 @@
         const n = document.getElementById('nombre').value.trim();
         const t = document.getElementById('texto').value.trim();
         if (!n || !t) return;
+        if (t.split(/\s+/).length > 20) return alert("Máximo 20 palabras");
+
         const urlMatch = t.match(/(https?:\/\/[^\s]+)/);
         let msgFinal = t;
+
         if (urlMatch) {
-            if (!permitidos.some(p => urlMatch[0].toLowerCase().includes(p))) return alert("Servidor no permitido");
+            const url = urlMatch[0].toLowerCase();
+            if (!permitidos.some(p => url.includes(p))) return alert("Servidor no permitido (Solo MP4 permitidos)");
             document.getElementById('texto').disabled = true;
             msgFinal = t.replace(urlMatch[0], await acortar(urlMatch[0]));
         }
+
         push(ref(db, 'chats/'), {
             usuario: isAdmin ? "Chat" : n,
             mensaje: msgFinal,
@@ -149,7 +166,8 @@
         const m = s.val();
         const div = document.createElement('div');
         div.className = 'message'; div.id = s.key;
-        div.innerHTML = `<button class="btn-del" onclick="window.borrar('${s.key}')" style="display:${isAdmin?'block':'none'}">🗑️</button>
+        div.innerHTML = `
+            <button class="btn-del" onclick="window.borrar('${s.key}')" style="display:${isAdmin?'block':'none'}">🗑️</button>
             <span class="user-name">${m.usuario}</span>
             <div>${m.mensaje.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')}</div>
             <div class="reactions">
@@ -162,13 +180,12 @@
     });
 
     window.reaccionar = (id, tipo) => {
-        if (localStorage.getItem('reac_'+id)) return alert("Solo una reacción");
-        runTransaction(ref(db, `chats/${id}/reacciones/${tipo}`), (c) => (c || 0) + 1).then(() => {
-            localStorage.setItem('reac_'+id, "t"); location.reload();
-        });
+        if (localStorage.getItem('reac_'+id)) return alert("Ya reaccionaste");
+        runTransaction(ref(db, `chats/${id}/reacciones/${tipo}`), (c) => (c || 0) + 1)
+        .then(() => { localStorage.setItem('reac_'+id, "t"); location.reload(); });
     };
 
-    window.borrar = (id) => { if(confirm("¿Borrar?")) remove(ref(db, 'chats/'+id)); };
+    window.borrar = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, 'chats/'+id)); };
     onChildRemoved(ref(db, 'chats/'), (s) => document.getElementById(s.key)?.remove());
 </script>
 </body>
