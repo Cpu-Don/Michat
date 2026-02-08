@@ -1,209 +1,206 @@
-‎<!DOCTYPE html>
-‎<html lang="es">
-‎<head>
-‎    <meta charset="UTF-8">
-‎    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-‎    <title>Chat Contenido</title>
-‎    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-‎    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-‎    
-‎    <style>
-‎        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-‎        #aviso-18 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; color: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
-‎        .box-18 { background: #2c2c2c; padding: 30px; border-radius: 20px; border: 2px solid #517da2; max-width: 400px; }
-‎        .btn-18 { background: #517da2; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
-‎        #capa-unirse { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-‎        .card-unirse { background: #fff; color: #333; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; }
-‎        .input-unirse { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; outline: none; }
-‎        .btn-confirmar { background: #25d366; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
-‎        #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; user-select: none; display: flex; justify-content: space-between; align-items: center; }
-‎        .header-btn { background: #ffffff33; padding: 4px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; border: 1px solid white; min-width: 70px; }
-‎        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-‎        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; word-wrap: break-word; }
-‎        .user-name { display: block; font-weight: bold; color: #075e54; font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 4px; }
-‎        #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
-‎        .input-row { display: flex; gap: 8px; }
-‎        #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
-‎        #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
-‎        button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
-‎        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-‎        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 85%; border-radius: 15px; position: relative; max-height: 80vh; overflow-y: auto; }
-‎        .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
-‎        .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin: 15px 0; cursor: pointer; border: none; width: 100%; font-weight: bold; }
-‎        .regla-item { font-size: 13px; margin-bottom: 8px; padding-left: 10px; border-left: 3px solid #517da2; }
-‎    </style>
-‎</head>
-‎<body>
-‎
-‎    <div id="aviso-18">
-‎        <div class="box-18">
-‎            <h2>⚠️ CONTENIDO ADULTO</h2>
-‎            <p>Debes ser mayor de edad para entrar.</p>
-‎            <button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button>
-‎        </div>
-‎    </div>
-‎
-‎    <div id="capa-unirse">
-‎        <div class="card-unirse">
-‎            <h2 style="color:#517da2;">¡Bienvenido!</h2>
-‎            <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Apodo...">
-‎            <button class="btn-confirmar" onclick="confirmarUnion()">ENTRAR AL CHAT</button>
-‎        </div>
-‎    </div>
-‎
-‎    <div id="header">
-‎        <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
-‎        <span onclick="loginAdmin()">Chat Contenido</span>
-‎        <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
-‎    </div>
-‎
-‎    <div id="modal-reglas" class="modal">
-‎        <div class="modal-content">
-‎            <h3 style="text-align:center; color: #517da2;">📜 REGLAS DEL GRUPO</h3>
-‎            <div class="regla-item"><b>1.</b> Solo se permiten enlaces MP4.</div>
-‎            <div class="regla-item"><b>2.</b> Enlaces de Telegram, Mega o Signal serán acortados automáticamente.</div>
-‎            <div class="regla-item"><b>3.</b> Prohibido el spam masivo o insultos.</div>
-‎            <div class="regla-item"><b>4.</b> Disfruta del contenido con respeto.</div>
-‎            
-‎            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-‎            
-‎            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ SALIR DEL GRUPO / CAMBIAR APODO</button>
-‎            <div class="close-modal" onclick="toggleReglas(false)">CERRAR REGLAS</div>
-‎        </div>
-‎    </div>
-‎
-‎    <div id="modal-users" class="modal">
-‎        <div class="modal-content">
-‎            <h3>👥 Usuarios Activos</h3>
-‎            <ul id="user-list" style="list-style:none; padding:0; font-size:14px;"></ul>
-‎            <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">VOLVER AL CHAT</div>
-‎        </div>
-‎    </div>
-‎
-‎    <div id="chat-container"></div>
-‎    <div id="input-area">
-‎        <div class="input-row">
-‎            <input type="text" id="nombre" placeholder="Yo" readonly>
-‎            <input type="text" id="texto" placeholder="Escribe aquí...">
-‎            <button id="btn" onclick="enviarMensaje()">➤</button>
-‎        </div>
-‎    </div>
-‎
-‎    <script>
-‎        const firebaseConfig = {
-‎            apiKey: "AIzaSyB2GH_bFRmRwhqtaBb3ll_9eNEMXj7RuMo",
-‎            authDomain: "micanalmaestro.firebaseapp.com",
-‎            databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com",
-‎            projectId: "micanalmaestro",
-‎            storageBucket: "micanalmaestro.firebasestorage.app",
-‎            messagingSenderId: "682263671302",
-‎            appId: "1:682263671302:web:dcf8f4303d2c3f5d704987"
-‎        };
-‎        firebase.initializeApp(firebaseConfig);
-‎        const db = firebase.database();
-‎        let esAdmin = false;
-‎        let miPresenciaRef;
-‎        const TOKEN_CUTY = "415c3efe17212860052c31f12";
-‎
-‎        // Acortador automático
-‎        function filtrarYAcortar(texto) {
-‎            const urlRegex = /(https?:\/\/[^\s]+)/g;
-‎            return texto.replace(urlRegex, (url) => {
-‎                const link = url.toLowerCase();
-‎                if (link.includes("t.me") || link.includes("telegram.me") || link.includes("mega.nz") || link.includes("signal.group")) {
-‎                    const cutyUrl = `https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}`;
-‎                    return `<a href="${cutyUrl}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">[LINK SEGURO]</a>`;
-‎                }
-‎                return `<a href="${url}" target="_blank" style="color: #075e54;">${url}</a>`;
-‎            });
-‎        }
-‎
-‎        // Carga de mensajes
-‎        db.ref("mensajes").orderByChild("timestamp").on("value", (snap) => {
-‎            const container = document.getElementById('chat-container');
-‎            container.innerHTML = "";
-‎            snap.forEach((child) => {
-‎                const data = child.val();
-‎                const div = document.createElement('div');
-‎                div.className = 'message';
-‎                div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
-‎                div.onclick = () => { if(esAdmin && confirm("¿Borrar?")) db.ref("mensajes/" + child.key).remove(); };
-‎                container.appendChild(div);
-‎            });
-‎            container.scrollTop = container.scrollHeight;
-‎        });
-‎
-‎        function gestionarPresencia(apodo) {
-‎            if (miPresenciaRef) miPresenciaRef.remove();
-‎            miPresenciaRef = db.ref("presencia").push(apodo);
-‎            miPresenciaRef.onDisconnect().remove();
-‎        }
-‎
-‎        db.ref("presencia").on("value", (snap) => {
-‎            document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
-‎            const list = document.getElementById('user-list');
-‎            list.innerHTML = "";
-‎            snap.forEach((u) => { list.innerHTML += `<li style="padding:8px; border-bottom:1px solid #eee;">🟢 ${u.val()}</li>`; });
-‎        });
-‎
-‎        function confirmarUnion() {
-‎            const n = document.getElementById('nuevo-nombre').value.trim();
-‎            if(n.length < 3) return alert("Nombre muy corto.");
-‎            if(n.toLowerCase() === "chat") return alert("Nombre reservado.");
-‎            localStorage.setItem('chat_nickname', n);
-‎            document.getElementById('nombre').value = n;
-‎            document.getElementById('capa-unirse').style.display = 'none';
-‎            gestionarPresencia(n);
-‎        }
-‎
-‎        function abandonarGrupo() {
-‎            if(confirm("¿Seguro quieres salir?")) {
-‎                if(miPresenciaRef) miPresenciaRef.remove();
-‎                localStorage.removeItem('chat_nickname');
-‎                location.reload();
-‎            }
-‎        }
-‎
-‎        function enviarMensaje() {
-‎            const t = document.getElementById('texto');
-‎            const n = document.getElementById('nombre').value;
-‎            if (t.value.trim() === "" || !n) return;
-‎            const msg = filtrarYAcortar(t.value);
-‎            db.ref("mensajes").push({ nombre: n, mensaje: msg, timestamp: Date.now() });
-‎            t.value = "";
-‎        }
-‎
-‎        function loginAdmin() {
-‎            if(prompt("Clave:") === "12345678pp") {
-‎                esAdmin = true;
-‎                document.getElementById('nombre').value = "Chat";
-‎                alert("Modo Admin Activo: Eres 'Chat'");
-‎            }
-‎        }
-‎
-‎        function mostrarConectados() { document.getElementById('modal-users').style.display = 'block'; }
-‎        function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
-‎
-‎        function aceptar18() { 
-‎            document.getElementById('aviso-18').style.display = 'none'; 
-‎            const n = localStorage.getItem('chat_nickname');
-‎            if(!n) document.getElementById('capa-unirse').style.display = 'flex';
-‎            else { document.getElementById('nombre').value = n; gestionarPresencia(n); }
-‎        }
-‎
-‎        document.body.addEventListener('click', () => {
-‎            const h = Date.now();
-‎            let c = parseInt(localStorage.getItem('ads_clics')) || 0;
-‎            let ultimaVez = parseInt(localStorage.getItem('ads_time')) || 0;
-‎            if (h - ultimaVez > 15 * 60 * 1000) c = 0;
-‎            if (c < 2) {
-‎                c++;
-‎                localStorage.setItem('ads_clics', c);
-‎                localStorage.setItem('ads_time', h);
-‎                window.open(`https://cuty.io/quick?token=${TOKEN_CUTY}&url=https://www.google.com`, '_blank');
-‎            }
-‎        });
-‎    </script>
-‎</body>
-‎</html>
-‎
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Contenido</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #d7e5d0; margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        #aviso-18 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; color: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
+        .box-18 { background: #2c2c2c; padding: 30px; border-radius: 20px; border: 2px solid #517da2; max-width: 400px; }
+        .btn-18 { background: #517da2; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
+        #capa-unirse { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+        .card-unirse { background: #fff; color: #333; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; }
+        .input-unirse { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; outline: none; }
+        .btn-confirmar { background: #25d366; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+        #header { background: #517da2; padding: 12px; color: white; text-align: center; font-weight: bold; user-select: none; display: flex; justify-content: space-between; align-items: center; }
+        .header-btn { background: #ffffff33; padding: 4px 8px; border-radius: 5px; font-size: 11px; cursor: pointer; border: 1px solid white; min-width: 70px; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        .message { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; position: relative; word-wrap: break-word; }
+        .user-name { display: block; font-weight: bold; color: #075e54; font-size: 12px; border-bottom: 1px solid #eee; margin-bottom: 4px; }
+        #input-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #ccc; }
+        .input-row { display: flex; gap: 8px; }
+        #nombre { width: 80px; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
+        #texto { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 10px; font-size: 13px; outline: none; }
+        button#btn { background: none; border: none; color: #517da2; font-size: 22px; cursor: pointer; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 85%; border-radius: 15px; position: relative; max-height: 80vh; overflow-y: auto; }
+        .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
+        .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin: 15px 0; cursor: pointer; border: none; width: 100%; font-weight: bold; }
+        .regla-item { font-size: 13px; margin-bottom: 8px; padding-left: 10px; border-left: 3px solid #517da2; }
+    </style>
+</head>
+<body>
+
+    <div id="aviso-18">
+        <div class="box-18">
+            <h2>⚠️ CONTENIDO ADULTO</h2>
+            <p>Debes ser mayor de edad para entrar.</p>
+            <button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button>
+            <button class="btn-18" style="background: #444; margin-top: 10px; display: block; width: 100%;" onclick="window.location.href='https://www.google.com'">SALIR</button>
+        </div>
+    </div>
+
+    <div id="capa-unirse">
+        <div class="card-unirse">
+            <h2 style="color:#517da2;">¡Bienvenido!</h2>
+            <input type="text" id="nuevo-nombre" class="input-unirse" placeholder="Apodo...">
+            <button class="btn-confirmar" onclick="confirmarUnion()">ENTRAR AL CHAT</button>
+        </div>
+    </div>
+
+    <div id="header">
+        <div class="header-btn" id="count-btn" onclick="mostrarConectados()">En línea: 0</div>
+        <span onclick="loginAdmin()">Chat Contenido</span>
+        <div class="header-btn" onclick="toggleReglas(true)">Reglas</div>
+    </div>
+
+    <div id="modal-reglas" class="modal">
+        <div class="modal-content">
+            <h3 style="text-align:center; color: #517da2;">📜 REGLAS DEL GRUPO</h3>
+            <div class="regla-item"><b>1.</b> Solo se permiten enlaces MP4.</div>
+            <div class="regla-item"><b>2.</b> Enlaces de Telegram, Mega o Signal serán acortados automáticamente.</div>
+            <div class="regla-item"><b>3.</b> Prohibido el spam masivo o insultos.</div>
+            <div class="regla-item"><b>4.</b> Disfruta del contenido con respeto.</div>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            <button class="btn-abandonar" onclick="abandonarGrupo()">❌ SALIR DEL GRUPO / CAMBIAR APODO</button>
+            <div class="close-modal" onclick="toggleReglas(false)">CERRAR REGLAS</div>
+        </div>
+    </div>
+
+    <div id="modal-users" class="modal">
+        <div class="modal-content">
+            <h3>👥 Usuarios Activos</h3>
+            <ul id="user-list" style="list-style:none; padding:0; font-size:14px;"></ul>
+            <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">VOLVER AL CHAT</div>
+        </div>
+    </div>
+
+    <div id="chat-container"></div>
+    <div id="input-area">
+        <div class="input-row">
+            <input type="text" id="nombre" placeholder="Yo" readonly>
+            <input type="text" id="texto" placeholder="Escribe aquí...">
+            <button id="btn" onclick="enviarMensaje()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2GH_bFRmRwhqtaBb3ll_9eNEMXj7RuMo",
+            authDomain: "micanalmaestro.firebaseapp.com",
+            databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com",
+            projectId: "micanalmaestro",
+            storageBucket: "micanalmaestro.firebasestorage.app",
+            messagingSenderId: "682263671302",
+            appId: "1:682263671302:web:dcf8f4303d2c3f5d704987"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let esAdmin = false;
+        let miPresenciaRef;
+        const TOKEN_CUTY = "415c3efe17212860052c31f12";
+
+        function filtrarYAcortar(texto) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return texto.replace(urlRegex, (url) => {
+                const link = url.toLowerCase();
+                if (link.includes("t.me") || link.includes("telegram.me") || link.includes("mega.nz") || link.includes("signal.group")) {
+                    const cutyUrl = `https://cuty.io/quick?token=${TOKEN_CUTY}&url=${encodeURIComponent(url)}`;
+                    return `<a href="${cutyUrl}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">[LINK SEGURO]</a>`;
+                }
+                return `<a href="${url}" target="_blank" style="color: #075e54;">${url}</a>`;
+            });
+        }
+
+        db.ref("mensajes").orderByChild("timestamp").on("value", (snap) => {
+            const container = document.getElementById('chat-container');
+            container.innerHTML = "";
+            snap.forEach((child) => {
+                const data = child.val();
+                const div = document.createElement('div');
+                div.className = 'message';
+                // VERIFICADO: Usa data.mensaje como en tu original para evitar el undefined
+                div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
+                div.onclick = () => { if(esAdmin && confirm("¿Borrar?")) db.ref("mensajes/" + child.key).remove(); };
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        });
+
+        function gestionarPresencia(apodo) {
+            if (miPresenciaRef) miPresenciaRef.remove();
+            miPresenciaRef = db.ref("presencia").push(apodo);
+            miPresenciaRef.onDisconnect().remove();
+        }
+
+        db.ref("presencia").on("value", (snap) => {
+            document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
+            const list = document.getElementById('user-list');
+            list.innerHTML = "";
+            snap.forEach((u) => { list.innerHTML += `<li style="padding:8px; border-bottom:1px solid #eee;">🟢 ${u.val()}</li>`; });
+        });
+
+        function confirmarUnion() {
+            const n = document.getElementById('nuevo-nombre').value.trim();
+            if(n.length < 3) return alert("Nombre muy corto.");
+            if(n.toLowerCase() === "chat") return alert("Nombre reservado.");
+            localStorage.setItem('chat_nickname', n);
+            document.getElementById('nombre').value = n;
+            document.getElementById('capa-unirse').style.display = 'none';
+            gestionarPresencia(n);
+        }
+
+        function abandonarGrupo() {
+            if(confirm("¿Seguro quieres salir?")) {
+                if(miPresenciaRef) miPresenciaRef.remove();
+                localStorage.removeItem('chat_nickname');
+                location.reload();
+            }
+        }
+
+        function enviarMensaje() {
+            const t = document.getElementById('texto');
+            const n = document.getElementById('nombre').value;
+            if (t.value.trim() === "" || !n) return;
+            const msg = filtrarYAcortar(t.value);
+            db.ref("mensajes").push({ nombre: n, mensaje: msg, timestamp: Date.now() });
+            t.value = "";
+        }
+
+        function loginAdmin() {
+            if(prompt("Clave:") === "12345678pp") {
+                esAdmin = true;
+                document.getElementById('nombre').value = "Chat";
+                alert("Modo Admin Activo: Eres 'Chat'");
+            }
+        }
+
+        function mostrarConectados() { document.getElementById('modal-users').style.display = 'block'; }
+        function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
+
+        function aceptar18() { 
+            document.getElementById('aviso-18').style.display = 'none'; 
+            const n = localStorage.getItem('chat_nickname');
+            if(!n) document.getElementById('capa-unirse').style.display = 'flex';
+            else { document.getElementById('nombre').value = n; gestionarPresencia(n); }
+        }
+
+        document.body.addEventListener('click', () => {
+            const h = Date.now();
+            let c = parseInt(localStorage.getItem('ads_clics')) || 0;
+            let ultimaVez = parseInt(localStorage.getItem('ads_time')) || 0;
+            if (h - ultimaVez > 15 * 60 * 1000) c = 0;
+            if (c < 2) {
+                c++;
+                localStorage.setItem('ads_clics', c);
+                localStorage.setItem('ads_time', h);
+                window.open(`https://cuty.io/quick?token=${TOKEN_CUTY}&url=https://www.google.com`, '_blank');
+            }
+        });
+    </script>
+</body>
+</html>
