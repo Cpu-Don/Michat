@@ -13,6 +13,7 @@
             background: #1a1a1a; color: white; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; padding: 20px; box-sizing: border-box;
+            display: flex; /* Se muestra por defecto siempre */
         }
         .box-18 { background: #2c2c2c; padding: 30px; border-radius: 20px; border: 2px solid #517da2; max-width: 400px; }
         .btn-18 { 
@@ -39,7 +40,6 @@
         .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; }
         .close-modal { background: #517da2; color: white; padding: 8px 15px; border-radius: 10px; text-align: center; display: block; margin-top: 15px; cursor: pointer; font-weight: bold; }
         
-        /* BOTÓN ABANDONAR AL FINAL */
         .btn-abandonar { background: #ff4444; color: white; padding: 10px; border-radius: 10px; text-align: center; margin: 15px 0; cursor: pointer; font-size: 13px; font-weight: bold; border: none; width: 100%; }
 
         #chat-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
@@ -102,28 +102,28 @@
     </div>
 
     <script>
-        // Lógica de inicio
-        window.onload = function() {
-            if(localStorage.getItem('adult_consent')) {
-                document.getElementById('aviso-18').style.display = 'none';
-                verificarGrupo();
-            }
-            if(localStorage.getItem('chat_nickname')) {
-                document.getElementById('nombre').value = localStorage.getItem('chat_nickname');
-            }
+        // Función principal de acceso
+        function inicializarAcceso() {
+            // El aviso +18 NO se guarda en localStorage para que aparezca siempre
+            document.getElementById('aviso-18').style.display = 'flex';
+            document.getElementById('capa-unirse').style.display = 'none';
         }
 
         function aceptar18() {
-            localStorage.setItem('adult_consent', 'true');
+            // Al aceptar, ocultamos aviso 18 y verificamos si debe unirse al grupo
             document.getElementById('aviso-18').style.display = 'none';
             verificarGrupo();
         }
 
         function verificarGrupo() {
-            if(!localStorage.getItem('user_joined')) {
+            const unido = localStorage.getItem('user_joined');
+            if (!unido) {
                 document.getElementById('capa-unirse').style.display = 'flex';
             } else {
                 document.getElementById('capa-unirse').style.display = 'none';
+                if(localStorage.getItem('chat_nickname')) {
+                    document.getElementById('nombre').value = localStorage.getItem('chat_nickname');
+                }
             }
         }
 
@@ -134,11 +134,11 @@
                 localStorage.setItem('chat_nickname', nick);
                 document.getElementById('nombre').value = nick;
                 document.getElementById('capa-unirse').style.display = 'none';
-            } else { alert("Nombre muy corto (mín. 3 letras)"); }
+            } else { alert("Nombre muy corto."); }
         }
 
         function abandonarGrupo() {
-            if(confirm("¿Seguro que quieres salir del grupo?")) {
+            if(confirm("¿Seguro que quieres abandonar el grupo?")) {
                 localStorage.removeItem('user_joined');
                 localStorage.removeItem('chat_nickname');
                 location.reload();
@@ -148,6 +148,9 @@
         function toggleReglas(show) {
             document.getElementById('modal-reglas').style.display = show ? 'block' : 'none';
         }
+
+        // Se ejecuta siempre al entrar
+        window.onload = inicializarAcceso;
     </script>
 </body>
 </html>
