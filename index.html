@@ -37,7 +37,6 @@
     <div id="aviso-18">
         <div class="box-18">
             <h2>⚠️ CONTENIDO ADULTO</h2>
-            <p>Este chat es solo para adultos.</p>
             <button class="btn-18" onclick="aceptar18()">SOY MAYOR DE EDAD</button>
         </div>
     </div>
@@ -58,8 +57,7 @@
 
     <div id="modal-reglas" class="modal">
         <div class="modal-content">
-            <h3 style="text-align:center;">📜 Reglas</h3>
-            <p style="font-size: 13px;">Solo links MP4. Los links de Mega o Telegram se acortarán automáticamente.</p>
+            <h3>📜 Opciones y Reglas</h3>
             <button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR GRUPO</button>
             <div class="close-modal" onclick="toggleReglas(false)">Cerrar</div>
         </div>
@@ -67,8 +65,8 @@
 
     <div id="modal-users" class="modal">
         <div class="modal-content">
-            <h3 style="text-align:center;">👥 En línea</h3>
-            <ul id="user-list" style="list-style:none; padding:0; max-height:200px; overflow-y:auto;"></ul>
+            <h3>👥 En línea</h3>
+            <ul id="user-list"></ul>
             <div class="close-modal" onclick="document.getElementById('modal-users').style.display='none'">Cerrar</div>
         </div>
     </div>
@@ -98,18 +96,25 @@
         let miPresenciaRef;
         const TOKEN_CUTY = "415c3efe17212860052c31f12";
 
+        // Carga y permanencia de mensajes
         db.ref("mensajes").on("value", (snap) => {
-            const c = document.getElementById('chat-container');
-            c.innerHTML = "";
+            const container = document.getElementById('chat-container');
+            container.innerHTML = "";
             snap.forEach((child) => {
-                const d = child.val();
+                const data = child.val();
                 const div = document.createElement('div');
                 div.className = 'message';
-                div.innerHTML = `<span class="user-name">${d.nombre}</span>${d.mensaje}`;
-                div.onclick = () => { if(esAdmin && confirm("¿Borrar?")) db.ref("mensajes/" + child.key).remove(); };
-                c.appendChild(div);
+                div.innerHTML = `<span class="user-name">${data.nombre}</span>${data.mensaje}`;
+                
+                // Solo tú como admin puedes borrar mensajes haciendo clic en ellos
+                div.onclick = () => { 
+                    if(esAdmin && confirm("¿Borrar mensaje?")) {
+                        db.ref("mensajes/" + child.key).remove();
+                    }
+                };
+                container.appendChild(div);
             });
-            c.scrollTop = c.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         });
 
         function gestionarPresencia(apodo) {
@@ -120,9 +125,9 @@
 
         db.ref("presencia").on("value", (snap) => {
             document.getElementById('count-btn').innerText = "En línea: " + snap.numChildren();
-            const l = document.getElementById('user-list');
-            l.innerHTML = "";
-            snap.forEach((u) => { l.innerHTML += `<li style="padding:8px; border-bottom:1px solid #eee;">${u.val()}</li>`; });
+            const list = document.getElementById('user-list');
+            list.innerHTML = "";
+            snap.forEach((u) => { list.innerHTML += `<li>${u.val()}</li>`; });
         });
 
         function confirmarUnion() {
@@ -135,7 +140,7 @@
         }
 
         function abandonarGrupo() {
-            if(confirm("¿Seguro que quieres salir y borrar tu nombre?")) {
+            if(confirm("¿Seguro que quieres salir?")) {
                 if(miPresenciaRef) miPresenciaRef.remove();
                 localStorage.removeItem('chat_nickname');
                 location.reload();
@@ -146,15 +151,23 @@
             const t = document.getElementById('texto');
             const n = document.getElementById('nombre').value;
             if (t.value.trim() === "" || !n) return;
-            db.ref("mensajes").push({ nombre: esAdmin ? "admin77" : n, mensaje: t.value });
+            
+            // Forzamos el nombre "Chat" para ti si eres admin
+            const nombreFinal = esAdmin ? "Chat" : n;
+            
+            db.ref("mensajes").push({ 
+                nombre: nombreFinal, 
+                mensaje: t.value,
+                timestamp: Date.now() 
+            });
             t.value = "";
         }
 
         function loginAdmin() {
             if(prompt("Clave:") === "12345678pp") {
                 esAdmin = true;
-                document.getElementById('nombre').value = "admin77";
-                alert("Modo Administrador activado");
+                document.getElementById('nombre').value = "Chat";
+                alert("Modo Administrador: Ahora aparecerás como 'Chat'");
             }
         }
 
