@@ -169,8 +169,9 @@
                     document.getElementById('capa-unirse').style.display = 'none';
                     gestionarPresencia(n);
                 }
-            }).catch(() => {
-                alert("Error de conexión. Revisa tus reglas de Firebase.");
+            }).catch((error) => {
+                console.error(error);
+                alert("Error de conexión. Asegúrate de que las REGLAS en Firebase estén en TRUE y PUBLICADAS.");
                 btn.innerText = "UNIRSE AHORA";
                 btn.disabled = false;
             });
@@ -184,7 +185,6 @@
             t.value = "";
         }
 
-        // CLAVE ACTUALIZADA: 12345678pp
         function loginAdmin() {
             if(prompt("Clave:") === "12345678pp") {
                 esAdmin = true;
