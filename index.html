@@ -83,7 +83,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0; color:#517da2; text-align:center;">📜 Reglas del Chat</h3>
             <p style="font-size: 14px; color: #333; line-height: 1.6;">
-                Reglas son permitidos links <b>MP4</b>. Al publicar links de <b>Mega, Telegram o Signal</b> serán acortados con Cuty.
+                Reglas son permitidos links de contenido <b>MP4</b>. Al publicar links de <b>Mega, Telegram o Signal</b> serán acortados con Cuty.
             </p>
             <hr style="border:0; border-top:1px solid #eee;">
             <button class="btn-abandonar" onclick="abandonarGrupo()">❌ ABANDONAR GRUPO</button>
@@ -203,20 +203,48 @@
         function mostrarConectados() { document.getElementById('modal-users').style.display = 'block'; }
         window.onload = () => { document.getElementById('aviso-18').style.display = 'flex'; }
         function aceptar18() { document.getElementById('aviso-18').style.display = 'none'; verificarGrupo(); }
+        
         function verificarGrupo() {
             const n = localStorage.getItem('chat_nickname');
             if (!n) document.getElementById('capa-unirse').style.display = 'flex';
-            else { document.getElementById('nombre').value = n; gestionarPresencia(n); }
-        }
-        function confirmarUnion() {
-            const n = document.getElementById('nuevo-nombre').value.trim();
-            if(n.length >= 3) {
-                localStorage.setItem('chat_nickname', n);
-                document.getElementById('nombre').value = n;
-                document.getElementById('capa-unirse').style.display = 'none';
-                gestionarPresencia(n);
+            else { 
+                document.getElementById('nombre').value = n; 
+                gestionarPresencia(n); 
             }
         }
+
+        // --- FUNCIÓN MEJORADA: EVITA APODOS DUPLICADOS ---
+        function confirmarUnion() {
+            const n = document.getElementById('nuevo-nombre').value.trim();
+            if(n.length < 3) {
+                alert("El apodo debe tener al menos 3 letras.");
+                return;
+            }
+            if(n.toLowerCase() === "chat") {
+                alert("Este apodo está reservado.");
+                return;
+            }
+
+            // Revisamos en la lista de usuarios conectados de Firebase
+            db.ref("presencia").once("value", (snapshot) => {
+                let existe = false;
+                snapshot.forEach((user) => {
+                    if (user.val().toLowerCase() === n.toLowerCase()) {
+                        existe = true;
+                    }
+                });
+
+                if (existe) {
+                    alert("Lo siento, el apodo '" + n + "' ya está siendo usado por alguien en línea. Elige otro.");
+                } else {
+                    localStorage.setItem('chat_nickname', n);
+                    document.getElementById('nombre').value = n;
+                    document.getElementById('capa-unirse').style.display = 'none';
+                    gestionarPresencia(n);
+                }
+            });
+        }
+
         function toggleReglas(s) { document.getElementById('modal-reglas').style.display = s ? 'block' : 'none'; }
         document.getElementById('texto').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
 
