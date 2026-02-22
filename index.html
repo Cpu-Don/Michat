@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html>
-<html xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
   <title>Chat Online</title>
   <meta content='width=device-width,initial-scale=1' name='viewport'/>
-  <b:skin><![CDATA[
+  <style>
     body { background:#f0f2f5 !important; margin:0; padding:0; height:100vh; width:100vw; display:flex !important; overflow:hidden; }
     #content, .section, .widget { display: block !important; width: 100%; height: 100%; }
     .navbar, .header-outer, .footer-outer { display: none !important; }
@@ -15,295 +15,284 @@
     .show { display: block !important; }
     #modal-reglas, #modal-online { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
-  ]]></b:skin>
+  </style>
 </head>
 <body>
-  <b:section id='main'>
-    <b:widget id='HTML1' locked='true' title='Chat' type='HTML' version='1'>
-      <b:widget-settings>
-        <b:widget-setting name='content'/>
-      </b:widget-settings>
-      <b:includable id='main'>
-        
-        <div id='app' style='position:fixed; top:0; left:0; width:100%; height:100%; background:#f0f2f5; z-index:999999; display:flex; justify-content:center; align-items:center;'>
-          
-          <div id='acceso' style='background:white; padding:30px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1); width:280px; text-align:center; font-family:sans-serif;'>
-            <h2 style='color:#075e54; margin:0 0 20px 0;'>Acceso al Sistema</h2>
-            <input id='usr' placeholder='Usuario' style='width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='text'/>
-            <input id='clv' placeholder='Clave' style='width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='password'/>
-            <button onclick='entrar()' style='width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;'>ENTRAR</button>
-          </div>
 
-          <div id='chat' style='width:100%; max-width:500px; height:100%; background:#e5ddd5; display:none; flex-direction:column; font-family:sans-serif;'>
-            <div style='background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;'>
-              <div onclick='verQuienesEstanOnline()' style='display:flex; flex-direction:column; cursor:pointer;'>
-                <span><b>SISTEMA</b></span>
-                <small id='online-count' style='font-size:10px; color:#25d366; font-weight:bold;'>Conectados: 0 &#9660;</small>
-              </div>
-              <div class='dropdown'>
-                <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
-                <div class='dropdown-content' id='myDropdown'>
-                  <span onclick='abrirReglas()'>Reglas</span>
-                  <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat</span>
-                  <span onclick='location.reload()' style='color:red;'>Salir</span>
-                </div>
-              </div>
-            </div>
-            <div style='background:#054d44; color:white; padding:10px; font-size:12px; display:flex; justify-content:space-between;'>
-              <span>CHAT GLOBAL:</span>
-              <button id='tgl' onclick='lock()' style='background:#25d366; border:none; padding:3px 10px; border-radius:5px; cursor:pointer; font-weight:bold;'>ACTIVO</button>
-            </div>
-            <div id='m-box' style='flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;'/>
-            <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px;'>
-              <input id='msg' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
-              <button onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
-            </div>
-          </div>
+  <div id='app' style='position:fixed; top:0; left:0; width:100%; height:100%; background:#f0f2f5; z-index:999999; display:flex; justify-content:center; align-items:center;'>
+    
+    <div id='acceso' style='background:white; padding:30px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1); width:280px; text-align:center; font-family:sans-serif;'>
+      <h2 style='color:#075e54; margin:0 0 20px 0;'>Acceso al Sistema</h2>
+      <input id='usr' placeholder='Usuario' style='width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='text'/>
+      <input id='clv' placeholder='Clave' style='width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='password'/>
+      <button onclick='entrar()' style='width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;'>ENTRAR</button>
+    </div>
 
-          <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; font-family:sans-serif; flex-direction:column; border:1px solid #075e54;'>
-            <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; flex-direction:column;'>
-              <div style='display:flex; justify-content:space-between; align-items:center;'>
-                <span id='p-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
-                <span onclick='cerrarPrivado()' style='cursor:pointer; font-size:20px; font-weight:bold;'>X</span>
-              </div>
-              <small id='p-status' style='font-size:10px; color:#25d366; font-weight:bold; height:12px;'/>
-            </div>
-            <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#e5ddd5; display:flex; flex-direction:column; gap:8px;'/>
-            <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd;'>
-              <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key===&quot;Enter&quot;) enviarPrivado()' placeholder='Privado...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
-              <button onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
-            </div>
+    <div id='chat' style='width:100%; max-width:500px; height:100%; background:#e5ddd5; display:none; flex-direction:column; font-family:sans-serif;'>
+      <div style='background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;'>
+        <div onclick='verQuienesEstanOnline()' style='display:flex; flex-direction:column; cursor:pointer;'>
+          <span><b>SISTEMA</b></span>
+          <small id='online-count' style='font-size:10px; color:#25d366; font-weight:bold;'>Conectados: 0 &#9660;</small>
+        </div>
+        <div class='dropdown'>
+          <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
+          <div class='dropdown-content' id='myDropdown'>
+            <span onclick='abrirReglas()'>Reglas</span>
+            <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat</span>
+            <span onclick='location.reload()' style='color:red;'>Salir</span>
           </div>
         </div>
+      </div>
+      <div style='background:#054d44; color:white; padding:10px; font-size:12px; display:flex; justify-content:space-between;'>
+        <span>CHAT GLOBAL:</span>
+        <button id='tgl' onclick='lock()' style='background:#25d366; border:none; padding:3px 10px; border-radius:5px; cursor:pointer; font-weight:bold;'>ACTIVO</button>
+      </div>
+      <div id='m-box' style='flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;'></div>
+      <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px;'>
+        <input id='msg' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
+        <button onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
+      </div>
+    </div>
 
-        <div id='modal-reglas'>
-          <div class='modal-box'>
-            <h3 style='color:#075e54; margin-top:0;'>Reglas del Sistema</h3>
-            <div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'/>
-            <div id='admin-editor' style='display:none; border-top:1px solid #eee; padding-top:10px;'>
-              <textarea id='edit-reglas' placeholder='Nuevas reglas...' style='width:100%; height:60px; font-size:12px;'/>
-              <button onclick='guardarReglas()' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:5px;'>ACTUALIZAR</button>
-            </div>
-            <button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
-          </div>
+    <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; font-family:sans-serif; flex-direction:column; border:1px solid #075e54;'>
+      <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; flex-direction:column;'>
+        <div style='display:flex; justify-content:space-between; align-items:center;'>
+          <span id='p-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
+          <span onclick='cerrarPrivado()' style='cursor:pointer; font-size:20px; font-weight:bold;'>X</span>
         </div>
+        <small id='p-status' style='font-size:10px; color:#25d366; font-weight:bold; height:12px;'></small>
+      </div>
+      <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#e5ddd5; display:flex; flex-direction:column; gap:8px;'></div>
+      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd;'>
+        <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Privado...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
+        <button onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
+      </div>
+    </div>
+  </div>
 
-        <div id='modal-online'>
-          <div class='modal-box' style='max-width:250px;'>
-            <h3 style='color:#075e54; margin-top:0; font-size:16px;'>Usuarios en línea</h3>
-            <div id='lista-online' style='max-height:250px; overflow-y:auto; font-size:14px; color:#333; line-height:2;'/>
-            <div id='admin-limpiar' style='display:none;'>
-                <button onclick='limpiarPresencia()' style='width:100%; background:orange; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px; font-size:11px; font-weight:bold;'>LIMPIAR FANTASMAS</button>
-            </div>
-            <button onclick='document.getElementById(&quot;modal-online&quot;).style.display=&quot;none&quot;' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
-          </div>
-        </div>
+  <div id='modal-reglas'>
+    <div class='modal-box'>
+      <h3 style='color:#075e54; margin-top:0;'>Reglas del Sistema</h3>
+      <div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'></div>
+      <div id='admin-editor' style='display:none; border-top:1px solid #eee; padding-top:10px;'>
+        <textarea id='edit-reglas' placeholder='Nuevas reglas...' style='width:100%; height:60px; font-size:12px;'></textarea>
+        <button onclick='guardarReglas()' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:5px;'>ACTUALIZAR</button>
+      </div>
+      <button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
+    </div>
+  </div>
 
-        <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'/>
-        <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'/>
+  <div id='modal-online'>
+    <div class='modal-box' style='max-width:250px;'>
+      <h3 style='color:#075e54; margin-top:0; font-size:16px;'>Usuarios en línea</h3>
+      <div id='lista-online' style='max-height:250px; overflow-y:auto; font-size:14px; color:#333; line-height:2;'></div>
+      <div id='admin-limpiar' style='display:none;'>
+          <button onclick='limpiarPresencia()' style='width:100%; background:orange; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px; font-size:11px; font-weight:bold;'>LIMPIAR FANTASMAS</button>
+      </div>
+      <button onclick='document.getElementById("modal-online").style.display="none"' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
+    </div>
+  </div>
 
-        <script>
-        //<![CDATA[
-          const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
-          firebase.initializeApp(firebaseConfig);
-          const rdb = firebase.database();
+  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
+  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
 
-          var ok = true;
-          var miUsuario = "";
-          var usuarioDestino = "";
-          var escribiendoTimeout;
-          var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
-          const EMOJIS = ['❤️', '🥲', '🤣', '🥰'];
+  <script>
+    const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const rdb = firebase.database();
 
-          function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
-          function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
-          function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
+    var ok = true;
+    var miUsuario = "";
+    var usuarioDestino = "";
+    var escribiendoTimeout;
+    var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
+    const EMOJIS = ['❤️', '🥲', '🤣', '🥰'];
 
-          function generarIdSala(u1, u2) {
-            var comb = [u1.toLowerCase(), u2.toLowerCase()].sort().join("_");
-            var hash = 0;
-            for (var i = 0; i < comb.length; i++) {
-              hash = ((hash << 5) - hash) + comb.charCodeAt(i);
-              hash |= 0;
-            }
-            return "sala_" + Math.abs(hash);
-          }
+    function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
+    function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
+    function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
 
-          function entrar() {
-            var uO = document.getElementById('usr').value.trim();
-            var p = document.getElementById('clv').value.trim();
-            var uM = uO.toLowerCase();
-            if(!uO || !p) { alert("Escribe usuario y clave"); return; }
-            rdb.ref('usuarios/' + uM).once('value', (snapshot) => {
-              if(snapshot.exists()) {
-                if(snapshot.val().toString() === p.toString()) {
-                  miUsuario = (uM === "chat") ? "Chat" : uO;
-                  iniciar();
-                } else { alert("Clave incorrecta."); }
-              } else {
-                if(uM === "chat" && uO !== "Chat") { alert("Nombre reservado."); return; }
-                rdb.ref('usuarios/' + uM).set(p).then(() => {
-                  miUsuario = (uM === "chat") ? "Chat" : uO;
-                  iniciar();
-                });
-              }
+    function generarIdSala(u1, u2) {
+      var comb = [u1.toLowerCase(), u2.toLowerCase()].sort().join("_");
+      var hash = 0;
+      for (var i = 0; i < comb.length; i++) {
+        hash = ((hash << 5) - hash) + comb.charCodeAt(i);
+        hash |= 0;
+      }
+      return "sala_" + Math.abs(hash);
+    }
+
+    function entrar() {
+      var uO = document.getElementById('usr').value.trim();
+      var p = document.getElementById('clv').value.trim();
+      var uM = uO.toLowerCase();
+      if(!uO || !p) { alert("Escribe usuario y clave"); return; }
+      rdb.ref('usuarios/' + uM).once('value', (snapshot) => {
+        if(snapshot.exists()) {
+          if(snapshot.val().toString() === p.toString()) {
+            miUsuario = (uM === "chat") ? "Chat" : uO;
+            iniciar();
+          } else { alert("Clave incorrecta."); }
+        } else {
+          if(uM === "chat" && uO !== "Chat") { alert("Nombre reservado."); return; }
+          rdb.ref('usuarios/' + uM).set(p).then(() => {
+            miUsuario = (uM === "chat") ? "Chat" : uO;
+            iniciar();
+          });
+        }
+      });
+    }
+
+    function iniciar() {
+      document.getElementById('acceso').style.display = 'none';
+      document.getElementById('chat').style.display = 'flex';
+      if(miUsuario === "Chat") { 
+         document.getElementById('admin-editor').style.display = 'block'; 
+         document.getElementById('btn-borrar-todo').style.display = 'block';
+      }
+
+      var presRef = rdb.ref('presencia/' + miUsuario.toLowerCase());
+      presRef.set(miUsuario);
+      presRef.onDisconnect().remove();
+
+      rdb.ref('presencia').on('value', (s) => {
+        var usuarios = s.val() || {};
+        var count = Object.keys(usuarios).length;
+        document.getElementById('online-count').innerText = "Conectados: " + count + " ▼";
+        var listaDiv = document.getElementById('lista-online');
+        listaDiv.innerHTML = "";
+        Object.values(usuarios).forEach(nombre => {
+          var item = document.createElement('div');
+          item.innerHTML = "• <b style='color:#075e54;'>" + nombre + "</b>";
+          listaDiv.appendChild(item);
+        });
+      });
+
+      rdb.ref('config/reglas').on('value', (s) => {
+        document.getElementById('reglas-texto').innerText = s.exists() ? s.val() : "Bienvenido.";
+      });
+      
+      rdb.ref('mensajes').on('value', (snapshot) => {
+        var box = document.getElementById('m-box');
+        box.innerHTML = ""; 
+        if(snapshot.exists()){
+          snapshot.forEach((child) => {
+            var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
+            var d = document.createElement('div');
+            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
+            var totalVistos = m.vistos ? Object.keys(m.vistos).length : 0;
+            var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px;'>x</span>" : "") + 
+                       "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
+                       m.t + 
+                       "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + " 👀 " + totalVistos + "</div>" +
+                       "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
+            EMOJIS.forEach(emoji => {
+              var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
+              var activo = (m.reacciones && m.reacciones[emoji] && m.reacciones[emoji][miUsuario]);
+              html += "<span onclick='reaccionar(\""+id+"\",\""+emoji+"\")' style='cursor:pointer; font-size:12px; background:"+(activo?"#c5e1a5":"#f0f0f0")+"; padding:2px 5px; border-radius:5px;'>" + emoji + (count > 0 ? " " + count : "") + "</span>";
             });
-          }
-
-          function iniciar() {
-            document.getElementById('acceso').style.display = 'none';
-            document.getElementById('chat').style.display = 'flex';
-            if(miUsuario === "Chat") { 
-               document.getElementById('admin-editor').style.display = 'block'; 
-               document.getElementById('btn-borrar-todo').style.display = 'block';
-            }
-
-            var presRef = rdb.ref('presencia/' + miUsuario.toLowerCase());
-            presRef.set(miUsuario);
-            presRef.onDisconnect().remove();
-
-            rdb.ref('presencia').on('value', (s) => {
-              var usuarios = s.val() || {};
-              var count = Object.keys(usuarios).length;
-              document.getElementById('online-count').innerText = "Conectados: " + count + " ▼";
-              var listaDiv = document.getElementById('lista-online');
-              listaDiv.innerHTML = "";
-              Object.values(usuarios).forEach(nombre => {
-                var item = document.createElement('div');
-                item.innerHTML = "• <b style='color:#075e54;'>" + nombre + "</b>";
-                listaDiv.appendChild(item);
-              });
+            html += "</div>";
+            d.innerHTML = html; box.appendChild(d);
+            rdb.ref('presencia/' + m.u.toLowerCase()).on('value', (ps) => {
+              var uEl = document.getElementById('user-'+id);
+              if(uEl) uEl.innerHTML = ps.exists() ? m.u + " <span style='color:#25d366; font-size:18px;'>•</span>" : m.u;
             });
+          });
+          box.scrollTop = box.scrollHeight;
+        }
+      });
+    }
 
-            rdb.ref('config/reglas').on('value', (s) => {
-              document.getElementById('reglas-texto').innerText = s.exists() ? s.val() : "Bienvenido.";
-            });
-            
-            rdb.ref('mensajes').on('value', (snapshot) => {
-              var box = document.getElementById('m-box');
-              box.innerHTML = ""; 
-              if(snapshot.exists()){
-                snapshot.forEach((child) => {
-                  var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
-                  var d = document.createElement('div');
-                  d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-                  var totalVistos = m.vistos ? Object.keys(m.vistos).length : 0;
-                  var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px;'>x</span>" : "") + 
-                             "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
-                             m.t + 
-                             "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + " 👀 " + totalVistos + "</div>" +
-                             "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
-                  EMOJIS.forEach(emoji => {
-                    var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
-                    var activo = (m.reacciones && m.reacciones[emoji] && m.reacciones[emoji][miUsuario]);
-                    html += "<span onclick='reaccionar(\""+id+"\",\""+emoji+"\")' style='cursor:pointer; font-size:12px; background:"+(activo?"#c5e1a5":"#f0f0f0")+"; padding:2px 5px; border-radius:5px;'>" + emoji + (count > 0 ? " " + count : "") + "</span>";
-                  });
-                  html += "</div>";
-                  d.innerHTML = html; box.appendChild(d);
-                  rdb.ref('presencia/' + m.u.toLowerCase()).on('value', (ps) => {
-                    var uEl = document.getElementById('user-'+id);
-                    if(uEl) uEl.innerHTML = ps.exists() ? m.u + " <span style='color:#25d366; font-size:18px;'>•</span>" : m.u;
-                  });
-                });
-                box.scrollTop = box.scrollHeight;
-              }
-            });
-          }
+    function verQuienesEstanOnline() {
+      document.getElementById('modal-online').style.display = 'flex';
+      if(miUsuario === "Chat") document.getElementById('admin-limpiar').style.display = 'block';
+    }
 
-          function verQuienesEstanOnline() {
-            document.getElementById('modal-online').style.display = 'flex';
-            if(miUsuario === "Chat") document.getElementById('admin-limpiar').style.display = 'block';
-          }
+    function limpiarPresencia() {
+      if(confirm("¿Eliminar usuarios fantasmas?")) {
+        rdb.ref('presencia').remove().then(() => { location.reload(); });
+      }
+    }
 
-          function limpiarPresencia() {
-            if(confirm("¿Eliminar usuarios fantasmas?")) {
-              rdb.ref('presencia').remove().then(() => { location.reload(); });
-            }
-          }
+    function abrirPrivado(nombre) {
+      if (nombre === miUsuario) return;
+      usuarioDestino = nombre;
+      document.getElementById("p-nombre").innerText = "Privado con: " + nombre;
+      document.getElementById("p-chat").style.display = "flex";
+      escucharPrivados();
+    }
 
-          function abrirPrivado(nombre) {
-            if (nombre === miUsuario) return;
-            usuarioDestino = nombre;
-            document.getElementById("p-nombre").innerText = "Privado con: " + nombre;
-            document.getElementById("p-chat").style.display = "flex";
-            escucharPrivados();
-          }
+    function cerrarPrivado() {
+      if(usuarioDestino) {
+        var idSala = generarIdSala(miUsuario, usuarioDestino);
+        rdb.ref("privados/" + idSala).off();
+        rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
+      }
+      document.getElementById("p-chat").style.display = "none";
+      usuarioDestino = "";
+    }
 
-          function cerrarPrivado() {
-            if(usuarioDestino) {
-              var idSala = generarIdSala(miUsuario, usuarioDestino);
-              rdb.ref("privados/" + idSala).off();
-              rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
-            }
-            document.getElementById("p-chat").style.display = "none";
-            usuarioDestino = "";
-          }
+    function escucharPrivados() {
+      var idSala = generarIdSala(miUsuario, usuarioDestino);
+      var primero = true;
+      rdb.ref("privados/" + idSala).on("value", (snapshot) => {
+        var pBox = document.getElementById("p-box"); pBox.innerHTML = "";
+        if(snapshot.exists()){
+          snapshot.forEach((child) => {
+            var m = child.val(), esMio = (m.u === miUsuario);
+            var d = document.createElement("div");
+            d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
+            d.innerHTML = "<b>" + m.u + "</b><br/>" + m.t; pBox.appendChild(d);
+          });
+          pBox.scrollTop = pBox.scrollHeight;
+          if(!primero) audioNotif.play().catch(function(e){});
+          primero = false;
+        }
+      });
+      rdb.ref("escribiendo/" + idSala + "/" + usuarioDestino).on("value", (s) => {
+        document.getElementById("p-status").innerText = s.exists() ? usuarioDestino + " está escribiendo..." : "";
+      });
+    }
 
-          function escucharPrivados() {
-            var idSala = generarIdSala(miUsuario, usuarioDestino);
-            var primero = true;
-            rdb.ref("privados/" + idSala).on("value", (snapshot) => {
-              var pBox = document.getElementById("p-box"); pBox.innerHTML = "";
-              if(snapshot.exists()){
-                snapshot.forEach((child) => {
-                  var m = child.val(), esMio = (m.u === miUsuario);
-                  var d = document.createElement("div");
-                  d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-                  d.innerHTML = "<b>" + m.u + "</b><br/>" + m.t; pBox.appendChild(d);
-                });
-                pBox.scrollTop = pBox.scrollHeight;
-                if(!primero) audioNotif.play().catch(function(e){});
-                primero = false;
-              }
-            });
-            rdb.ref("escribiendo/" + idSala + "/" + usuarioDestino).on("value", (s) => {
-              document.getElementById("p-status").innerText = s.exists() ? usuarioDestino + " está escribiendo..." : "";
-            });
-          }
+    function notificarEscribiendo() {
+      if(!usuarioDestino) return;
+      var idSala = generarIdSala(miUsuario, usuarioDestino);
+      rdb.ref("escribiendo/" + idSala + "/" + miUsuario).set(true);
+      clearTimeout(escribiendoTimeout);
+      escribiendoTimeout = setTimeout(() => { rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove(); }, 2000);
+    }
 
-          function notificarEscribiendo() {
-            if(!usuarioDestino) return;
-            var idSala = generarIdSala(miUsuario, usuarioDestino);
-            rdb.ref("escribiendo/" + idSala + "/" + miUsuario).set(true);
-            clearTimeout(escribiendoTimeout);
-            escribiendoTimeout = setTimeout(() => { rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove(); }, 2000);
-          }
+    function enviarPrivado() {
+      var input = document.getElementById("p-msg"), val = input.value.trim();
+      if (!val || !usuarioDestino) return;
+      var idSala = generarIdSala(miUsuario, usuarioDestino);
+      rdb.ref("privados/" + idSala).push({ u: miUsuario, t: val.replace(/</g, "&lt;"), h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes() }).then(() => {
+          input.value = ""; rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
+      });
+    }
 
-          function enviarPrivado() {
-            var input = document.getElementById("p-msg"), val = input.value.trim();
-            if (!val || !usuarioDestino) return;
-            var idSala = generarIdSala(miUsuario, usuarioDestino);
-            rdb.ref("privados/" + idSala).push({ u: miUsuario, t: val.replace(/</g, "&lt;"), h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes() }).then(() => {
-                input.value = ""; rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
-            });
-          }
+    function reaccionar(msgId, emoji) {
+      rdb.ref('mensajes/' + msgId + '/reacciones').once('value', (s) => {
+        var data = s.val() || {};
+        EMOJIS.forEach(e => { if(data[e] && data[e][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + e + '/' + miUsuario).remove(); });
+        if(!data[emoji] || !data[emoji][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + emoji + '/' + miUsuario).set(true);
+      });
+    }
 
-          function reaccionar(msgId, emoji) {
-            rdb.ref('mensajes/' + msgId + '/reacciones').once('value', (s) => {
-              var data = s.val() || {};
-              EMOJIS.forEach(e => { if(data[e] && data[e][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + e + '/' + miUsuario).remove(); });
-              if(!data[emoji] || !data[emoji][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + emoji + '/' + miUsuario).set(true);
-            });
-          }
-
-          function borrarTodoElChat() { if(confirm("¿Borrar todo?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
-          function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); }
-          function send() {
-            if(!ok) return;
-            var i = document.getElementById('msg'); if(!i.value.trim()) return;
-            var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-            rdb.ref('mensajes').push({ u: miUsuario, t: i.value.replace(/</g, "&lt;"), h: h }); i.value = '';
-          }
-          function lock() {
-            ok = !ok; var b = document.getElementById('tgl'), i = document.getElementById('msg');
-            b.innerText = ok ? "ACTIVO" : "BLOQUEADO"; b.style.background = ok ? "#25d366" : "#ff5252"; i.disabled = !ok;
-          }
-          function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
-          window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
-        //]]>
-        </script>
-      </b:includable>
-    </b:widget>
-  </b:section>
+    function borrarTodoElChat() { if(confirm("¿Borrar todo?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
+    function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); }
+    function send() {
+      if(!ok) return;
+      var i = document.getElementById('msg'); if(!i.value.trim()) return;
+      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+      rdb.ref('mensajes').push({ u: miUsuario, t: i.value.replace(/</g, "&lt;"), h: h }); i.value = '';
+    }
+    function lock() {
+      ok = !ok; var b = document.getElementById('tgl'), i = document.getElementById('msg');
+      b.innerText = ok ? "ACTIVO" : "BLOQUEADO"; b.style.background = ok ? "#25d366" : "#ff5252"; i.disabled = !ok;
+    }
+    function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
+    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
+  </script>
 </body>
 </html>
