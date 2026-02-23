@@ -15,6 +15,8 @@
     .show { display: block !important; }
     #modal-reglas, #modal-online { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
+    /* Estilo para los links en el chat */
+    .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -49,7 +51,7 @@
       </div>
       <div id='m-box' style='flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;'></div>
       <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px;'>
-        <input id='msg' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
+        <input id='msg' onkeypress='if(event.key==="Enter") send()' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
         <button onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
       </div>
     </div>
@@ -111,6 +113,14 @@
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
     function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
     function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
+
+    // Función para convertir texto en links clicables
+    function linkify(text) {
+      var urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+      return text.replace(urlPattern, function(url) {
+        return '<a href="' + url + '" target="_blank" class="chat-link">' + url + '</a>';
+      });
+    }
 
     function generarIdSala(u1, u2) {
       var comb = [u1.toLowerCase(), u2.toLowerCase()].sort().join("_");
@@ -180,11 +190,14 @@
           snapshot.forEach((child) => {
             var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
             var d = document.createElement('div');
-            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-            var totalVistos = m.vistos ? Object.keys(m.vistos).length : 0;
+            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px; word-break:break-all;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
+            
+            // Aplicamos linkify al texto del mensaje
+            var textoProcesado = linkify(m.t || "");
+
             var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px; font-weight:bold;'>x</span>" : "") + 
                        "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
-                       (m.t || "") + 
+                       textoProcesado + 
                        "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + "</div>" +
                        "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
             EMOJIS.forEach(emoji => {
@@ -239,7 +252,11 @@
             var m = child.val(), esMio = (m.u === miUsuario);
             var d = document.createElement("div");
             d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-            d.innerHTML = "<b>" + m.u + "</b><br/>" + m.t; pBox.appendChild(d);
+            
+            // También aplicamos linkify en privados
+            var textoProcesado = linkify(m.t || "");
+            
+            d.innerHTML = "<b>" + m.u + "</b><br/>" + textoProcesado; pBox.appendChild(d);
           });
           pBox.scrollTop = pBox.scrollHeight;
           if(!primero) audioNotif.play().catch(function(e){});
@@ -285,6 +302,8 @@
       var texto = i.value.trim();
       if(!texto) return;
       var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+      
+      // Enviamos el texto limpio, el sistema lo convertirá en link al leerlo
       rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{
         i.value = '';
       });
