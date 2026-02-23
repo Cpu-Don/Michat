@@ -174,17 +174,18 @@
       
       rdb.ref('mensajes').on('value', (snapshot) => {
         var box = document.getElementById('m-box');
+        if (!box) return;
         box.innerHTML = ""; 
         if(snapshot.exists()){
           snapshot.forEach((child) => {
             var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
             var d = document.createElement('div');
-            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
+            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
             var totalVistos = m.vistos ? Object.keys(m.vistos).length : 0;
-            var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px;'>x</span>" : "") + 
+            var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px; font-weight:bold;'>x</span>" : "") + 
                        "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
-                       m.t + 
-                       "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + " 👀 " + totalVistos + "</div>" +
+                       (m.t || "") + 
+                       "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + "</div>" +
                        "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
             EMOJIS.forEach(emoji => {
               var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
@@ -193,10 +194,6 @@
             });
             html += "</div>";
             d.innerHTML = html; box.appendChild(d);
-            rdb.ref('presencia/' + m.u.toLowerCase()).on('value', (ps) => {
-              var uEl = document.getElementById('user-'+id);
-              if(uEl) uEl.innerHTML = ps.exists() ? m.u + " <span style='color:#25d366; font-size:18px;'>•</span>" : m.u;
-            });
           });
           box.scrollTop = box.scrollHeight;
         }
@@ -282,23 +279,14 @@
     function borrarTodoElChat() { if(confirm("¿Borrar todo?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
     function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); }
     
-    // FUNCION SEND ARREGLADA
     function send() {
       if(!ok) return;
       var i = document.getElementById('msg'); 
       var texto = i.value.trim();
       if(!texto) return;
-
-      var h = new Date().getHours() + ":" + (new Date().getMinutes() < 10 ? '0' : '') + new Date().getMinutes();
-      
-      rdb.ref('mensajes').push({ 
-        u: miUsuario, 
-        t: texto.replace(/</g, "&lt;"), 
-        h: h 
-      }).then(() => {
-        i.value = ''; // Limpia el input tras enviar
-      }).catch((e) => {
-        console.error("Error al enviar:", e);
+      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+      rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{
+        i.value = '';
       });
     }
 
