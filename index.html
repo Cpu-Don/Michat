@@ -281,12 +281,27 @@
 
     function borrarTodoElChat() { if(confirm("¿Borrar todo?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
     function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); }
+    
+    // FUNCION SEND ARREGLADA
     function send() {
       if(!ok) return;
-      var i = document.getElementById('msg'); if(!i.value.trim()) return;
-      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-      rdb.ref('mensajes').push({ u: miUsuario, t: i.value.replace(/</g, "&lt;"), h: h }); i.value = '';
+      var i = document.getElementById('msg'); 
+      var texto = i.value.trim();
+      if(!texto) return;
+
+      var h = new Date().getHours() + ":" + (new Date().getMinutes() < 10 ? '0' : '') + new Date().getMinutes();
+      
+      rdb.ref('mensajes').push({ 
+        u: miUsuario, 
+        t: texto.replace(/</g, "&lt;"), 
+        h: h 
+      }).then(() => {
+        i.value = ''; // Limpia el input tras enviar
+      }).catch((e) => {
+        console.error("Error al enviar:", e);
+      });
     }
+
     function lock() {
       ok = !ok; var b = document.getElementById('tgl'), i = document.getElementById('msg');
       b.innerText = ok ? "ACTIVO" : "BLOQUEADO"; b.style.background = ok ? "#25d366" : "#ff5252"; i.disabled = !ok;
