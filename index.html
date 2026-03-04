@@ -17,20 +17,9 @@
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
     /* Estilo para los links en el chat */
     .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
-
-    /* AJUSTE PARA EL ANUNCIO - NO BORRAR */
-    #ad-container-fixed { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000008; background: white; height: 60px; overflow: hidden; border-bottom: 2px solid #075e54; display: flex; justify-content: center; }
-    #chat { margin-top: 60px !important; } 
   </style>
 </head>
 <body>
-
-  <div id="ad-container-fixed">
-      <div style="transform: scale(0.55); transform-origin: top center; width: 100%;">
-          <script async="async" data-cfasync="false" src="https://pl28843680.effectivegatecpm.com/26e4cc6ade631d0940fd867e265b94c9/invoke.js"></script>
-          <div id="container-26e4cc6ade631d0940fd867e265b94c9"></div>
-      </div>
-  </div>
 
   <div id='app' style='position:fixed; top:0; left:0; width:100%; height:100%; background:#f0f2f5; z-index:999999; display:flex; justify-content:center; align-items:center;'>
     
@@ -61,12 +50,12 @@
         <button id='tgl' onclick='lock()' style='background:#25d366; border:none; padding:3px 10px; border-radius:5px; cursor:pointer; font-weight:bold;'>ACTIVO</button>
       </div>
       <div id='m-box' style='flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;'></div>
-      
       <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px;'>
         <input id='msg' onkeypress='if(event.key==="Enter") send()' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
         <button onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
       </div>
     </div>
+
     <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; font-family:sans-serif; flex-direction:column; border:1px solid #075e54;'>
       <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; flex-direction:column;'>
         <div style='display:flex; justify-content:space-between; align-items:center;'>
@@ -323,6 +312,8 @@
     function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
     window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
   </script>
+<script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
+
 
 </body>
 </html>
