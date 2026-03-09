@@ -65,9 +65,12 @@
         <small id='p-status' style='font-size:10px; color:#25d366; font-weight:bold; height:12px;'></small>
       </div>
       <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#e5ddd5; display:flex; flex-direction:column; gap:8px;'></div>
-      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd;'>
+      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd; align-items: center;'>
+        <label for="p-file" style="cursor:pointer; background:#075e54; color:white; width:32px; height:32px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; flex-shrink:0;">+</label>
+        <input id="p-file" type="file" accept="image/*" style="display:none;" onchange="subirFotoPrivada(this)"/>
+        
         <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Privado...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
-        <button onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
+        <button onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; flex-shrink:0;'>&gt;</button>
       </div>
     </div>
   </div>
@@ -97,11 +100,13 @@
 
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
+  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js'></script>
 
   <script>
     const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const rdb = firebase.database();
+    const storage = firebase.storage(); // Inicialización de Storage
 
     var ok = true;
     var miUsuario = "";
@@ -251,9 +256,12 @@
             var d = document.createElement("div");
             d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
             
-            var textoProcesado = linkify(m.t || "");
+            // Lógica para detectar si el mensaje es imagen o texto
+            let contenido = m.img 
+              ? `<img src="${m.img}" style="max-width:100%; border-radius:5px; margin-top:5px; cursor:pointer;" onclick="window.open('${m.img}')">` 
+              : linkify(m.t || "");
             
-            d.innerHTML = "<b>" + m.u + "</b><br/>" + textoProcesado; pBox.appendChild(d);
+            d.innerHTML = "<b>" + m.u + "</b><br/>" + contenido; pBox.appendChild(d);
           });
           pBox.scrollTop = pBox.scrollHeight;
           if(!primero) audioNotif.play().catch(function(e){});
@@ -280,6 +288,43 @@
       rdb.ref("privados/" + idSala).push({ u: miUsuario, t: val.replace(/</g, "&lt;"), h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes() }).then(() => {
           input.value = ""; rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
       });
+    }
+
+    // Nueva función para subir fotos a Storage y enviar a Database
+    async function subirFotoPrivada(input) {
+      if (!input.files || !input.files[0] || !usuarioDestino) return;
+      const file = input.files[0];
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert("La imagen es muy pesada. Máximo 2MB.");
+        input.value = ""; return;
+      }
+
+      const pMsg = document.getElementById("p-msg");
+      pMsg.placeholder = "Enviando foto...";
+      pMsg.disabled = true;
+
+      const fileName = Date.now() + "_" + file.name;
+      const storageRef = storage.ref('fotos_privadas/' + fileName);
+
+      try {
+        const snapshot = await storageRef.put(file);
+        const url = await snapshot.ref.getDownloadURL();
+        const idSala = generarIdSala(miUsuario, usuarioDestino);
+        
+        rdb.ref("privados/" + idSala).push({
+          u: miUsuario,
+          img: url,
+          h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes()
+        });
+      } catch (error) {
+        console.error(error);
+        alert("Error al subir imagen.");
+      } finally {
+        pMsg.placeholder = "Privado...";
+        pMsg.disabled = false;
+        input.value = "";
+      }
     }
 
     function reaccionar(msgId, emoji) {
