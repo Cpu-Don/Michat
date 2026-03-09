@@ -158,9 +158,10 @@
       return "sala_" + Math.abs(hash);
     }
 
+    // --- BLOQUEO SINCRONIZADO EN TIEMPO REAL ---
     function toggleMediaPublico() {
-        multimediaBloqueado = !multimediaBloqueado;
-        rdb.ref('config/multimedia_bloqueado').set(multimediaBloqueado);
+        let nuevoEstado = !multimediaBloqueado;
+        rdb.ref('config/multimedia_bloqueado').set(nuevoEstado);
     }
 
     rdb.ref('config/multimedia_bloqueado').on('value', (s) => {
@@ -169,30 +170,45 @@
         const btnMenu = document.getElementById('btn-lock-media');
         const labelOff = document.getElementById('label-off');
         if(multimediaBloqueado) {
-            btnPlus.classList.add('btn-disabled');
-            labelOff.style.display = "block";
+            if(btnPlus) btnPlus.classList.add('btn-disabled');
+            if(labelOff) labelOff.style.display = "block";
             if(btnMenu) btnMenu.innerText = "Activar Multimedia";
         } else {
-            btnPlus.classList.remove('btn-disabled');
-            labelOff.style.display = "none";
+            if(btnPlus) btnPlus.classList.remove('btn-disabled');
+            if(labelOff) labelOff.style.display = "none";
             if(btnMenu) btnMenu.innerText = "Bloquear Multimedia";
         }
     });
 
     async function subirMultimedia(input, tipo) {
-      if(tipo === 'global' && multimediaBloqueado) { alert("Multimedia bloqueado."); input.value = ""; return; }
+      // Verificación instantánea basada en el estado actual de Firebase
+      if(tipo === 'global' && multimediaBloqueado) { 
+          alert("El administrador ha bloqueado el envío de multimedia."); 
+          input.value = ""; 
+          return; 
+      }
+      
       const file = input.files[0];
       if(!file) return;
       const btn = (tipo === 'global') ? document.getElementById('btn-send-global') : document.getElementById('btn-send-privado');
       btn.innerText = "...";
+      
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", UPLOAD_PRESET);
+      
       try {
         const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
         const data = await res.json();
-        if(tipo === 'global') { document.getElementById('msg').value = data.secure_url; send(); } 
-        else { document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); }
+        
+        if(tipo === 'global') { 
+            if(multimediaBloqueado) { alert("Acción cancelada: Bloqueo activo."); return; }
+            document.getElementById('msg').value = data.secure_url; 
+            send(); 
+        } else { 
+            document.getElementById('p-msg').value = data.secure_url; 
+            enviarPrivado(); 
+        }
       } catch (err) { alert("Error al subir"); } finally { btn.innerText = ">"; input.value = ""; }
     }
 
@@ -371,7 +387,12 @@
       if(!ok) return;
       var i = document.getElementById('msg'), texto = i.value.trim();
       if(!texto) return;
-      if(texto.includes("res.cloudinary.com") && multimediaBloqueado) { alert("Multimedia bloqueado."); return; }
+      // Filtro estricto si se intenta enviar link de cloudinary estando bloqueado
+      if(texto.includes("res.cloudinary.com") && multimediaBloqueado) { 
+          alert("Multimedia desactivado por el Administrador."); 
+          i.value = '';
+          return; 
+      }
       var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
       rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{ i.value = ''; });
     }
