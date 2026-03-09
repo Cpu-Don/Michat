@@ -158,7 +158,7 @@
       return "sala_" + Math.abs(hash);
     }
 
-    // --- BLOQUEO SINCRONIZADO EN TIEMPO REAL ---
+    // --- MANEJO DE BLOQUEO MULTIMEDIA ---
     function toggleMediaPublico() {
         let nuevoEstado = !multimediaBloqueado;
         rdb.ref('config/multimedia_bloqueado').set(nuevoEstado);
@@ -181,11 +181,13 @@
     });
 
     async function subirMultimedia(input, tipo) {
-      // Verificación instantánea basada en el estado actual de Firebase
-      if(tipo === 'global' && multimediaBloqueado) { 
-          alert("El administrador ha bloqueado el envío de multimedia."); 
-          input.value = ""; 
-          return; 
+      // Verificación instantánea en Firebase antes de subir
+      if(tipo === 'global') {
+          const s = await rdb.ref('config/multimedia_bloqueado').once('value');
+          if(s.val() === true) { 
+              alert("Multimedia bloqueado por administrador."); 
+              input.value = ""; return; 
+          }
       }
       
       const file = input.files[0];
@@ -200,20 +202,16 @@
       try {
         const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
         const data = await res.json();
-        
         if(tipo === 'global') { 
-            if(multimediaBloqueado) { alert("Acción cancelada: Bloqueo activo."); return; }
-            document.getElementById('msg').value = data.secure_url; 
-            send(); 
+            if(multimediaBloqueado) { alert("Bloqueo activo."); return; }
+            document.getElementById('msg').value = data.secure_url; send(); 
         } else { 
-            document.getElementById('p-msg').value = data.secure_url; 
-            enviarPrivado(); 
+            document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); 
         }
       } catch (err) { alert("Error al subir"); } finally { btn.innerText = ">"; input.value = ""; }
     }
 
     function limpiarMultimedia(tipo) {
-        if(!confirm("¿Borrar solo fotos y videos?")) return;
         const esMedia = (url) => url && url.includes("res.cloudinary.com");
         if(tipo === "publico" || tipo === "total") {
             rdb.ref('mensajes').once('value', (s) => { s.forEach((c) => { if(esMedia(c.val().t)) rdb.ref('mensajes/'+c.key).remove(); }); });
@@ -221,7 +219,6 @@
         if(tipo === "privado" || tipo === "total") {
             rdb.ref('privados').once('value', (s) => { s.forEach((sala) => { sala.forEach((msg) => { if(esMedia(msg.val().t)) rdb.ref('privados/'+sala.key+'/'+msg.key).remove(); }); }); });
         }
-        alert("Limpieza completada.");
     }
 
     function entrar() {
@@ -248,10 +245,18 @@
     function iniciar() {
       document.getElementById('acceso').style.display = 'none';
       document.getElementById('chat').style.display = 'flex';
+      
       if(miUsuario === "Chat") { 
          document.getElementById('admin-editor').style.display = 'block'; 
          document.getElementById('btn-borrar-todo').style.display = 'block';
          document.getElementById('admin-limpieza-media').style.display = 'block';
+
+         // --- RELOJ DE LIMPIEZA AUTOMÁTICA (CADA 4 HORAS) ---
+         console.log("Sistema de limpieza automática 4h activado.");
+         setInterval(function() {
+             limpiarMultimedia("total");
+             console.log("Limpieza programada ejecutada.");
+         }, 4 * 60 * 60 * 1000);
       }
 
       var presRef = rdb.ref('presencia/' + miUsuario.toLowerCase());
@@ -387,11 +392,8 @@
       if(!ok) return;
       var i = document.getElementById('msg'), texto = i.value.trim();
       if(!texto) return;
-      // Filtro estricto si se intenta enviar link de cloudinary estando bloqueado
-      if(texto.includes("res.cloudinary.com") && multimediaBloqueado) { 
-          alert("Multimedia desactivado por el Administrador."); 
-          i.value = '';
-          return; 
+      if(multimediaBloqueado && texto.includes("res.cloudinary.com")) { 
+          alert("Multimedia bloqueado."); i.value = ""; return; 
       }
       var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
       rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{ i.value = ''; });
