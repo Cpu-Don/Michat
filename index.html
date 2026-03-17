@@ -16,14 +16,9 @@
     #modal-reglas, #modal-online, #modal-grupos, #modal-admin-grupos { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
     .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
-    
-    /* Estilos Multimedia */
     .chat-media { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; border: 1px solid #ddd; cursor: pointer; }
     .btn-adjuntar { background: #ccc; color: #333; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; font-weight: bold; }
-    .btn-disabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); }
     .status-off { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px; display: none; }
-    
-    /* Estilos Grupos */
     .item-grupo { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
     .btn-del { background:#ff5252; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10px; margin-left:5px; }
   </style>
@@ -62,59 +57,38 @@
           </div>
         </div>
       </div>
-      <div style='background:#054d44; color:white; padding:10px; font-size:12px; display:flex; justify-content:space-between;'>
-        <span>CHAT GLOBAL:</span>
-        <button id='tgl' onclick='lock()' style='background:#25d366; border:none; padding:3px 10px; border-radius:5px; cursor:pointer; font-weight:bold;'>ACTIVO</button>
-      </div>
       <div id='m-box' style='flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;'></div>
       
       <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px; align-items:center;'>
-        <button id="btn-plus-publico" onclick="document.getElementById('file-global').click()" class="btn-adjuntar">
-            + <span id="label-off" class="status-off">OFF</span>
-        </button>
+        <button onclick="document.getElementById('file-global').click()" class="btn-adjuntar">+<span id="label-off" class="status-off">OFF</span></button>
         <input type="file" id="file-global" style="display:none" accept="image/*,video/*" onchange="subirMultimedia(this, 'global')">
         <input id='msg' onkeypress='if(event.key==="Enter") send()' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
-        <button id="btn-send-global" onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
+        <button onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
       </div>
     </div>
 
-    <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; font-family:sans-serif; flex-direction:column; border:1px solid #075e54;'>
-      <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; flex-direction:column;'>
-        <div style='display:flex; justify-content:space-between; align-items:center;'>
-          <span id='p-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
+    <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; flex-direction:column; border:1px solid #075e54;'>
+      <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; justify-content:space-between; align-items:center;'>
+        <span id='p-nombre' style='font-size:12px; font-weight:bold;'>Privado</span>
+        <div style="display:flex; align-items:center;">
           <span id="btn-borrar-este-grupo" style="display:none; cursor:pointer; background:red; font-size:9px; padding:2px 5px; border-radius:3px; margin-right:5px;" onclick="borrarGrupoActual()">BORRAR G.</span>
-          <span onclick='cerrarPrivado()' style='cursor:pointer; font-size:20px; font-weight:bold;'>X</span>
+          <span onclick='cerrarPrivado()' style='cursor:pointer; font-size:18px; font-weight:bold;'>X</span>
         </div>
-        <small id='p-status' style='font-size:10px; color:#25d366; font-weight:bold; height:12px;'></small>
       </div>
       <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#e5ddd5; display:flex; flex-direction:column; gap:8px;'></div>
-      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd; align-items:center;'>
-        <button onclick="document.getElementById('file-privado').click()" style="background:#ccc; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer;">+</button>
+      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px;'>
+        <button onclick="document.getElementById('file-privado').click()" style="background:#ccc; border:none; width:32px; height:32px; border-radius:50%;">+</button>
         <input type="file" id="file-privado" style="display:none" accept="image/*,video/*" onchange="subirMultimedia(this, 'privado')">
-        <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Escribe...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
-        <button id="btn-send-privado" onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
+        <input id='p-msg' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Escribe...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
+        <button onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px;'>&gt;</button>
       </div>
     </div>
   </div>
 
-  <div id='modal-grupos'>
-    <div class='modal-box'>
-      <h3 style='color:#075e54; margin:0;'>Mis Grupos</h3>
-      <div id="lista-mis-grupos" style="max-height:150px; overflow-y:auto; margin:10px 0; border:1px solid #eee; border-radius:5px;"></div>
-      <hr>
-      <input id="nom-grupo" placeholder="Nombre del nuevo grupo" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc; box-sizing:border-box;">
-      <button onclick="crearGrupo()" style="width:100%; background:#075e54; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">CREAR GRUPO</button>
-      <button onclick="document.getElementById('modal-grupos').style.display='none'" style="width:100%; background:#777; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; margin-top:5px;">CERRAR</button>
-    </div>
-  </div>
-
-  <div id='modal-admin-grupos'>
-    <div class='modal-box'>
-      <h3 style='color:#673AB7; margin:0;'>Carpeta de Supervisión</h3>
-      <div id="lista-admin-grupos" style="max-height:300px; overflow-y:auto; margin:10px 0; border:1px solid #ddd; border-radius:5px;"></div>
-      <button onclick="document.getElementById('modal-admin-grupos').style.display='none'" style="width:100%; background:#777; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer;">CERRAR</button>
-    </div>
-  </div>
+  <div id='modal-online'><div class='modal-box' style='max-width:250px;'><h3 style='color:#075e54; margin:0;'>En línea</h3><div id='lista-online' style='max-height:250px; overflow-y:auto; margin:10px 0;'></div><button onclick='document.getElementById("modal-online").style.display="none"' style='width:100%; background:#777; color:white; border:none; padding:10px; border-radius:8px;'>CERRAR</button></div></div>
+  <div id='modal-grupos'><div class='modal-box'><h3 style='color:#075e54; margin:0;'>Mis Grupos</h3><div id="lista-mis-grupos" style="max-height:150px; overflow-y:auto; margin:10px 0; border:1px solid #eee;"></div><input id="nom-grupo" placeholder="Nombre del grupo" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;"><button onclick="crearGrupo()" style="width:100%; background:#075e54; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold;">CREAR GRUPO</button><button onclick="document.getElementById('modal-grupos').style.display='none'" style="width:100%; background:#777; color:white; border:none; padding:10px; border-radius:8px; margin-top:5px;">CERRAR</button></div></div>
+  <div id='modal-admin-grupos'><div class='modal-box'><h3 style='color:#673AB7; margin:0;'>Carpeta Grupos</h3><div id="lista-admin-grupos" style="max-height:300px; overflow-y:auto; margin:10px 0;"></div><button onclick="document.getElementById('modal-admin-grupos').style.display='none'" style="width:100%; background:#777; color:white; border:none; padding:10px; border-radius:8px;">CERRAR</button></div></div>
+  <div id='modal-reglas'><div class='modal-box'><h3>Reglas</h3><div id='reglas-texto' style='white-space:pre-wrap; font-size:14px; margin-bottom:10px;'></div><button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:10px; border-radius:8px;'>CERRAR</button></div></div>
 
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
@@ -126,115 +100,110 @@
     const CLOUD_NAME = "dhtyepcjg";
     const UPLOAD_PRESET = "Historial"; 
 
-    var ok = true;
     var miUsuario = "";
     var usuarioDestino = "";
     var tipoChatActual = "privado";
-    var multimediaBloqueado = false;
     var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
 
-    // --- GRUPOS ---
+    // --- FUNCIONES CORE ---
+    function entrar() {
+      var uO = document.getElementById('usr').value.trim(), p = document.getElementById('clv').value.trim();
+      if(!uO || !p) return alert("Faltan datos");
+      var uM = uO.toLowerCase();
+      rdb.ref('usuarios/' + uM).once('value', (s) => {
+        if(s.exists()) {
+          if(s.val().toString() === p.toString()) { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); } else { alert("Error clave"); }
+        } else {
+          rdb.ref('usuarios/' + uM).set(p).then(() => { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); });
+        }
+      });
+    }
+
+    function iniciar() {
+      document.getElementById('acceso').style.display = 'none';
+      document.getElementById('chat').style.display = 'flex';
+      if(miUsuario === "Chat") document.getElementById('admin-limpieza-media').style.display = 'block';
+      
+      rdb.ref('presencia/' + miUsuario.toLowerCase()).set(miUsuario);
+      rdb.ref('presencia/' + miUsuario.toLowerCase()).onDisconnect().remove();
+      
+      rdb.ref('presencia').on('value', (s) => {
+        var usuarios = s.val() || {};
+        document.getElementById('online-count').innerText = "Conectados: " + Object.keys(usuarios).length + " ▼";
+      });
+
+      rdb.ref('mensajes').limitToLast(50).on('value', (snapshot) => {
+        var box = document.getElementById('m-box'); box.innerHTML = ""; 
+        snapshot.forEach((child) => {
+          var m = child.val(), esMio = (m.u === miUsuario);
+          var d = document.createElement('div');
+          d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; margin-bottom:5px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
+          d.innerHTML = `<small onclick="abrirPrivado('${m.u}')" style="color:#128c7e; font-weight:bold; cursor:pointer;">${m.u}</small><br/>${linkify(m.t)}<div style="font-size:10px; color:#888; text-align:right;">${m.h}</div>`;
+          box.appendChild(d);
+        });
+        box.scrollTop = box.scrollHeight;
+      });
+    }
+
+    // --- MODALES Y GRUPOS ---
+    function verQuienesEstanOnline() {
+        document.getElementById('modal-online').style.display = 'flex';
+        rdb.ref('presencia').once('value', (s) => {
+            var box = document.getElementById('lista-online'); box.innerHTML = "";
+            s.forEach(u => {
+                var name = u.val();
+                var d = document.createElement('div');
+                d.innerHTML = `• <b onclick="abrirPrivado('${name}')" style="cursor:pointer; color:#075e54; padding:5px; display:inline-block;">${name}</b>`;
+                box.appendChild(d);
+            });
+        });
+    }
+
     function abrirModalGrupos() {
         document.getElementById('modal-grupos').style.display = 'flex';
         cargarMisGrupos();
     }
 
     function crearGrupo() {
-        let inputNom = document.getElementById('nom-grupo');
-        let nombre = inputNom.value.trim();
-        if(!nombre) return alert("Escribe un nombre");
+        let nom = document.getElementById('nom-grupo').value.trim();
+        if(!nom) return alert("Nombre vacío");
         let idG = "grupo_" + Date.now();
         rdb.ref('grupos/' + idG).set({
-            nombre: nombre,
-            creador: miUsuario,
-            miembros: { [miUsuario.toLowerCase()]: true }
+            nombre: nom, creador: miUsuario, miembros: { [miUsuario.toLowerCase()]: true }
         }).then(() => {
-            alert("Grupo creado");
-            inputNom.value = "";
+            document.getElementById('nom-grupo').value = "";
             cargarMisGrupos();
+            alert("Grupo creado");
         });
     }
 
     function cargarMisGrupos() {
         rdb.ref('grupos').once('value', (s) => {
-            let box = document.getElementById('lista-mis-grupos'); box.innerHTML = "";
-            s.forEach((g) => {
-                let data = g.val();
-                if(data.miembros && data.miembros[miUsuario.toLowerCase()]) {
-                    let div = document.createElement('div');
+            var box = document.getElementById('lista-mis-grupos'); box.innerHTML = "";
+            s.forEach(g => {
+                var d = g.val();
+                if(d.miembros && d.miembros[miUsuario.toLowerCase()]) {
+                    var div = document.createElement('div');
                     div.className = "item-grupo";
-                    div.innerHTML = `<span>👥 ${data.nombre}</span> <button onclick="entrarGrupo('${g.key}', '${data.nombre}')">ENTRAR</button>`;
+                    div.innerHTML = `<span>👥 ${d.nombre}</span> <button onclick="entrarGrupo('${g.key}', '${d.nombre}')">ENTRAR</button>`;
                     box.appendChild(div);
                 }
             });
         });
     }
 
-    function verCarpetasGrupos() {
-        document.getElementById('modal-admin-grupos').style.display = 'flex';
-        rdb.ref('grupos').once('value', (s) => {
-            let box = document.getElementById('lista-admin-grupos'); box.innerHTML = "";
-            s.forEach((g) => {
-                let data = g.val();
-                let div = document.createElement('div');
-                div.className = "item-grupo";
-                div.innerHTML = `<span>📁 ${data.nombre} <br><small>Por: ${data.creador}</small></span> 
-                                 <div>
-                                   <button onclick="entrarGrupo('${g.key}', '${data.nombre}', true)" style="background:#E91E63; color:white; border:none; border-radius:4px; padding:5px;">ESPIAR</button>
-                                   <button onclick="confirmarBorrarGrupo('${g.key}')" class="btn-del">BORRAR</button>
-                                 </div>`;
-                box.appendChild(div);
-            });
-        });
-    }
-
     function entrarGrupo(idG, nombre, esAdmin = false) {
-        usuarioDestino = idG;
-        tipoChatActual = "grupal";
+        usuarioDestino = idG; tipoChatActual = "grupal";
         document.getElementById("p-nombre").innerText = (esAdmin ? "👁️ " : "👥 ") + nombre;
         document.getElementById("p-chat").style.display = "flex";
-        
-        // Mostrar botón de borrar solo a admin o creador
-        rdb.ref('grupos/'+idG).once('value', s => {
-            const data = s.val();
-            if(miUsuario === "Chat" || data.creador === miUsuario) {
-                document.getElementById('btn-borrar-este-grupo').style.display = "inline-block";
-            } else {
-                document.getElementById('btn-borrar-este-grupo').style.display = "none";
-            }
-        });
-
         document.getElementById('modal-grupos').style.display = 'none';
         document.getElementById('modal-admin-grupos').style.display = 'none';
+        
+        rdb.ref('grupos/'+idG).once('value', s => {
+            var data = s.val();
+            document.getElementById('btn-borrar-este-grupo').style.display = (miUsuario === "Chat" || data.creador === miUsuario) ? "block" : "none";
+        });
         escucharPrivados();
-    }
-
-    function borrarGrupoActual() {
-        if(confirm("¿Borrar definitivamente este grupo y sus mensajes?")) {
-            const id = usuarioDestino;
-            rdb.ref('grupos/' + id).remove();
-            rdb.ref('mensajes_grupos/' + id).remove();
-            cerrarPrivado();
-            alert("Grupo eliminado.");
-        }
-    }
-
-    function confirmarBorrarGrupo(id) {
-        if(confirm("¿Eliminar este grupo de la base de datos?")) {
-            rdb.ref('grupos/' + id).remove();
-            rdb.ref('mensajes_grupos/' + id).remove();
-            verCarpetasGrupos();
-        }
-    }
-
-    // --- EXPULSAR (Se añade opción al clic del nombre en grupo) ---
-    function expulsarUsuario(idG, nombreUser) {
-        if(confirm(`¿Expulsar a ${nombreUser} del grupo?`)) {
-            rdb.ref(`grupos/${idG}/miembros/${nombreUser.toLowerCase()}`).remove().then(() => {
-                alert("Usuario expulsado.");
-                escucharPrivados();
-            });
-        }
     }
 
     function escucharPrivados() {
@@ -245,78 +214,50 @@
         snapshot.forEach((child) => {
           var m = child.val(), esMio = (m.u === miUsuario);
           var d = document.createElement("div");
-          d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4; margin-bottom:5px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-          
-          // Lógica de expulsión solo visible para Admin/Creador en el chat grupal
-          let btnExpulsar = "";
-          if(tipoChatActual === "grupal" && !esMio && (miUsuario === "Chat")) {
-              btnExpulsar = `<span onclick="expulsarUsuario('${usuarioDestino}','${m.u}')" style="color:red; cursor:pointer; margin-left:5px; font-weight:bold;">[X]</span>`;
-          }
-
-          d.innerHTML = `<b>${m.u}</b>${btnExpulsar}<br/>${linkify(m.t || "")}`; 
+          d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; margin-bottom:5px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
+          let btnX = (tipoChatActual === "grupal" && !esMio && miUsuario === "Chat") ? `<b onclick="expulsarUser('${m.u}')" style="color:red; cursor:pointer;"> [X]</b>` : "";
+          d.innerHTML = `<b>${m.u}</b>${btnX}<br/>${linkify(m.t || "")}`; 
           pBox.appendChild(d);
         });
         pBox.scrollTop = pBox.scrollHeight;
       });
     }
 
-    // --- EL RESTO DE TUS FUNCIONES (ENTRAR, INICIAR, MULTIMEDIA, ETC.) SIN CAMBIOS ---
-    function entrar() {
-      var uO = document.getElementById('usr').value.trim(), p = document.getElementById('clv').value.trim(), uM = uO.toLowerCase();
-      if(!uO || !p) return alert("Faltan datos");
-      rdb.ref('usuarios/' + uM).once('value', (snapshot) => {
-        if(snapshot.exists()) {
-          if(snapshot.val().toString() === p.toString()) { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); } else { alert("Error"); }
-        } else {
-          rdb.ref('usuarios/' + uM).set(p).then(() => { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); });
+    function enviarPrivado() {
+      var i = document.getElementById("p-msg"), t = i.value.trim();
+      if(!t) return;
+      var ruta = (tipoChatActual === "grupal") ? "mensajes_grupos/" + usuarioDestino : "privados/" + generarIdSala(miUsuario, usuarioDestino);
+      rdb.ref(ruta).push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes() });
+      i.value = "";
+    }
+
+    function borrarGrupoActual() {
+        if(confirm("¿Borrar grupo?")) {
+            rdb.ref('grupos/' + usuarioDestino).remove();
+            rdb.ref('mensajes_grupos/' + usuarioDestino).remove();
+            cerrarPrivado();
         }
-      });
     }
 
-    function iniciar() {
-      document.getElementById('acceso').style.display = 'none';
-      document.getElementById('chat').style.display = 'flex';
-      if(miUsuario === "Chat") { 
-         document.getElementById('admin-limpieza-media').style.display = 'block';
-      }
-      rdb.ref('presencia/' + miUsuario.toLowerCase()).set(miUsuario);
-      rdb.ref('presencia/' + miUsuario.toLowerCase()).onDisconnect().remove();
-      rdb.ref('presencia').on('value', (s) => {
-        var usuarios = s.val() || {}, count = Object.keys(usuarios).length;
-        document.getElementById('online-count').innerText = "Conectados: " + count + " ▼";
-        var listaDiv = document.getElementById('lista-online'); listaDiv.innerHTML = "";
-        Object.values(usuarios).forEach(n => {
-          var item = document.createElement('div'); item.innerHTML = `• <b onclick="abrirPrivado('${n}')" style="cursor:pointer; color:#075e54;">${n}</b>`;
-          listaDiv.appendChild(item);
+    function expulsarUser(u) {
+        if(confirm("¿Expulsar?")) rdb.ref(`grupos/${usuarioDestino}/miembros/${u.toLowerCase()}`).remove();
+    }
+
+    function verCarpetasGrupos() {
+        document.getElementById('modal-admin-grupos').style.display = 'flex';
+        rdb.ref('grupos').once('value', s => {
+            var box = document.getElementById('lista-admin-grupos'); box.innerHTML = "";
+            s.forEach(g => {
+                var d = g.val();
+                var div = document.createElement('div'); div.className="item-grupo";
+                div.innerHTML = `<span>📁 ${d.nombre}</span> <button onclick="entrarGrupo('${g.key}','${d.nombre}',true)">ESPIAR</button>`;
+                box.appendChild(div);
+            });
         });
-      });
-      rdb.ref('mensajes').on('value', (snapshot) => {
-        var box = document.getElementById('m-box'); box.innerHTML = ""; 
-        snapshot.forEach((child) => {
-          var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
-          var d = document.createElement('div');
-          d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; margin-bottom:5px; word-break:break-all;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-          d.innerHTML = (miUsuario === "Chat" ? `<span onclick="borrarMensaje('${id}')" style="color:red; cursor:pointer; float:right;">x</span>` : "") + 
-                         `<small onclick="abrirPrivado('${m.u}')" style="color:#128c7e; font-weight:bold; cursor:pointer;">${m.u}</small><br/>${linkify(m.t)}<div style="font-size:10px; color:#888; text-align:right;">${m.h}</div>`;
-          box.appendChild(d);
-        });
-        box.scrollTop = box.scrollHeight;
-      });
     }
 
-    async function subirMultimedia(input, tipo) {
-      const file = input.files[0]; if(!file) return;
-      const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
-      try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        if(tipo === 'global') { document.getElementById('msg').value = data.secure_url; send(); } 
-        else { document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); }
-      } catch (err) { alert("Error"); } finally { input.value = ""; }
-    }
-
-    function abrirPrivado(n) { if(n===miUsuario) return; usuarioDestino=n; tipoChatActual="privado"; document.getElementById("p-nombre").innerText="Chat con "+n; document.getElementById("btn-borrar-este-grupo").style.display="none"; document.getElementById("p-chat").style.display="flex"; escucharPrivados(); }
-    function cerrarPrivado() { document.getElementById("p-chat").style.display="none"; usuarioDestino=""; }
+    // --- UTILIDADES ---
+    function send() { var i=document.getElementById('msg'), t=i.value.trim(); if(!t) return; rdb.ref('mensajes').push({u:miUsuario,t:t.replace(/</g,"&lt;"),h:new Date().getHours()+":"+(new Date().getMinutes()<10?'0':'')+new Date().getMinutes()}); i.value=''; }
     function linkify(t) { 
         if(!t) return ""; 
         if(t.includes("res.cloudinary.com")) {
@@ -325,17 +266,23 @@
         }
         return t.replace(/(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, (u) => `<a href="${u}" target="_blank" class="chat-link">${u}</a>`); 
     }
+    function generarIdSala(u1, u2) { return "sala_" + Math.abs([u1.toLowerCase(), u2.toLowerCase()].sort().join("_").split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)); }
+    function cerrarPrivado() { document.getElementById("p-chat").style.display="none"; usuarioDestino=""; }
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
     function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
     function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
-    function verQuienesEstanOnline() { document.getElementById('modal-online').style.display = 'flex'; }
-    function lock() { ok = !ok; document.getElementById('tgl').innerText = ok ? "ACTIVO" : "BLOQUEADO"; document.getElementById('tgl').style.background = ok ? "#25d366" : "#ff5252"; }
-    function send() { var i=document.getElementById('msg'), t=i.value.trim(); if(!t) return; rdb.ref('mensajes').push({u:miUsuario,t:t.replace(/</g,"&lt;"),h:new Date().getHours()+":"+(new Date().getMinutes()<10?'0':'')+new Date().getMinutes()}); i.value=''; }
-    function enviarPrivado() { var i=document.getElementById('p-msg'), t=i.value.trim(); if(!t) return; var ruta=(tipoChatActual==="grupal")?"mensajes_grupos/"+usuarioDestino:"privados/"+generarIdSala(miUsuario,usuarioDestino); rdb.ref(ruta).push({u:miUsuario,t:t.replace(/</g,"&lt;"),h:new Date().getHours()+":"+(new Date().getMinutes()<10?'0':'')+new Date().getMinutes()}); i.value=''; }
-    function generarIdSala(u1, u2) { return "sala_" + Math.abs([u1.toLowerCase(), u2.toLowerCase()].sort().join("_").split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)); }
-    function borrarMensaje(id) { if(confirm("Borrar?")) rdb.ref('mensajes/'+id).remove(); }
-    function toggleMediaPublico() { rdb.ref('config/multimedia_bloqueado').once('value', s => rdb.ref('config/multimedia_bloqueado').set(!s.val())); }
-    function borrarTodoElChat() { if(confirm("Vaciar?")) rdb.ref('mensajes').remove(); }
+    
+    async function subirMultimedia(input, tipo) {
+      const file = input.files[0]; if(!file) return;
+      const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if(tipo === 'global') { document.getElementById('msg').value = data.secure_url; send(); } 
+        else { document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); }
+      } catch (err) { alert("Error upload"); } finally { input.value = ""; }
+    }
+
     window.onclick = (e) => { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
   </script>
 </body>
