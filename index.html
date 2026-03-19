@@ -2,17 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sincro - Red Social</title>
+  <title>Sincro - Perfiles</title>
   <meta content='width=device-width,initial-scale=1' name='viewport'/>
   <style>
-    /* DISEÑO SINCRO - FEED Y NOTIFICACIONES */
+    /* DISEÑO SINCRO - PERFILES Y MURO */
     body { background:#f0f2f5 !important; margin:0; padding:0; height:100vh; width:100vw; display:flex !important; overflow:hidden; font-family: -apple-system, sans-serif; }
     #content, .section, .widget { display: block !important; width: 100%; height: 100%; }
     .navbar, .header-outer, .footer-outer { display: none !important; }
 
     .post-card { background: white; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; padding: 12px; width: 92%; align-self: center; border: 1px solid #dddfe2; }
     .post-header { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; }
-    .post-user { color: #1c1e21; font-weight: bold; font-size: 15px; cursor: pointer; }
+    .post-user { color: #1c1e21; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #ddd; }
     .post-time { color: #65676b; font-size: 12px; }
     .post-content { font-size: 15px; color: #050505; line-height: 1.4; word-break: break-all; margin: 8px 0; }
     .post-footer { display: flex; gap: 8px; border-top: 1px solid #f0f2f5; padding-top: 10px; flex-wrap: wrap; }
@@ -24,12 +25,17 @@
     .dropdown-content span { color: black; padding: 12px 16px; display: block; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; }
     .show { display: block !important; }
 
-    #modal-sincro { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
-    .modal-box { background: white; padding: 20px; border-radius: 12px; width: 85%; max-width: 350px; }
-    
+    /* ESTILO DEL PERFIL */
+    #perfil-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 1000002; overflow-y: auto; flex-direction: column; align-items: center; }
+    .perfil-header { width: 100%; max-width: 500px; background: white; position: relative; padding-bottom: 15px; border-bottom: 1px solid #ddd; }
+    .perfil-portada { width: 100%; height: 180px; background: #ccd0d5; object-fit: cover; }
+    .perfil-avatar-wrap { position: relative; margin-top: -60px; display: flex; flex-direction: column; align-items: center; }
+    .perfil-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; background: #eee; object-fit: cover; }
+    .perfil-nombre { font-size: 24px; font-weight: bold; margin-top: 10px; }
+    .perfil-bio { font-size: 14px; color: #65676b; margin: 5px 20px; text-align: center; }
+
     .tab-sincro { cursor: pointer; font-size: 14px; padding: 10px; color: #65676b; font-weight: 600; flex: 1; text-align: center; }
     .tab-active { color: #1877f2; border-bottom: 3px solid #1877f2; }
-    
     .notif-badge { background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; display: none; }
   </style>
 </head>
@@ -39,14 +45,13 @@
     
     <div id='acceso' style='background:white; padding:40px 30px; border-radius:15px; width:320px; text-align:center;'>
       <h1 style='color:#1877f2; margin:0;'>Sincro</h1>
-      <p style="color:#606770; font-size:14px; margin-bottom:20px;">Inicia sesión para ver tu muro</p>
+      <p style="color:#606770; font-size:14px; margin-bottom:20px;">Tu perfil te espera.</p>
       <input id='usr' placeholder='Usuario' style='width:100%; padding:14px; margin-bottom:10px; border:1px solid #dddfe2; border-radius:8px; box-sizing:border-box;' type='text'/>
       <input id='clv' placeholder='Contraseña' style='width:100%; padding:14px; margin-bottom:20px; border:1px solid #dddfe2; border-radius:8px; box-sizing:border-box;' type='password'/>
       <button onclick='entrar()' style='width:100%; padding:12px; background:#1877f2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;'>ENTRAR</button>
     </div>
 
     <div id='chat' style='width:100%; max-width:500px; height:100%; background:#f0f2f5; display:none; flex-direction:column;'>
-      
       <div style='background:white; padding:10px 15px; border-bottom: 1px solid #ddd;'>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h2 style="color:#1877f2; margin:0; font-size:26px;">Sincro</h2>
@@ -55,11 +60,8 @@
                     MENÚ <b id="notif-count" class="notif-badge">0</b> ▼
                 </span>
                 <div class='dropdown-content' id='myDropdown'>
+                    <span onclick='abrirMiPerfil()'>Mi Perfil</span>
                     <span onclick='verSolicitudes()'>Solicitudes <b id="notif-drop" class="notif-badge">0</b></span>
-                    <span onclick='abrirReglas()'>Reglas</span>
-                    <div id="admin-limpieza" style="display:none;">
-                        <span onclick='borrarTodoElChat()' style='color:orange;'>Vaciar Chat</span>
-                    </div>
                     <span onclick='location.reload()' style='color:red;'>Cerrar Sesión</span>
                 </div>
             </div>
@@ -69,20 +71,36 @@
             <div id="t-ami" onclick="filtrarAudiencia('amigos')" class="tab-sincro">Amigos</div>
         </div>
       </div>
-
       <div id='m-box' style='flex:1; padding:15px 0; overflow-y:auto; display:flex; flex-direction:column;'></div>
-      
       <div style='background:white; padding:15px; border-top:1px solid #ddd; display:flex; gap:10px;'>
         <button onclick="document.getElementById('file-global').click()" style="background:#e4e6eb; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer;">📸</button>
-        <input type="file" id="file-global" style="display:none" onchange="subirMultimedia(this)">
-        <input id='msg' onkeypress='if(event.key==="Enter") send()' placeholder='¿Qué estás pensando?' style='flex:1; padding:12px; border-radius:25px; border:none; background:#f0f2f5; outline:none;' type='text'/>
+        <input type="file" id="file-global" style="display:none" onchange="subirMultimedia(this, 'msg')">
+        <input id='msg' placeholder='¿Qué estás pensando?' style='flex:1; padding:12px; border-radius:25px; border:none; background:#f0f2f5; outline:none;' type='text'/>
         <button onclick='send()' style='background:#1877f2; color:white; border:none; padding:10px 15px; border-radius:20px; font-weight:bold;'>Publicar</button>
       </div>
     </div>
 
+    <div id='perfil-view'>
+        <div class="perfil-header">
+            <button onclick="cerrarPerfil()" style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:30px; height:30px;">←</button>
+            <img id="p-portada" class="perfil-portada" src="https://via.placeholder.com/500x180/ccd0d5/ffffff?text=+">
+            <div class="perfil-avatar-wrap">
+                <img id="p-avatar" class="perfil-avatar" src="https://via.placeholder.com/120/eee/999?text=Avatar">
+                <div id="p-nombre" class="perfil-nombre">Nombre</div>
+                <div id="p-bio" class="perfil-bio">Bio aquí...</div>
+                <div id="perfil-controles" style="display:none; gap:10px; margin-top:10px;">
+                    <button onclick="document.getElementById('file-avatar').click()" style="padding:8px 12px; border-radius:5px; border:none; background:#1877f2; color:white; font-size:12px;">Editar Foto</button>
+                    <button onclick="editarBio()" style="padding:8px 12px; border-radius:5px; border:none; background:#e4e6eb; color:#333; font-size:12px;">Editar Bio</button>
+                    <input type="file" id="file-avatar" style="display:none" onchange="subirMultimedia(this, 'avatar')">
+                </div>
+            </div>
+        </div>
+        <div id='perfil-muro' style='width:100%; max-width:500px; padding:15px 0; display:flex; flex-direction:column;'></div>
+    </div>
+
     <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:280px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.2); z-index:1000005; flex-direction:column; border:1px solid #1877f2;'>
       <div style='background:#1877f2; color:white; padding:10px; display:flex; justify-content:space-between;'>
-        <span id='p-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
+        <span id='priv-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
         <span onclick='cerrarPrivado()' style='cursor:pointer;'>X</span>
       </div>
       <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#f0f2f5; display:flex; flex-direction:column; gap:5px;'></div>
@@ -93,7 +111,7 @@
     </div>
   </div>
 
-  <div id='modal-sincro'><div class='modal-box' id="modal-content"></div></div>
+  <div id='modal-sincro'><div class='modal-box' id="modal-content" style="background:white; margin:auto; padding:20px; border-radius:12px; position:relative; top:20%;"></div></div>
 
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
@@ -110,49 +128,46 @@
     var vistaActual = "publico";
     const EMOJIS = ['❤️', '🤣', '😮', '🥲'];
 
-    function filtrarAudiencia(tipo) {
-        vistaActual = tipo;
-        document.getElementById('t-pub').classList.toggle('tab-active', tipo === 'publico');
-        document.getElementById('t-ami').classList.toggle('tab-active', tipo === 'amigos');
-        rdb.ref('mensajes').once('value', () => {}); 
+    // --- MANEJO DE PERFILES ---
+    function abrirPerfil(user) {
+        document.getElementById('perfil-view').style.display = 'flex';
+        document.getElementById('p-nombre').innerText = user;
+        document.getElementById('perfil-controles').style.display = (user === miUsuario) ? 'flex' : 'none';
+        
+        // Cargar datos de perfil (Avatar y Bio)
+        rdb.ref('perfiles/' + user.toLowerCase()).on('value', (s) => {
+            const data = s.val() || {};
+            document.getElementById('p-avatar').src = data.avatar || "https://via.placeholder.com/120/eee/999?text=" + user.charAt(0);
+            document.getElementById('p-bio').innerText = data.bio || "Sin biografía.";
+        });
+
+        // Cargar solo posts de este usuario
+        rdb.ref('mensajes').once('value', (snapshot) => {
+            var box = document.getElementById('perfil-muro'); box.innerHTML = "";
+            snapshot.forEach((child) => {
+                var m = child.val();
+                if(m.u.toLowerCase() === user.toLowerCase()) {
+                    var d = document.createElement('div');
+                    d.className = "post-card";
+                    d.innerHTML = `<div class="post-header"><span class="post-user">${m.u}</span><span class="post-time">${m.h}</span></div><div class="post-content">${linkify(m.t)}</div>`;
+                    box.appendChild(d);
+                }
+            });
+        });
     }
 
-    // --- SISTEMA DE AMIGOS CON SOLICITUD ---
+    function abrirMiPerfil() { abrirPerfil(miUsuario); }
+    function cerrarPerfil() { document.getElementById('perfil-view').style.display = 'none'; }
+    
+    function editarBio() {
+        let nBio = prompt("Escribe tu nueva bio:");
+        if(nBio) rdb.ref('perfiles/' + miUsuario.toLowerCase() + '/bio').set(nBio);
+    }
+
+    // --- SISTEMA DE AMIGOS ---
     function enviarSolicitud(nombre) {
-      if(!nombre || nombre === miUsuario) return;
       rdb.ref('solicitudes/' + nombre.toLowerCase() + '/' + miUsuario.toLowerCase()).set('pendiente');
-      alert("Solicitud enviada a " + nombre);
-    }
-
-    function verSolicitudes() {
-      const modal = document.getElementById('modal-sincro');
-      const content = document.getElementById('modal-content');
-      modal.style.display = 'flex';
-      content.innerHTML = "<h3>Solicitudes de Amistad</h3><div id='lista-soli'>Cargando...</div><button onclick='cerrarModal()' style='width:100%; margin-top:10px;'>Cerrar</button>";
-      
-      rdb.ref('solicitudes/' + miUsuario.toLowerCase()).on('value', (s) => {
-        let html = "";
-        if(s.exists()){
-          s.forEach(c => {
-            html += `<div style='display:flex; justify-content:space-between; margin-bottom:10px; background:#f0f2f5; padding:8px; border-radius:8px;'>
-              <b>${c.key}</b>
-              <div>
-                <button onclick="responderSoli('${c.key}', true)" style="background:green; color:white; border:none; border-radius:4px; padding:4px 8px;">Aceptar</button>
-                <button onclick="responderSoli('${c.key}', false)" style="background:red; color:white; border:none; border-radius:4px; padding:4px 8px;">X</button>
-              </div>
-            </div>`;
-          });
-        } else { html = "No tienes solicitudes nuevas."; }
-        document.getElementById('lista-soli').innerHTML = html;
-      });
-    }
-
-    function responderSoli(quien, acepta) {
-      if(acepta) {
-        rdb.ref('amistades/' + miUsuario.toLowerCase() + '/' + quien.toLowerCase()).set(true);
-        rdb.ref('amistades/' + quien.toLowerCase() + '/' + miUsuario.toLowerCase()).set(true);
-      }
-      rdb.ref('solicitudes/' + miUsuario.toLowerCase() + '/' + quien).remove();
+      alert("Solicitud enviada");
     }
 
     function entrar() {
@@ -160,7 +175,7 @@
       var p = document.getElementById('clv').value.trim();
       if(!uO || !p) return;
       rdb.ref('usuarios/' + uO.toLowerCase()).once('value', (s) => {
-        if(s.exists() && s.val().toString() === p.toString()) { miUsuario = (uO.toLowerCase()==="chat")?"Chat":uO; iniciar(); }
+        if(s.exists() && s.val().toString() === p.toString()) { miUsuario = uO; iniciar(); }
         else if(!s.exists()) { rdb.ref('usuarios/' + uO.toLowerCase()).set(p); miUsuario = uO; iniciar(); }
         else { alert("Error"); }
       });
@@ -169,16 +184,11 @@
     function iniciar() {
       document.getElementById('acceso').style.display = 'none';
       document.getElementById('chat').style.display = 'flex';
-      
-      if(miUsuario === "Chat") { document.getElementById('admin-limpieza').style.display = 'block'; }
 
-      // Escuchar notificaciones de amistad
       rdb.ref('solicitudes/' + miUsuario.toLowerCase()).on('value', (s) => {
           let count = s.numChildren();
           document.getElementById('notif-count').innerText = count;
-          document.getElementById('notif-drop').innerText = count;
           document.getElementById('notif-count').style.display = count > 0 ? 'inline-block' : 'none';
-          document.getElementById('notif-drop').style.display = count > 0 ? 'inline-block' : 'none';
       });
 
       rdb.ref('mensajes').on('value', (snapshot) => {
@@ -191,26 +201,18 @@
                 if(!misAmigos[m.u.toLowerCase()] && m.u !== miUsuario) return;
             } else { if((m.p || 'publico') !== 'publico') return; }
 
-            var d = document.createElement('div');
-            d.className = "post-card";
-            d.innerHTML = `
-              <div class="post-header">
-                <div>
-                  <span class="post-user" onclick="abrirPrivado('${m.u}')">${m.u}</span>
-                  ${(m.u!==miUsuario && !misAmigos[m.u.toLowerCase()]) ? `<button onclick="enviarSolicitud('${m.u}')" style="margin-left:8px; border:none; background:#e7f3ff; color:#1877f2; border-radius:10px; font-size:10px; padding:2px 8px; cursor:pointer;">+ Amigo</button>` : ''}
-                </div>
-                <div class="post-time">${m.h || ""}</div>
-                ${miUsuario==="Chat" ? `<span onclick="borrarM('${id}')" style="color:red; cursor:pointer;">×</span>`:""}
+            var d = document.createElement('div'); d.className = "post-card";
+            d.innerHTML = `<div class="post-header">
+                <span class="post-user" onclick="abrirPerfil('${m.u}')">${m.u}</span>
+                ${(m.u!==miUsuario && !misAmigos[m.u.toLowerCase()]) ? `<button onclick="enviarSolicitud('${m.u}')" style="border:none; background:#e7f3ff; color:#1877f2; border-radius:10px; font-size:10px; padding:2px 8px;">+ Amigo</button>` : ''}
               </div>
               <div class="post-content">${linkify(m.t || "")}</div>
               <div class="post-footer" id="reac-${id}"></div>`;
             box.appendChild(d);
-            
-            let footer = document.getElementById("reac-"+id);
-            EMOJIS.forEach(emoji => {
-              var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
-              var act = (m.reacciones && m.reacciones[emoji] && m.reacciones[emoji][miUsuario]);
-              footer.innerHTML += `<span onclick="reaccionar('${id}','${emoji}')" style="cursor:pointer; font-size:12px; background:${act?'#e7f3ff':'#f0f2f5'}; padding:4px 10px; border-radius:15px; color:${act?'#1877f2':'#65676b'};">${emoji} ${count||""}</span>`;
+            let f = document.getElementById("reac-"+id);
+            EMOJIS.forEach(e => {
+              var act = (m.reacciones && m.reacciones[e] && m.reacciones[e][miUsuario]);
+              f.innerHTML += `<span onclick="reaccionar('${id}','${e}')" style="cursor:pointer; background:${act?'#e7f3ff':'#f0f2f5'}; padding:4px 10px; border-radius:15px;">${e}</span>`;
             });
           });
           box.scrollTop = box.scrollHeight;
@@ -218,57 +220,41 @@
       });
     }
 
-    function send() {
-      var i = document.getElementById('msg'), t = i.value.trim();
-      if(!t) return;
-      var h = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: h, p: vistaActual });
-      i.value = '';
-    }
-
-    async function subirMultimedia(input) {
+    async function subirMultimedia(input, destino) {
       const file = input.files[0]; if(!file) return;
       const formData = new FormData();
       formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
       const data = await res.json();
-      document.getElementById('msg').value = data.secure_url; send();
+      if(destino === 'msg') { document.getElementById('msg').value = data.secure_url; send(); }
+      else if(destino === 'avatar') { rdb.ref('perfiles/' + miUsuario.toLowerCase() + '/avatar').set(data.secure_url); }
+    }
+
+    function send() {
+      var i = document.getElementById('msg'), t = i.value.trim();
+      if(!t) return;
+      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), p: vistaActual });
+      i.value = '';
     }
 
     function linkify(t) {
       if(!t) return "";
       if(t.includes("res.cloudinary.com")) {
-        if(t.match(/\.(jpeg|jpg|png|webp)$/i)) return `<img src="${t}" class="chat-media" onclick="window.open(this.src)">`;
+        if(t.match(/\.(jpeg|jpg|png|webp)$/i)) return `<img src="${t}" class="chat-media">`;
         if(t.match(/\.(mp4|webm)$/i)) return `<video src="${t}" class="chat-media" controls></video>`;
       }
-      return t.replace(/(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, (u) => `<a href="${u}" target="_blank" style="color:#1877f2;">${u}</a>`);
+      return t;
     }
 
     function reaccionar(id, emoji) {
-      rdb.ref('mensajes/'+id+'/reacciones').once('value', (s) => {
-        var d = s.val() || {};
-        EMOJIS.forEach(e => { if(d[e] && d[e][miUsuario]) rdb.ref('mensajes/'+id+'/reacciones/'+e+'/'+miUsuario).remove(); });
-        if(!d[emoji] || !d[emoji][miUsuario]) rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true);
+      rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).once('value', (s) => {
+        if(s.exists()) rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).remove();
+        else rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true);
       });
     }
 
-    function abrirPrivado(n) { if (n === miUsuario) return; usuarioDestino = n; document.getElementById("p-nombre").innerText = "Chat con " + n; document.getElementById("p-chat").style.display = "flex"; escucharPrivados(); }
-    function cerrarPrivado() { document.getElementById("p-chat").style.display = "none"; }
-    function escucharPrivados() {
-        var sId = "sala_" + [miUsuario.toLowerCase(), usuarioDestino.toLowerCase()].sort().join("_");
-        rdb.ref("privados/"+sId).on("value", (s) => {
-            var b = document.getElementById("p-box"); b.innerHTML = "";
-            if(s.exists()){ s.forEach(c => { var m=c.val(); var d=document.createElement("div"); d.style="padding:8px; border-radius:8px; background:"+(m.u===miUsuario?"#dcf8c6":"white"); d.innerHTML="<b>"+m.u+":</b> "+linkify(m.t); b.appendChild(d); }); b.scrollTop=b.scrollHeight; }
-        });
-    }
-    function enviarPrivado() { var i=document.getElementById("p-msg"), v=i.value.trim(); if(!v) return; var sId="sala_"+[miUsuario.toLowerCase(), usuarioDestino.toLowerCase()].sort().join("_"); rdb.ref("privados/"+sId).push({u:miUsuario, t:v}); i.value=""; }
-
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
-    function cerrarModal() { document.getElementById('modal-sincro').style.display = 'none'; }
-    function borrarM(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
-    function borrarTodoElChat() { if(confirm("¿Vaciar?")) rdb.ref('mensajes').remove(); }
     window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
   </script>
-  <script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
 </body>
 </html>
