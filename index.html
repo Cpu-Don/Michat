@@ -2,61 +2,67 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sincro - Control Total Full</title>
-  <meta content='width=device-width,initial-scale=1' name='viewport'/>
+  <title>Sincro - Versión Final Verificada</title>
+  <meta content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' name='viewport'/>
   <style>
-    /* DISEÑO SINCRO INTEGRAL CORREGIDO */
+    /* ESTILOS BASE */
     body { background:#f0f2f5 !important; margin:0; padding:0; height:100vh; width:100vw; display:flex !important; overflow:hidden; font-family: -apple-system, sans-serif; }
     #content, .section, .widget { display: block !important; width: 100%; height: 100%; }
     .navbar, .header-outer, .footer-outer { display: none !important; }
 
+    /* POSTS */
     .post-card { background: white; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; padding: 12px; width: 92%; align-self: center; border: 1px solid #dddfe2; position: relative; }
     .post-header { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; position: relative; }
     .post-user { color: #1c1e21; font-weight: bold; font-size: 15px; cursor: pointer; }
     .post-badge { font-size: 10px; background: #e4e6eb; padding: 2px 6px; border-radius: 4px; color: #65676b; margin-left: 5px; }
-    
     .post-content { font-size: 15px; color: #050505; line-height: 1.4; word-break: break-word; margin: 8px 0; }
-    .post-content a { color: #1877f2; text-decoration: none; font-weight: 500; }
-    
     .chat-media { width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; max-height: 400px; object-fit: cover; }
     
-    /* Menús y Modales */
+    /* MENÚS */
     .dropdown { position: relative; display: inline-block; }
     .dropdown-content { display: none; position: absolute; right: 0; background-color: white; min-width: 150px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 10000; border-radius: 8px; overflow: hidden; }
     .dropdown-content span { color: black; padding: 10px 15px; display: block; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
     .show { display: block !important; }
 
-    /* Modales de Sincro */
-    #modal-sincro { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000000; justify-content:center; align-items:center; }
-    .modal-box { background:white; padding:20px; border-radius:12px; width:85%; max-width:350px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-input { width: 90%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 15px 0; font-family: inherit; }
+    /* MODALES */
+    #modal-sincro { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000000; justify-content:center; align-items:center; }
+    .modal-box { background:white; padding:20px; border-radius:12px; width:85%; max-width:350px; text-align:center; }
+    .modal-input { width: 90%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 15px 0; }
     .modal-btns { display: flex; gap: 10px; justify-content: center; }
 
-    /* Perfil */
+    /* PERFIL MEJORADO */
     #perfil-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 1000002; overflow-y: auto; flex-direction: column; align-items: center; }
     .perfil-header { width: 100%; max-width: 500px; background: white; position: relative; padding-bottom: 15px; border-bottom: 1px solid #ddd; text-align: center; }
-    .perfil-portada { width: 100%; height: 180px; background: #ccd0d5; object-fit: cover; cursor: pointer; }
-    .perfil-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; background: #eee; object-fit: cover; margin-top: -60px; position: relative; }
     
-    .btn-pub { background:#1877f2; color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer; width: 92%; align-self: center; }
-    .sel-priv { background: #f0f2f5; border: 1px solid #ddd; border-radius: 15px; padding: 5px 10px; font-size: 12px; outline: none; }
+    /* ZONAS CLICK PARA FOTOS */
+    .portada-wrap { width: 100%; height: 180px; background: #ccd0d5; position: relative; cursor: pointer; overflow: hidden; }
+    .avatar-wrap { width: 120px; height: 120px; margin-top: -60px; border-radius: 50%; border: 4px solid white; background: #eee; position: relative; cursor: pointer; overflow: hidden; z-index: 2; display: inline-block; }
+    
+    .perfil-portada, .perfil-avatar { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    /* Icono de cámara pequeño */
+    .cam-icon { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; padding: 5px; font-size: 12px; }
 
+    .btn-pub { background:#1877f2; color:white; border:none; padding:12px; border-radius:20px; font-weight:bold; cursor:pointer; width: 92%; align-self: center; margin-top:5px; }
+    .sel-priv { background: #f0f2f5; border: 1px solid #ddd; border-radius: 15px; padding: 5px 10px; font-size: 12px; }
     .tab-sincro { cursor: pointer; font-size: 14px; padding: 10px; color: #65676b; font-weight: 600; flex: 1; text-align: center; }
     .tab-active { color: #1877f2; border-bottom: 3px solid #1877f2; }
   </style>
 </head>
 <body>
 
-  <div id='app' style='position:fixed; top:0; left:0; width:100%; height:100%; z-index:999999; display:flex; justify-content:center; align-items:center;'>
+  <div id='app'>
     
-    <div id='acceso' style='background:white; padding:40px 30px; border-radius:15px; width:320px; text-align:center;'>
-      <h1 style='color:#1877f2; margin:0;'>Sincro</h1>
-      <input id='usr' placeholder='Usuario' style='width:100%; padding:14px; margin-bottom:10px; border:1px solid #dddfe2; border-radius:8px;' type='text'/>
-      <input id='clv' placeholder='Contraseña' style='width:100%; padding:14px; margin-bottom:20px; border:1px solid #dddfe2; border-radius:8px;' type='password'/>
-      <button onclick='entrar()' style='width:100%; padding:12px; background:#1877f2; color:white; border:none; border-radius:8px; cursor:pointer;'>ENTRAR</button>
+    <div id='acceso' style='position:fixed; top:0; left:0; width:100%; height:100%; z-index:999999; display:flex; justify-content:center; align-items:center; background:#f0f2f5;'>
+      <div style='background:white; padding:40px 30px; border-radius:15px; width:320px; text-align:center;'>
+        <h1 style='color:#1877f2; margin:0;'>Sincro</h1>
+        <input id='usr' placeholder='Usuario' style='width:100%; padding:14px; margin:10px 0; border:1px solid #dddfe2; border-radius:8px;' type='text'/>
+        <input id='clv' placeholder='Contraseña' style='width:100%; padding:14px; margin-bottom:20px; border:1px solid #dddfe2; border-radius:8px;' type='password'/>
+        <button onclick='entrar()' style='width:100%; padding:12px; background:#1877f2; color:white; border:none; border-radius:8px; cursor:pointer;'>ENTRAR</button>
+      </div>
     </div>
 
-    <div id='chat' style='width:100%; max-width:500px; height:100%; background:#f0f2f5; display:none; flex-direction:column;'>
+    <div id='chat' style='width:100%; max-width:500px; height:100vh; background:#f0f2f5; display:none; flex-direction:column; margin: 0 auto;'>
       <div style='background:white; padding:10px 15px; border-bottom: 1px solid #ddd;'>
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h2 style="color:#1877f2; margin:0;">Sincro</h2>
@@ -64,7 +70,6 @@
                 <span onclick='toggleDrop("menu-top")' style='cursor:pointer; background:#f0f2f5; padding:8px 15px; border-radius:20px; font-size:13px;'>MENÚ ▼</span>
                 <div class='dropdown-content' id='menu-top'>
                     <span onclick='abrirPerfil(miUsuario)'>Mi Perfil</span>
-                    <span onclick='verSolicitudes()'>Solicitudes</span>
                     <span onclick='location.reload()' style='color:red;'>Cerrar Sesión</span>
                 </div>
             </div>
@@ -92,20 +97,26 @@
 
     <div id='perfil-view'>
         <div class="perfil-header">
-            <button onclick="cerrarPerfil()" style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.6); color:#fff; border-radius:50%; border:none; width:35px; height:35px;">←</button>
-            <img id="p-portada" class="perfil-portada" src="" onclick="if(pUsuarioActual === miUsuario) document.getElementById('file-portada').click()">
+            <button onclick="cerrarPerfil()" style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.6); color:#fff; border-radius:50%; border:none; width:35px; height:35px; cursor:pointer;">←</button>
+            
+            <div class="portada-wrap" onclick="if(pUsuarioActual === miUsuario) document.getElementById('file-portada').click()">
+                <img id="p-portada" class="perfil-portada" src="">
+                <div class="cam-icon">📷</div>
+            </div>
             <input type="file" id="file-portada" style="display:none" onchange="subirMultimedia(this, 'portada')">
             
-            <div style="display:flex; flex-direction:column; align-items:center;">
-                <img id="p-avatar" class="perfil-avatar" src="" onclick="if(pUsuarioActual === miUsuario) document.getElementById('file-avatar').click()">
-                <input type="file" id="file-avatar" style="display:none" onchange="subirMultimedia(this, 'avatar')">
-                <div id="p-nombre" style="font-size:24px; font-weight:bold; margin-top:10px;">Cargando...</div>
-                <div id="p-bio" style="font-size:14px; color:#65676b; margin:10px; max-width:80%;">Bio...</div>
-                <div id="p-acciones" style="display:flex; gap:10px; margin-bottom:15px;"></div>
+            <div class="avatar-wrap" onclick="if(pUsuarioActual === miUsuario) document.getElementById('file-avatar').click()">
+                <img id="p-avatar" class="perfil-avatar" src="">
+                <div class="cam-icon">📷</div>
             </div>
+            <input type="file" id="file-avatar" style="display:none" onchange="subirMultimedia(this, 'avatar')">
+            
+            <div id="p-nombre" style="font-size:22px; font-weight:bold; margin-top:10px;"></div>
+            <div id="p-bio" style="font-size:14px; color:#65676b; margin:5px 20px;"></div>
+            <div id="p-acciones" style="margin-bottom:15px;"></div>
 
             <div id="p-input-perfil" style="display:none; padding:15px; border-top:1px solid #f0f2f5; background:#fff; flex-direction:column; gap:8px;">
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px; align-items:center;">
                     <select id="priv-perfil" class="sel-priv">
                         <option value="publico">🌍 Público</option>
                         <option value="amigos">👥 Amigos</option>
@@ -134,59 +145,37 @@
     const EMOJIS = ['❤️', '🤣', '😮', '🥲'];
 
     function toggleDrop(id) { document.getElementById(id).classList.toggle("show"); }
-
     function showModal(html) { document.getElementById('modal-box-content').innerHTML = html; document.getElementById('modal-sincro').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal-sincro').style.display = 'none'; }
 
-    // --- FUNCIÓN EDITAR BIO PERSONALIZADA ---
-    function editarBio() {
-        showModal(`
-            <h3 style="color:#1877f2; margin-top:0;">¿Deseas Editar Tú Biografía!?</h3>
-            <textarea id="new-bio" class="modal-input" rows="3">${document.getElementById('p-bio').innerText}</textarea>
-            <div class="modal-btns">
-                <button onclick="hideModal()" style="border:none; background:#eee; padding:10px 15px; border-radius:8px;">Cancelar</button>
-                <button onclick="guardarBio()" style="border:none; background:#1877f2; color:white; padding:10px 15px; border-radius:8px;">Guardar</button>
-            </div>
-        `);
-    }
-    function guardarBio() {
-        let b = document.getElementById('new-bio').value;
-        if(b) rdb.ref('perfiles/'+miUsuario.toLowerCase()+'/bio').set(b);
-        hideModal();
+    // --- NAVEGACIÓN INTELIGENTE (BOTÓN ATRÁS) ---
+    window.onpopstate = function() {
+        if (document.getElementById('perfil-view').style.display === 'flex') {
+            document.getElementById('perfil-view').style.display = 'none';
+        }
+    };
+
+    function abrirPerfil(user) {
+        pUsuarioActual = user;
+        document.getElementById('perfil-view').style.display = 'flex';
+        window.history.pushState({view: 'perfil'}, ""); // Bloquea la salida de la web
+        
+        document.getElementById('p-nombre').innerText = user;
+        document.getElementById('p-input-perfil').style.display = (user === miUsuario) ? 'flex' : 'none';
+        document.getElementById('p-acciones').innerHTML = (user === miUsuario) ? `<button onclick="editarBio()" style="padding:6px 15px; border-radius:8px; border:none; background:#e4e6eb; font-weight:bold; cursor:pointer;">Editar Bio</button>` : "";
+
+        rdb.ref('perfiles/' + user.toLowerCase()).on('value', (s) => {
+            const data = s.val() || {};
+            document.getElementById('p-avatar').src = data.avatar || "https://via.placeholder.com/120?text=Sincro";
+            document.getElementById('p-portada').src = data.portada || "https://via.placeholder.com/500x180?text=Sincro";
+            document.getElementById('p-bio').innerText = data.bio || "Hola, estoy en Sincro.";
+        });
+        cargarMuroPerfil(user);
     }
 
-    // --- FUNCIÓN EDITAR POST PERSONALIZADA ---
-    function editarPost(id, textoViejo) {
-        showModal(`
-            <h3 style="color:#1877f2; margin-top:0;">¿Deseas modificar tu publicación?</h3>
-            <textarea id="edit-txt-${id}" class="modal-input">${textoViejo}</textarea>
-            <div class="modal-btns">
-                <button onclick="hideModal()" style="border:none; background:#eee; padding:10px 15px; border-radius:8px;">Cancelar</button>
-                <button onclick="confirmarEdicion('${id}')" style="border:none; background:#1877f2; color:white; padding:10px 15px; border-radius:8px;">Actualizar</button>
-            </div>
-        `);
-    }
-    function confirmarEdicion(id) {
-        let nuevo = document.getElementById('edit-txt-'+id).value;
-        rdb.ref('mensajes/'+id).update({ t: nuevo });
-        hideModal();
-        if(document.getElementById('perfil-view').style.display === 'flex') cargarMuroPerfil(pUsuarioActual);
-    }
-
-    function borrarPost(id) {
-        showModal(`
-            <h3 style="color:red; margin-top:0;">¿Eliminar Publicación?</h3>
-            <p>Esta acción no se puede deshacer.</p>
-            <div class="modal-btns">
-                <button onclick="hideModal()" style="border:none; background:#eee; padding:10px 15px; border-radius:8px;">No, volver</button>
-                <button onclick="confirmarBorrado('${id}')" style="border:none; background:red; color:white; padding:10px 15px; border-radius:8px;">Sí, Borrar</button>
-            </div>
-        `);
-    }
-    function confirmarBorrado(id) {
-        rdb.ref('mensajes/'+id).remove();
-        hideModal();
-        if(document.getElementById('perfil-view').style.display === 'flex') cargarMuroPerfil(pUsuarioActual);
+    function cerrarPerfil() {
+        document.getElementById('perfil-view').style.display = 'none';
+        if (window.history.state && window.history.state.view === 'perfil') window.history.back();
     }
 
     function entrar() {
@@ -196,37 +185,31 @@
         rdb.ref('usuarios/'+u.toLowerCase()).once('value', (s) => {
             if(s.exists() && s.val().toString() === c.toString()) { miUsuario = u; iniciar(); }
             else if(!s.exists()) { rdb.ref('usuarios/'+u.toLowerCase()).set(c); miUsuario = u; iniciar(); }
-            else { alert("Error"); }
+            else { alert("Contraseña incorrecta"); }
         });
     }
 
     function iniciar() {
         document.getElementById('acceso').style.display = 'none';
         document.getElementById('chat').style.display = 'flex';
-        rdb.ref('mensajes').off();
         rdb.ref('mensajes').on('value', (snapshot) => {
             var box = document.getElementById('m-box'); box.innerHTML = "";
-            rdb.ref('amistades/' + miUsuario.toLowerCase()).once('value', (amigosSnap) => {
-                var misAmigos = amigosSnap.val() || {};
-                snapshot.forEach((child) => {
-                    var m = child.val(), id = child.key;
-                    if(vistaActual === 'publico') { if(m.p === 'amigos') return; } 
-                    else { if(!misAmigos[m.u.toLowerCase()] && m.u !== miUsuario) return; }
-                    box.prepend(crearPostHTML(m, id));
-                });
+            snapshot.forEach((child) => {
+                var m = child.val(), id = child.key;
+                if(vistaActual === 'publico' && m.p === 'amigos') return;
+                box.prepend(crearPostHTML(m, id));
             });
         });
     }
 
-    // --- SECCIÓN CORREGIDA DE LOS 3 PUNTOS ---
     function crearPostHTML(m, id) {
         var d = document.createElement('div'); d.className = "post-card";
-        var optBtn = (m.u === miUsuario) ? `<div class='dropdown'><span onclick='toggleDrop("opt-${id}")' style='cursor:pointer; padding:0 10px;'>⋮</span>
+        var opt = (m.u === miUsuario) ? `<div class='dropdown'><span onclick='toggleDrop("opt-${id}")' style='cursor:pointer; padding:0 10px; font-weight:bold;'>⋮</span>
             <div class='dropdown-content' id='opt-${id}'><span onclick="editarPost('${id}','${m.t.replace(/'/g, "\\'")}')">Editar</span><span onclick='borrarPost("${id}")' style='color:red;'>Borrar</span></div></div>` : "";
         
         d.innerHTML = `<div class="post-header">
-            <div><span class="post-user" onclick="abrirPerfil('${m.u}')">${m.u}</span> <span class="post-badge">${m.p==='amigos'?'👥':'🌍'}</span></div>
-            ${optBtn}
+            <div><span class="post-user" onclick="abrirPerfil('${m.u}')">${m.u}</span><span class="post-badge">${m.p==='amigos'?'👥':'🌍'}</span></div>
+            ${opt}
         </div>
         <div class="post-content">${linkify(m.t)}</div>
         <div class="post-footer" id="reac-${id}"></div>`;
@@ -239,94 +222,53 @@
     }
 
     function linkify(t) {
-        if(t.includes("res.cloudinary.com")) {
-            if(t.match(/\.(jpeg|jpg|png|webp|gif)$/i)) return `<img src="${t}" class="chat-media">`;
-            return `<video src="${t}" class="chat-media" controls></video>`;
-        }
-        const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return t.replace(urlPattern, (url) => `<a href="${url}" target="_blank">${url}</a>`);
-    }
-
-    function abrirPerfil(user) {
-        pUsuarioActual = user;
-        document.getElementById('perfil-view').style.display = 'flex';
-        document.getElementById('p-nombre').innerText = user;
-        const acciones = document.getElementById('p-acciones');
-        acciones.innerHTML = "";
-        
-        // --- RESTAURADO PUBLICADOR DE PERFIL ---
-        document.getElementById('p-input-perfil').style.display = (user === miUsuario) ? 'flex' : 'none';
-
-        if(user === miUsuario) {
-            acciones.innerHTML = `<button onclick="editarBio()" style="padding:5px 10px; border-radius:5px; border:none; background:#e4e6eb;">Editar Bio</button>`;
-        } else {
-            acciones.innerHTML = `<button class="btn-pub" onclick="enviarSolicitud('${user}')">+ Amigo</button>
-                                  <button onclick="cerrarPerfil(); abrirPrivado('${user}')" style="padding:5px 10px; border-radius:5px; border:none; background:#e4e6eb;">Mensaje</button>`;
-        }
-
-        rdb.ref('perfiles/' + user.toLowerCase()).on('value', (s) => {
-            const data = s.val() || {};
-            document.getElementById('p-avatar').src = data.avatar || "https://via.placeholder.com/120/eee/999?text=" + user.charAt(0);
-            document.getElementById('p-portada').src = data.portada || "https://via.placeholder.com/500x180/ccd0d5/ffffff?text=Haz+clic+para+subir+portada";
-            document.getElementById('p-bio').innerText = data.bio || "Hola, estoy en Sincro.";
-        });
-        cargarMuroPerfil(user);
+        if(t.includes("cloudinary.com")) return t.match(/\.(jpeg|jpg|png|gif|webp)$/i) ? `<img src="${t}" class="chat-media">` : `<video src="${t}" class="chat-media" controls></video>`;
+        return t.replace(/(\bhttps?:\/\/\S+)/ig, '<a href="$1" target="_blank" style="color:#1877f2; text-decoration:none;">$1</a>');
     }
 
     function cargarMuroPerfil(user) {
         rdb.ref('mensajes').once('value', (snapshot) => {
             var box = document.getElementById('perfil-muro'); box.innerHTML = "";
-            rdb.ref('amistades/' + miUsuario.toLowerCase()).once('value', (amigosSnap) => {
-                var misAmigos = amigosSnap.val() || {};
-                snapshot.forEach((child) => {
-                    var m = child.val();
-                    if(m.u.toLowerCase() === user.toLowerCase()) {
-                        if(m.p === 'amigos' && !misAmigos[user.toLowerCase()] && user !== miUsuario) return;
-                        box.prepend(crearPostHTML(m, c.key));
-                    }
-                });
+            snapshot.forEach((child) => {
+                var m = child.val();
+                if(m.u.toLowerCase() === user.toLowerCase()) box.prepend(crearPostHTML(m, child.key));
             });
         });
     }
 
     function send(inputId, privId) {
         var msg = document.getElementById(inputId);
-        var priv = document.getElementById(privId).value;
         if(!msg.value.trim()) return;
-        rdb.ref('mensajes').push({ u: miUsuario, t: msg.value, h: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), p: priv });
+        rdb.ref('mensajes').push({ u: miUsuario, t: msg.value, p: document.getElementById(privId).value });
         msg.value = "";
         if(inputId === 'msg-perfil') cargarMuroPerfil(miUsuario);
     }
 
-    async function subirMultimedia(input, tipo, targetInput) {
+    async function subirMultimedia(input, tipo, target) {
         const file = input.files[0]; if(!file) return;
-        const formData = new FormData();
-        formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
+        const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
         const data = await res.json();
-        if(tipo === 'msg') { document.getElementById(targetInput).value = data.secure_url; send(targetInput, (targetInput==='msg'?'priv-global':'priv-perfil')); }
+        if(tipo === 'msg') { document.getElementById(target).value = data.secure_url; send(target, (target==='msg'?'priv-global':'priv-perfil')); }
         else { rdb.ref('perfiles/'+miUsuario.toLowerCase()+'/'+tipo).set(data.secure_url); }
     }
 
+    function editarBio() {
+        showModal(`<h3>Editar Biografía</h3><textarea id="new-bio" class="modal-input">${document.getElementById('p-bio').innerText}</textarea>
+            <div class="modal-btns"><button onclick="hideModal()">Cerrar</button><button onclick="rdb.ref('perfiles/'+miUsuario.toLowerCase()+'/bio').set(document.getElementById('new-bio').value); hideModal();" style="background:#1877f2; color:white; border:none; padding:8px 15px; border-radius:8px;">Guardar</button></div>`);
+    }
+
+    function editarPost(id, texto) {
+        showModal(`<h3>Editar Post</h3><textarea id="edit-txt" class="modal-input">${texto}</textarea>
+            <div class="modal-btns"><button onclick="hideModal()">Cerrar</button><button onclick="rdb.ref('mensajes/'+'${id}').update({t: document.getElementById('edit-txt').value}); hideModal(); if(pUsuarioActual) cargarMuroPerfil(pUsuarioActual);" style="background:#1877f2; color:white; border:none; padding:8px 15px; border-radius:8px;">Actualizar</button></div>`);
+    }
+
+    function borrarPost(id) {
+        showModal(`<h3>¿Borrar?</h3><div class="modal-btns"><button onclick="hideModal()">No</button><button onclick="rdb.ref('mensajes/'+'${id}').remove(); hideModal(); if(pUsuarioActual) cargarMuroPerfil(pUsuarioActual);" style="background:red; color:white; border:none; padding:8px 15px; border-radius:8px;">Sí, Borrar</button></div>`);
+    }
+
     function reaccionar(id, emoji) { rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true); }
-    function verSolicitudes() {
-        rdb.ref('solicitudes/'+miUsuario.toLowerCase()).once('value', (s) => {
-            let h = "<h3>Solicitudes</h3>";
-            if(!s.exists()) h += "<p>Ninguna.</p>";
-            s.forEach(c => { h += `<p>${c.key} <button onclick="aceptar('${c.key}')">Aceptar</button></p>`; });
-            h += `<button onclick="document.getElementById('modal-sincro').style.display='none'">Cerrar</button>`;
-            document.getElementById('modal-content').innerHTML = h;
-        });
-    }
-    function aceptar(q) {
-        rdb.ref('amistades/'+miUsuario.toLowerCase()+'/'+q.toLowerCase()).set(true);
-        rdb.ref('amistades/'+q.toLowerCase()+'/'+miUsuario.toLowerCase()).set(true);
-        rdb.ref('solicitudes/'+miUsuario.toLowerCase()+'/'+q).remove();
-        alert("¡Ahora son amigos!"); hideModal();
-    }
-    function cerrarPerfil() { document.getElementById('perfil-view').style.display='none'; }
-    function cerrarPrivado() { document.getElementById("p-chat").style.display = "none"; }
-    function abrirPrivado(n) { usuarioDestino = n; document.getElementById("priv-nombre").innerText = "Chat con " + n; document.getElementById("p-chat").style.display = "flex"; escucharPrivados(); }
+    function filtrarAudiencia(t) { vistaActual = t; document.getElementById('t-pub').className = (t==='publico')?'tab-sincro tab-active':'tab-sincro'; document.getElementById('t-ami').className = (t==='amigos')?'tab-sincro tab-active':'tab-sincro'; iniciar(); }
   </script>
 </body>
 </html>
