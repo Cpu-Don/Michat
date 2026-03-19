@@ -2,116 +2,133 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sincro - Perfiles</title>
+  <title>Sincro - Control Total</title>
   <meta content='width=device-width,initial-scale=1' name='viewport'/>
   <style>
-    /* DISEÑO SINCRO - PERFILES Y MURO */
+    /* DISEÑO SINCRO CON EDICIÓN Y BORRADO */
     body { background:#f0f2f5 !important; margin:0; padding:0; height:100vh; width:100vw; display:flex !important; overflow:hidden; font-family: -apple-system, sans-serif; }
     #content, .section, .widget { display: block !important; width: 100%; height: 100%; }
     .navbar, .header-outer, .footer-outer { display: none !important; }
 
-    .post-card { background: white; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; padding: 12px; width: 92%; align-self: center; border: 1px solid #dddfe2; }
-    .post-header { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; }
-    .post-user { color: #1c1e21; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-    .user-avatar-small { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: #ddd; }
-    .post-time { color: #65676b; font-size: 12px; }
+    .post-card { background: white; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; padding: 12px; width: 92%; align-self: center; border: 1px solid #dddfe2; position: relative; }
+    .post-header { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; position: relative; }
+    .post-user { color: #1c1e21; font-weight: bold; font-size: 15px; cursor: pointer; }
+    .post-badge { font-size: 10px; background: #e4e6eb; padding: 2px 6px; border-radius: 4px; color: #65676b; margin-left: 5px; }
     .post-content { font-size: 15px; color: #050505; line-height: 1.4; word-break: break-all; margin: 8px 0; }
-    .post-footer { display: flex; gap: 8px; border-top: 1px solid #f0f2f5; padding-top: 10px; flex-wrap: wrap; }
-    
     .chat-media { width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; max-height: 400px; object-fit: cover; }
     
+    /* Menús desplegables */
     .dropdown { position: relative; display: inline-block; }
-    .dropdown-content { display: none; position: absolute; right: 0; background-color: white; min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1000000; border-radius: 8px; }
-    .dropdown-content span { color: black; padding: 12px 16px; display: block; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; }
+    .dropdown-content { display: none; position: absolute; right: 0; background-color: white; min-width: 150px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 10000; border-radius: 8px; overflow: hidden; }
+    .dropdown-content span { color: black; padding: 10px 15px; display: block; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
+    .dropdown-content span:hover { background: #f0f2f5; }
     .show { display: block !important; }
 
-    /* ESTILO DEL PERFIL */
+    /* Perfil */
     #perfil-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 1000002; overflow-y: auto; flex-direction: column; align-items: center; }
-    .perfil-header { width: 100%; max-width: 500px; background: white; position: relative; padding-bottom: 15px; border-bottom: 1px solid #ddd; }
-    .perfil-portada { width: 100%; height: 180px; background: #ccd0d5; object-fit: cover; }
-    .perfil-avatar-wrap { position: relative; margin-top: -60px; display: flex; flex-direction: column; align-items: center; }
-    .perfil-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; background: #eee; object-fit: cover; }
-    .perfil-nombre { font-size: 24px; font-weight: bold; margin-top: 10px; }
-    .perfil-bio { font-size: 14px; color: #65676b; margin: 5px 20px; text-align: center; }
+    .perfil-header { width: 100%; max-width: 500px; background: white; position: relative; padding-bottom: 15px; border-bottom: 1px solid #ddd; text-align: center; }
+    .perfil-portada { width: 100%; height: 180px; background: #ccd0d5; object-fit: cover; cursor: pointer; }
+    .perfil-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; background: #eee; object-fit: cover; margin-top: -60px; position: relative; }
+    
+    .btn-pub { background:#1877f2; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; cursor:pointer; }
+    .sel-priv { background: #f0f2f5; border: 1px solid #ddd; border-radius: 15px; padding: 5px 10px; font-size: 12px; outline: none; }
 
     .tab-sincro { cursor: pointer; font-size: 14px; padding: 10px; color: #65676b; font-weight: 600; flex: 1; text-align: center; }
     .tab-active { color: #1877f2; border-bottom: 3px solid #1877f2; }
-    .notif-badge { background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; display: none; }
+    .notif-badge { background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
   </style>
 </head>
 <body>
 
-  <div id='app' style='position:fixed; top:0; left:0; width:100%; height:100%; background:#f0f2f5; z-index:999999; display:flex; justify-content:center; align-items:center;'>
+  <div id='app' style='position:fixed; top:0; left:0; width:100%; height:100%; z-index:999999; display:flex; justify-content:center; align-items:center;'>
     
     <div id='acceso' style='background:white; padding:40px 30px; border-radius:15px; width:320px; text-align:center;'>
       <h1 style='color:#1877f2; margin:0;'>Sincro</h1>
-      <p style="color:#606770; font-size:14px; margin-bottom:20px;">Tu perfil te espera.</p>
-      <input id='usr' placeholder='Usuario' style='width:100%; padding:14px; margin-bottom:10px; border:1px solid #dddfe2; border-radius:8px; box-sizing:border-box;' type='text'/>
-      <input id='clv' placeholder='Contraseña' style='width:100%; padding:14px; margin-bottom:20px; border:1px solid #dddfe2; border-radius:8px; box-sizing:border-box;' type='password'/>
-      <button onclick='entrar()' style='width:100%; padding:12px; background:#1877f2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;'>ENTRAR</button>
+      <input id='usr' placeholder='Usuario' style='width:100%; padding:14px; margin-bottom:10px; border:1px solid #dddfe2; border-radius:8px;' type='text'/>
+      <input id='clv' placeholder='Contraseña' style='width:100%; padding:14px; margin-bottom:20px; border:1px solid #dddfe2; border-radius:8px;' type='password'/>
+      <button onclick='entrar()' style='width:100%; padding:12px; background:#1877f2; color:white; border:none; border-radius:8px; cursor:pointer;'>ENTRAR</button>
     </div>
 
     <div id='chat' style='width:100%; max-width:500px; height:100%; background:#f0f2f5; display:none; flex-direction:column;'>
       <div style='background:white; padding:10px 15px; border-bottom: 1px solid #ddd;'>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h2 style="color:#1877f2; margin:0; font-size:26px;">Sincro</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="color:#1877f2; margin:0;">Sincro</h2>
             <div class='dropdown'>
-                <span onclick='toggleMenu()' style='cursor:pointer; background:#f0f2f5; padding:8px 15px; border-radius:20px; font-size:13px; font-weight:bold;'>
-                    MENÚ <b id="notif-count" class="notif-badge">0</b> ▼
-                </span>
-                <div class='dropdown-content' id='myDropdown'>
-                    <span onclick='abrirMiPerfil()'>Mi Perfil</span>
-                    <span onclick='verSolicitudes()'>Solicitudes <b id="notif-drop" class="notif-badge">0</b></span>
+                <span onclick='toggleDrop("menu-top")' style='cursor:pointer; background:#f0f2f5; padding:8px 15px; border-radius:20px; font-size:13px;'>MENÚ <b id="notif-count" class="notif-badge" style="display:none;">0</b> ▼</span>
+                <div class='dropdown-content' id='menu-top'>
+                    <span onclick='abrirPerfil(miUsuario)'>Mi Perfil</span>
+                    <span onclick='verSolicitudes()'>Solicitudes</span>
                     <span onclick='location.reload()' style='color:red;'>Cerrar Sesión</span>
                 </div>
             </div>
         </div>
-        <div style="display:flex;">
+        <div style="display:flex; margin-top:10px;">
             <div id="t-pub" onclick="filtrarAudiencia('publico')" class="tab-sincro tab-active">Noticias</div>
             <div id="t-ami" onclick="filtrarAudiencia('amigos')" class="tab-sincro">Amigos</div>
         </div>
       </div>
       <div id='m-box' style='flex:1; padding:15px 0; overflow-y:auto; display:flex; flex-direction:column;'></div>
-      <div style='background:white; padding:15px; border-top:1px solid #ddd; display:flex; gap:10px;'>
-        <button onclick="document.getElementById('file-global').click()" style="background:#e4e6eb; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer;">📸</button>
-        <input type="file" id="file-global" style="display:none" onchange="subirMultimedia(this, 'msg')">
-        <input id='msg' placeholder='¿Qué estás pensando?' style='flex:1; padding:12px; border-radius:25px; border:none; background:#f0f2f5; outline:none;' type='text'/>
-        <button onclick='send()' style='background:#1877f2; color:white; border:none; padding:10px 15px; border-radius:20px; font-weight:bold;'>Publicar</button>
+      
+      <div style='background:white; padding:12px; border-top:1px solid #ddd;'>
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+            <select id="priv-global" class="sel-priv">
+                <option value="publico">🌍 Público</option>
+                <option value="amigos">👥 Amigos</option>
+            </select>
+            <button onclick="document.getElementById('file-global').click()" style="border:none; background:#e4e6eb; width:30px; height:30px; border-radius:50%;">📸</button>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <input type="file" id="file-global" style="display:none" onchange="subirMultimedia(this, 'msg', 'msg')">
+            <input id='msg' placeholder='¿Qué piensas?' style='flex:1; border:none; background:#f0f2f5; padding:10px; border-radius:20px;' type='text'/>
+            <button onclick='send("msg", "priv-global")' class="btn-pub">Publicar</button>
+        </div>
       </div>
     </div>
 
     <div id='perfil-view'>
         <div class="perfil-header">
-            <button onclick="cerrarPerfil()" style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:30px; height:30px;">←</button>
-            <img id="p-portada" class="perfil-portada" src="https://via.placeholder.com/500x180/ccd0d5/ffffff?text=+">
-            <div class="perfil-avatar-wrap">
-                <img id="p-avatar" class="perfil-avatar" src="https://via.placeholder.com/120/eee/999?text=Avatar">
-                <div id="p-nombre" class="perfil-nombre">Nombre</div>
-                <div id="p-bio" class="perfil-bio">Bio aquí...</div>
-                <div id="perfil-controles" style="display:none; gap:10px; margin-top:10px;">
-                    <button onclick="document.getElementById('file-avatar').click()" style="padding:8px 12px; border-radius:5px; border:none; background:#1877f2; color:white; font-size:12px;">Editar Foto</button>
-                    <button onclick="editarBio()" style="padding:8px 12px; border-radius:5px; border:none; background:#e4e6eb; color:#333; font-size:12px;">Editar Bio</button>
-                    <input type="file" id="file-avatar" style="display:none" onchange="subirMultimedia(this, 'avatar')">
+            <button onclick="cerrarPerfil()" style="position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,0.6); color:#fff; border-radius:50%; border:none; width:35px; height:35px;">←</button>
+            <img id="p-portada" class="perfil-portada" src="" onclick="if(pUsuarioActual === miUsuario) document.getElementById('file-portada').click()">
+            <input type="file" id="file-portada" style="display:none" onchange="subirMultimedia(this, 'portada')">
+            
+            <div style="display:flex; flex-direction:column; align-items:center;">
+                <img id="p-avatar" class="perfil-avatar" src="" onclick="if(pUsuarioActual === miUsuario) document.getElementById('file-avatar').click()">
+                <input type="file" id="file-avatar" style="display:none" onchange="subirMultimedia(this, 'avatar')">
+                <div id="p-nombre" style="font-size:24px; font-weight:bold; margin-top:10px;">Cargando...</div>
+                <div id="p-bio" style="font-size:14px; color:#65676b; margin:10px; max-width:80%;">Bio...</div>
+                <div id="p-acciones" style="display:flex; gap:10px; margin-bottom:15px;"></div>
+            </div>
+
+            <div id="p-input-perfil" style="display:none; padding:15px; border-top:1px solid #f0f2f5; background:#fff; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:10px;">
+                    <select id="priv-perfil" class="sel-priv">
+                        <option value="publico">🌍 Público</option>
+                        <option value="amigos">👥 Amigos</option>
+                    </select>
+                    <input id='msg-perfil' placeholder='Escribe en tu muro...' style='flex:1; border:none; background:#f0f2f5; padding:10px; border-radius:20px;' type='text'/>
                 </div>
+                <button onclick='send("msg-perfil", "priv-perfil")' class="btn-pub">Postear</button>
             </div>
         </div>
-        <div id='perfil-muro' style='width:100%; max-width:500px; padding:15px 0; display:flex; flex-direction:column;'></div>
+        <div id="perfil-muro" style="width:100%; max-width:500px; padding-bottom:50px;"></div>
     </div>
 
     <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:280px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.2); z-index:1000005; flex-direction:column; border:1px solid #1877f2;'>
-      <div style='background:#1877f2; color:white; padding:10px; display:flex; justify-content:space-between;'>
-        <span id='priv-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
+      <div style='background:#1877f2; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center; border-radius:10px 10px 0 0;'>
+        <span id='priv-nombre' style='font-size:13px; font-weight:bold;'>Chat</span>
         <span onclick='cerrarPrivado()' style='cursor:pointer;'>X</span>
       </div>
       <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#f0f2f5; display:flex; flex-direction:column; gap:5px;'></div>
       <div style='padding:10px; display:flex; gap:5px;'>
-        <input id='p-msg' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Escribe...' style='flex:1; border-radius:15px; padding:6px; border:1px solid #ddd;' type='text'/>
+        <input id='p-msg' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Escribe...' style='flex:1; border:1px solid #ddd; border-radius:15px; padding:5px;' type='text'/>
         <button onclick='enviarPrivado()' style='background:#1877f2; color:white; border:none; border-radius:50%; width:30px;'>></button>
       </div>
     </div>
   </div>
 
-  <div id='modal-sincro'><div class='modal-box' id="modal-content" style="background:white; margin:auto; padding:20px; border-radius:12px; position:relative; top:20%;"></div></div>
+  <div id='modal-sincro' style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000000; justify-content:center; align-items:center;">
+      <div id="modal-content" style="background:white; padding:20px; border-radius:10px; width:80%; max-width:300px;"></div>
+  </div>
 
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
@@ -120,141 +137,182 @@
     const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const rdb = firebase.database();
-    const CLOUD_NAME = "dhtyepcjg";
-    const UPLOAD_PRESET = "Historial"; 
+    const CLOUD_NAME = "dhtyepcjg", UPLOAD_PRESET = "Historial"; 
 
-    var miUsuario = "";
-    var usuarioDestino = "";
-    var vistaActual = "publico";
+    var miUsuario = "", usuarioDestino = "", vistaActual = "publico", pUsuarioActual = "";
     const EMOJIS = ['❤️', '🤣', '😮', '🥲'];
 
-    // --- MANEJO DE PERFILES ---
+    function toggleDrop(id) { document.getElementById(id).classList.toggle("show"); }
+
+    function filtrarAudiencia(t) {
+        vistaActual = t;
+        document.getElementById('t-pub').className = (t==='publico')?'tab-sincro tab-active':'tab-sincro';
+        document.getElementById('t-ami').className = (t==='amigos')?'tab-sincro tab-active':'tab-sincro';
+        iniciar(); 
+    }
+
     function abrirPerfil(user) {
+        pUsuarioActual = user;
         document.getElementById('perfil-view').style.display = 'flex';
         document.getElementById('p-nombre').innerText = user;
-        document.getElementById('perfil-controles').style.display = (user === miUsuario) ? 'flex' : 'none';
-        
-        // Cargar datos de perfil (Avatar y Bio)
+        const acciones = document.getElementById('p-acciones');
+        acciones.innerHTML = "";
+        document.getElementById('p-input-perfil').style.display = (user === miUsuario) ? 'flex' : 'none';
+
+        if(user === miUsuario) {
+            acciones.innerHTML = `<button onclick="editarBio()" style="padding:5px 10px; border-radius:5px; border:none; background:#e4e6eb; cursor:pointer;">Editar Bio</button>`;
+        } else {
+            acciones.innerHTML = `<button class="btn-pub" onclick="enviarSolicitud('${user}')">+ Amigo</button>
+                                  <button onclick="cerrarPerfil(); abrirPrivado('${user}')" style="padding:5px 10px; border-radius:5px; border:none; background:#e4e6eb; cursor:pointer;">Mensaje</button>`;
+        }
+
         rdb.ref('perfiles/' + user.toLowerCase()).on('value', (s) => {
             const data = s.val() || {};
             document.getElementById('p-avatar').src = data.avatar || "https://via.placeholder.com/120/eee/999?text=" + user.charAt(0);
-            document.getElementById('p-bio').innerText = data.bio || "Sin biografía.";
+            document.getElementById('p-portada').src = data.portada || "https://via.placeholder.com/500x180/ccd0d5/ffffff?text=Portada";
+            document.getElementById('p-bio').innerText = data.bio || "Hola, estoy en Sincro.";
         });
+        cargarMuroPerfil(user);
+    }
 
-        // Cargar solo posts de este usuario
+    function cargarMuroPerfil(user) {
         rdb.ref('mensajes').once('value', (snapshot) => {
             var box = document.getElementById('perfil-muro'); box.innerHTML = "";
-            snapshot.forEach((child) => {
-                var m = child.val();
-                if(m.u.toLowerCase() === user.toLowerCase()) {
-                    var d = document.createElement('div');
-                    d.className = "post-card";
-                    d.innerHTML = `<div class="post-header"><span class="post-user">${m.u}</span><span class="post-time">${m.h}</span></div><div class="post-content">${linkify(m.t)}</div>`;
-                    box.appendChild(d);
-                }
+            rdb.ref('amistades/' + miUsuario.toLowerCase()).once('value', (amigosSnap) => {
+                var misAmigos = amigosSnap.val() || {};
+                snapshot.forEach((child) => {
+                    var m = child.val(), id = child.key;
+                    if(m.u.toLowerCase() === user.toLowerCase()) {
+                        if(m.p === 'amigos' && !misAmigos[user.toLowerCase()] && user !== miUsuario) return;
+                        box.prepend(crearPostHTML(m, id, true));
+                    }
+                });
             });
         });
     }
 
-    function abrirMiPerfil() { abrirPerfil(miUsuario); }
-    function cerrarPerfil() { document.getElementById('perfil-view').style.display = 'none'; }
-    
-    function editarBio() {
-        let nBio = prompt("Escribe tu nueva bio:");
-        if(nBio) rdb.ref('perfiles/' + miUsuario.toLowerCase() + '/bio').set(nBio);
-    }
-
-    // --- SISTEMA DE AMIGOS ---
-    function enviarSolicitud(nombre) {
-      rdb.ref('solicitudes/' + nombre.toLowerCase() + '/' + miUsuario.toLowerCase()).set('pendiente');
-      alert("Solicitud enviada");
+    function crearPostHTML(m, id, enPerfil) {
+        var d = document.createElement('div'); d.className = "post-card";
+        var optBtn = (m.u === miUsuario) ? `<div class='dropdown'><span onclick='toggleDrop("opt-${id}")' style='cursor:pointer; padding:0 10px;'>⋮</span>
+            <div class='dropdown-content' id='opt-${id}'><span onclick='editarPost("${id}","${m.t}")'>Editar</span><span onclick='borrarPost("${id}")' style='color:red;'>Borrar</span></div></div>` : "";
+        
+        d.innerHTML = `<div class="post-header">
+            <div><span class="post-user" onclick="abrirPerfil('${m.u}')">${m.u}</span> <span class="post-badge">${m.p==='amigos'?'👥':'🌍'}</span></div>
+            ${optBtn}
+        </div>
+        <div class="post-content" id="t-${id}">${linkify(m.t)}</div>
+        <div class="post-footer" id="reac-${id}"></div>`;
+        
+        // Agregar reacciones después de crear el elemento
+        setTimeout(() => {
+            let f = document.getElementById("reac-"+id);
+            if(f) EMOJIS.forEach(e => { f.innerHTML += `<span onclick="reaccionar('${id}','${e}')" style="cursor:pointer; padding:4px 8px;">${e}</span>`; });
+        }, 0);
+        
+        return d;
     }
 
     function entrar() {
-      var uO = document.getElementById('usr').value.trim();
-      var p = document.getElementById('clv').value.trim();
-      if(!uO || !p) return;
-      rdb.ref('usuarios/' + uO.toLowerCase()).once('value', (s) => {
-        if(s.exists() && s.val().toString() === p.toString()) { miUsuario = uO; iniciar(); }
-        else if(!s.exists()) { rdb.ref('usuarios/' + uO.toLowerCase()).set(p); miUsuario = uO; iniciar(); }
-        else { alert("Error"); }
-      });
+        var u = document.getElementById('usr').value.trim();
+        var c = document.getElementById('clv').value.trim();
+        if(!u || !c) return;
+        rdb.ref('usuarios/'+u.toLowerCase()).once('value', (s) => {
+            if(s.exists() && s.val().toString() === c.toString()) { miUsuario = u; iniciar(); }
+            else if(!s.exists()) { rdb.ref('usuarios/'+u.toLowerCase()).set(c); miUsuario = u; iniciar(); }
+            else { alert("Error"); }
+        });
     }
 
     function iniciar() {
-      document.getElementById('acceso').style.display = 'none';
-      document.getElementById('chat').style.display = 'flex';
-
-      rdb.ref('solicitudes/' + miUsuario.toLowerCase()).on('value', (s) => {
-          let count = s.numChildren();
-          document.getElementById('notif-count').innerText = count;
-          document.getElementById('notif-count').style.display = count > 0 ? 'inline-block' : 'none';
-      });
-
-      rdb.ref('mensajes').on('value', (snapshot) => {
-        var box = document.getElementById('m-box'); box.innerHTML = ""; 
-        rdb.ref('amistades/' + miUsuario.toLowerCase()).once('value', (amigosSnap) => {
-          var misAmigos = amigosSnap.val() || {};
-          snapshot.forEach((child) => {
-            var m = child.val(), id = child.key;
-            if(vistaActual === 'amigos') {
-                if(!misAmigos[m.u.toLowerCase()] && m.u !== miUsuario) return;
-            } else { if((m.p || 'publico') !== 'publico') return; }
-
-            var d = document.createElement('div'); d.className = "post-card";
-            d.innerHTML = `<div class="post-header">
-                <span class="post-user" onclick="abrirPerfil('${m.u}')">${m.u}</span>
-                ${(m.u!==miUsuario && !misAmigos[m.u.toLowerCase()]) ? `<button onclick="enviarSolicitud('${m.u}')" style="border:none; background:#e7f3ff; color:#1877f2; border-radius:10px; font-size:10px; padding:2px 8px;">+ Amigo</button>` : ''}
-              </div>
-              <div class="post-content">${linkify(m.t || "")}</div>
-              <div class="post-footer" id="reac-${id}"></div>`;
-            box.appendChild(d);
-            let f = document.getElementById("reac-"+id);
-            EMOJIS.forEach(e => {
-              var act = (m.reacciones && m.reacciones[e] && m.reacciones[e][miUsuario]);
-              f.innerHTML += `<span onclick="reaccionar('${id}','${e}')" style="cursor:pointer; background:${act?'#e7f3ff':'#f0f2f5'}; padding:4px 10px; border-radius:15px;">${e}</span>`;
+        document.getElementById('acceso').style.display = 'none';
+        document.getElementById('chat').style.display = 'flex';
+        rdb.ref('mensajes').off();
+        rdb.ref('mensajes').on('value', (snapshot) => {
+            var box = document.getElementById('m-box'); box.innerHTML = "";
+            rdb.ref('amistades/' + miUsuario.toLowerCase()).once('value', (amigosSnap) => {
+                var misAmigos = amigosSnap.val() || {};
+                snapshot.forEach((child) => {
+                    var m = child.val(), id = child.key;
+                    if(vistaActual === 'publico') { if(m.p === 'amigos') return; } 
+                    else { if(!misAmigos[m.u.toLowerCase()] && m.u !== miUsuario) return; }
+                    box.prepend(crearPostHTML(m, id, false));
+                });
             });
-          });
-          box.scrollTop = box.scrollHeight;
         });
-      });
     }
 
-    async function subirMultimedia(input, destino) {
-      const file = input.files[0]; if(!file) return;
-      const formData = new FormData();
-      formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-      const data = await res.json();
-      if(destino === 'msg') { document.getElementById('msg').value = data.secure_url; send(); }
-      else if(destino === 'avatar') { rdb.ref('perfiles/' + miUsuario.toLowerCase() + '/avatar').set(data.secure_url); }
+    function send(inputId, privId) {
+        var msg = document.getElementById(inputId);
+        var priv = document.getElementById(privId).value;
+        if(!msg.value.trim()) return;
+        rdb.ref('mensajes').push({ u: miUsuario, t: msg.value, h: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), p: priv });
+        msg.value = "";
+        if(inputId === 'msg-perfil') cargarMuroPerfil(miUsuario);
     }
 
-    function send() {
-      var i = document.getElementById('msg'), t = i.value.trim();
-      if(!t) return;
-      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), p: vistaActual });
-      i.value = '';
+    function editarPost(id, textoViejo) {
+        var nuevo = prompt("Edita tu publicación:", textoViejo);
+        if(nuevo && nuevo !== textoViejo) {
+            rdb.ref('mensajes/'+id).update({ t: nuevo });
+            if(document.getElementById('perfil-view').style.display === 'flex') cargarMuroPerfil(pUsuarioActual);
+        }
+    }
+
+    function borrarPost(id) {
+        if(confirm("¿Seguro que quieres borrar esta publicación?")) {
+            rdb.ref('mensajes/'+id).remove();
+            if(document.getElementById('perfil-view').style.display === 'flex') cargarMuroPerfil(pUsuarioActual);
+        }
+    }
+
+    async function subirMultimedia(input, tipo, targetInput) {
+        const file = input.files[0]; if(!file) return;
+        const formData = new FormData();
+        formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if(tipo === 'msg') { document.getElementById(targetInput).value = data.secure_url; send(targetInput, (targetInput==='msg'?'priv-global':'priv-perfil')); }
+        else { rdb.ref('perfiles/'+miUsuario.toLowerCase()+'/'+tipo).set(data.secure_url); }
     }
 
     function linkify(t) {
-      if(!t) return "";
-      if(t.includes("res.cloudinary.com")) {
-        if(t.match(/\.(jpeg|jpg|png|webp)$/i)) return `<img src="${t}" class="chat-media">`;
-        if(t.match(/\.(mp4|webm)$/i)) return `<video src="${t}" class="chat-media" controls></video>`;
-      }
-      return t;
+        if(t.includes("res.cloudinary.com")) {
+            if(t.match(/\.(jpeg|jpg|png|webp|gif)$/i)) return `<img src="${t}" class="chat-media">`;
+            return `<video src="${t}" class="chat-media" controls></video>`;
+        }
+        return t;
     }
 
-    function reaccionar(id, emoji) {
-      rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).once('value', (s) => {
-        if(s.exists()) rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).remove();
-        else rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true);
-      });
+    function reaccionar(id, emoji) { rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true); }
+    function enviarSolicitud(n) { rdb.ref('solicitudes/'+n.toLowerCase()+'/'+miUsuario.toLowerCase()).set('pendiente'); alert("Solicitud enviada"); }
+    function verSolicitudes() {
+        document.getElementById('modal-sincro').style.display='flex';
+        rdb.ref('solicitudes/'+miUsuario.toLowerCase()).once('value', (s) => {
+            let h = "<h3>Solicitudes</h3>";
+            if(!s.exists()) h += "<p>Ninguna.</p>";
+            s.forEach(c => { h += `<p>${c.key} <button onclick="aceptar('${c.key}')">Aceptar</button></p>`; });
+            h += `<button onclick="document.getElementById('modal-sincro').style.display='none'">Cerrar</button>`;
+            document.getElementById('modal-content').innerHTML = h;
+        });
     }
-
-    function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
-    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
+    function aceptar(q) {
+        rdb.ref('amistades/'+miUsuario.toLowerCase()+'/'+q.toLowerCase()).set(true);
+        rdb.ref('amistades/'+q.toLowerCase()+'/'+miUsuario.toLowerCase()).set(true);
+        rdb.ref('solicitudes/'+miUsuario.toLowerCase()+'/'+q).remove();
+        alert("¡Ahora son amigos!");
+    }
+    function editarBio() { let b = prompt("Tu nueva biografía:"); if(b) rdb.ref('perfiles/'+miUsuario.toLowerCase()+'/bio').set(b); }
+    function cerrarPerfil() { document.getElementById('perfil-view').style.display='none'; }
+    function cerrarPrivado() { document.getElementById("p-chat").style.display = "none"; }
+    function abrirPrivado(n) { usuarioDestino = n; document.getElementById("priv-nombre").innerText = "Chat con " + n; document.getElementById("p-chat").style.display = "flex"; escucharPrivados(); }
+    function escucharPrivados() {
+        var sId = "sala_" + [miUsuario.toLowerCase(), usuarioDestino.toLowerCase()].sort().join("_");
+        rdb.ref("privados/"+sId).on("value", (s) => {
+            var b = document.getElementById("p-box"); b.innerHTML = "";
+            if(s.exists()){ s.forEach(c => { var m=c.val(); var d=document.createElement("div"); d.style="padding:5px; background:"+(m.u===miUsuario?"#dcf8c6":"#fff"); d.innerHTML="<b>"+m.u+":</b> "+m.t; b.appendChild(d); }); b.scrollTop=b.scrollHeight; }
+        });
+    }
+    function enviarPrivado() { var i=document.getElementById("p-msg"); if(!i.value) return; var sId="sala_"+[miUsuario.toLowerCase(), usuarioDestino.toLowerCase()].sort().join("_"); rdb.ref("privados/"+sId).push({u:miUsuario, t:i.value}); i.value=""; }
   </script>
 </body>
 </html>
