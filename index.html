@@ -7,7 +7,6 @@
     <style>
         body { background: #f0f2f5; margin: 0; padding: 0; font-family: Segoe UI, Helvetica, Arial, sans-serif; transition: 0.3s; }
         
-        /* --- SISTEMA DE TEMAS --- */
         :root { --bg-body: #f0f2f5; --bg-card: white; --text-main: #1c1e21; --border: #ddd; }
         body.tema-oscuro { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --border: #3e4042; }
         body.tema-azul { --bg-body: #0a192f; --bg-card: #112240; --text-main: #ccd6f6; --border: #233554; }
@@ -15,21 +14,19 @@
         body { background: var(--bg-body) !important; color: var(--text-main) !important; }
         .card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
 
-        /* Cabecera */
         .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .header h1 { margin: 0; font-size: 24px; cursor: pointer; letter-spacing: 1px; }
         
         .nav-icons { display: flex; gap: 20px; align-items: center; }
-        .dm-icon { background: #054d44; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .dm-icon:hover { background: #25d366; }
-
         .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; position: relative; background-size: cover; background-position: center; }
+        
+        /* Notificación roja en avatar */
+        #notif-count { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; border: 1px solid white; }
+
         .profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; z-index: 2000; border: 1px solid var(--border); }
         .profile-menu div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .profile-menu div:hover { background: rgba(0,0,0,0.05); }
         .show { display: block !important; }
 
-        /* Inputs y Botones */
         #acceso { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px; margin: 100px auto; color: black; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
@@ -37,14 +34,10 @@
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #65676b; }
         .tab.active { color: #075e54; background: #e6f2f1; font-weight: bold; }
 
-        /* Estilos Perfil */
-        .profile-pic-container { position: relative; width: 110px; height: 110px; margin: -55px auto 10px auto; }
-        .profile-pic-circle { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .edit-btn-small { position: absolute; bottom: 5px; right: 5px; background: #075e54; color: white; border: 2px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
-        
-        /* Botón eliminar */
+        .search-box { width: 100%; padding: 12px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; box-sizing: border-box; background: var(--bg-card); color: var(--text-main); outline: none; }
+
+        .profile-pic-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; font-weight: bold; margin: -55px auto 10px auto; }
         .btn-delete { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 18px; opacity: 0.6; }
-        .btn-delete:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -61,16 +54,15 @@
         <div class="header">
             <h1 onclick="cerrarPerfil()">Sincro</h1>
             <div class="nav-icons">
-                <div class="dm-icon" onclick="abrirDM()">DM ✉</div>
                 <div class="user-avatar" id="avatar-global" onclick="toggleMenu(event)">
                     <span id="avatar-letra">U</span>
+                    <div id="notif-count">0</div>
                     <div id="menuPerfil" class="profile-menu">
                         <div onclick="verPerfil()">👤 Mi Perfil</div>
-                        <div onclick="abrirConfig()">⚙️ Configuración</div>
+                        <div onclick="abrirPanelSolicitudes()">📩 Solicitudes <span id="text-solic"></span></div>
                         <div style="font-weight:bold; background:rgba(0,0,0,0.05); padding:5px 12px; font-size:11px;">FONDO:</div>
                         <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
                         <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
-                        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
                         <div onclick="location.reload()" style="color:red; border-top:1px solid #eee;">🚪 Salir</div>
                     </div>
                 </div>
@@ -82,14 +74,16 @@
             <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
         </div>
 
+        <input type="text" class="search-box" id="user-search" placeholder="🔍 Buscar personas..." onkeyup="buscarUsuarios(this.value)">
+        <div id="resultados-busqueda"></div>
+
         <div id="post-box-container">
             <div class="card">
                 <textarea id="post-text" placeholder="¿Qué quieres compartir?" style="width:100%; border:none; outline:none; resize:none; background:transparent; color:inherit; font-size:16px; min-height: 60px;"></textarea>
-                <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                     <div style="display:flex; gap:10px; align-items:center;">
                         <button onclick="document.getElementById('file-post').click()" style="background:#f0f2f5; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:13px; color: black;">📷 Galería</button>
-                        <select id="post-privacy" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                        <select id="post-privacy" style="padding: 5px; border-radius: 5px;">
                             <option value="publico">🌍 Público</option>
                             <option value="amigos">👥 Amigos</option>
                         </select>
@@ -103,21 +97,23 @@
         <div id="muro-dinamico"></div>
     </div>
 
+    <div id="panel-solicitudes" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:960; padding:20px;">
+        <h2 style="text-align:center;">Solicitudes de Amistad</h2>
+        <div id="lista-solicitudes" style="max-width:500px; margin:auto;"></div>
+        <div style="text-align:center; margin-top:20px;">
+            <button onclick="document.getElementById('panel-solicitudes').style.display='none'" class="btn-main" style="background:#ddd; color:black;">Cerrar</button>
+        </div>
+    </div>
+
     <div id="perfil-usuario" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:950; overflow-y:auto; padding-bottom:100px;">
         <div id="portada-v" style="width:100%; height:200px; background:#075e54; position:relative; background-size:cover; background-position:center;">
-            <button onclick="document.getElementById('f-portada').click()" style="position:absolute; bottom:15px; right:15px; background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:12px;">Cambiar Portada</button>
+            <button id="btn-edit-portada" onclick="document.getElementById('f-portada').click()" style="display:none; position:absolute; bottom:15px; right:15px; background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;">Cambiar Portada</button>
         </div>
 
         <div style="text-align:center; padding: 0 20px;">
-            <div class="profile-pic-container">
-                <div id="foto-perfil-v" class="profile-pic-circle">U</div>
-                <div class="edit-btn-small" onclick="document.getElementById('f-perfil').click()">+</div>
-            </div>
-            
+            <div id="foto-perfil-v" class="profile-pic-circle">U</div>
             <h2 id="nom-perfil" style="margin:5px 0; font-size: 24px;">@Usuario</h2>
-            <div style="margin-bottom: 20px;">
-                <button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black; padding:8px 25px; border-radius: 20px;">Volver al Muro</button>
-            </div>
+            <div id="area-botones-perfil" style="margin-bottom: 20px; display:flex; justify-content:center; gap:10px;"></div>
         </div>
 
         <div id="muro-perfil-container" style="max-width:600px; margin:20px auto; padding:0 20px;">
@@ -127,16 +123,6 @@
         
         <input type="file" id="f-perfil" style="display:none" accept="image/*" onchange="subirImagen('foto')">
         <input type="file" id="f-portada" style="display:none" accept="image/*" onchange="subirImagen('portada')">
-    </div>
-
-    <div id="dm-section" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:900; padding:20px; box-sizing:border-box;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-            <h2 style="margin:0; color:#075e54;">Mensajes Directos</h2>
-            <button onclick="cerrarDM()" style="background:#ddd; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Volver</button>
-        </div>
-        <div id="lista-contactos-dm" style="margin-top:20px; text-align:center;">
-            <p style="color:gray;">Aquí aparecerán tus amigos para chatear.</p>
-        </div>
     </div>
 </div>
 
@@ -153,172 +139,217 @@
 
     let miUsuario = "";
     let seccionActual = "publico";
+    let misAmigos = [];
+
+    // --- SISTEMA DE NOTIFICACIONES ELEGANTES ---
+    function notify(msg, type = 'success') {
+        const div = document.createElement('div');
+        div.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${type==='success'?'#25d366':'#ff4d4d'}; color:white; padding:12px 25px; border-radius:30px; z-index:10000; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:0.5s;`;
+        div.innerText = msg;
+        document.body.appendChild(div);
+        setTimeout(() => { div.style.top = '-100px'; setTimeout(() => div.remove(), 500); }, 3000);
+    }
 
     function entrar() {
-        const u = document.getElementById('usr').value.trim();
+        const u = document.getElementById('usr').value.trim().toLowerCase();
         const p = document.getElementById('clv').value.trim();
-        if(!u || !p) return alert("Ingresa datos");
+        if(!u || !p) return notify("Ingresa usuario y clave", "error");
 
-        rdb.ref('usuarios/' + u.toLowerCase()).once('value', s => {
-            if(s.exists() && s.val().toString() === p) {
-                miUsuario = u;
-                iniciarApp();
-            } else if(!s.exists()) {
-                rdb.ref('usuarios/' + u.toLowerCase()).set(p).then(() => {
-                    miUsuario = u;
-                    iniciarApp();
-                });
-            } else { alert("Error de clave"); }
+        rdb.ref('usuarios/' + u).once('value', s => {
+            if(s.exists() && s.val().toString() === p) { miUsuario = u; iniciarApp(); }
+            else if(!s.exists()) { rdb.ref('usuarios/' + u).set(p).then(() => { miUsuario = u; iniciarApp(); }); }
+            else { notify("Clave incorrecta", "error"); }
         });
     }
 
     function iniciarApp() {
         document.getElementById('acceso').style.display = 'none';
         document.getElementById('main-layout').style.display = 'block';
+        
+        // Cargar Amigos y Solicitudes
+        rdb.ref('amigos/' + miUsuario).on('value', s => { misAmigos = s.val() ? Object.keys(s.val()) : []; escucharPosts(); });
+        rdb.ref('solicitudes/' + miUsuario).on('value', s => {
+            const c = s.numChildren();
+            document.getElementById('notif-count').innerText = c;
+            document.getElementById('notif-count').style.display = c > 0 ? 'block' : 'none';
+            document.getElementById('text-solic').innerText = c > 0 ? `(${c})` : "";
+        });
+
         actualizarAvatarUI();
+    }
+
+    function cambiarSeccion(s) {
+        seccionActual = s;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + s).classList.add('active');
         escucharPosts();
-    }
-
-    function actualizarAvatarUI() {
-        document.getElementById('avatar-letra').innerText = miUsuario.charAt(0).toUpperCase();
-        rdb.ref('perfiles/' + miUsuario.toLowerCase()).on('value', s => {
-            const d = s.val();
-            if(d && d.foto) {
-                document.getElementById('avatar-global').style.backgroundImage = `url(${d.foto})`;
-                document.getElementById('avatar-letra').innerText = "";
-            }
-        });
-    }
-
-    async function publicarPost() {
-        const texto = document.getElementById('post-text').value.trim();
-        const privacidad = document.getElementById('post-privacy').value;
-        const fileInput = document.getElementById('file-post');
-        const btn = document.getElementById('btn-publicar');
-
-        if(!texto && !fileInput.files[0]) return;
-        btn.disabled = true; btn.innerText = "...";
-
-        let mediaUrl = "";
-        if(fileInput.files[0]) {
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-            formData.append("upload_preset", UPLOAD_PRESET);
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-            const data = await res.json();
-            mediaUrl = data.secure_url;
-        }
-
-        rdb.ref('posts').push({
-            autor: miUsuario,
-            texto: texto,
-            img: mediaUrl,
-            privacidad: privacidad,
-            fecha: Date.now()
-        }).then(() => {
-            document.getElementById('post-text').value = "";
-            fileInput.value = "";
-            btn.disabled = false; btn.innerText = "Publicar";
-        });
-    }
-
-    function eliminarPost(id) {
-        if(confirm("¿Seguro que quieres borrar esta publicación?")) {
-            rdb.ref('posts/' + id).remove();
-        }
     }
 
     function escucharPosts() {
         rdb.ref('posts').on('value', s => {
-            const muro = document.getElementById('muro-dinamico');
-            muro.innerHTML = "";
+            const muro = document.getElementById('muro-dinamico'); muro.innerHTML = "";
             const posts = [];
-            s.forEach(child => { 
-                let data = child.val();
-                data.id = child.key;
-                posts.unshift(data); 
-            });
+            s.forEach(child => { let d = child.val(); d.id = child.key; posts.unshift(d); });
 
             posts.forEach(p => {
-                if(p.privacidad === 'publico' || p.autor === miUsuario) {
+                let esAmigo = misAmigos.includes(p.autor.toLowerCase()) || p.autor === miUsuario;
+                let mostrar = (seccionActual === 'publico') ? (p.privacidad === 'publico' || p.autor === miUsuario) : esAmigo;
+
+                if(mostrar) {
                     muro.innerHTML += `
                         <div class="card">
                             ${p.autor === miUsuario ? `<button class="btn-delete" onclick="eliminarPost('${p.id}')">×</button>` : ''}
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                                <div onclick="verPerfil('${p.autor}')" style="font-weight:bold; color:#075e54; cursor:pointer;">@${p.autor}</div>
-                                <span style="font-size:10px; color:gray;">${p.privacidad === 'publico' ? '🌍' : '👥'}</span>
-                            </div>
-                            <p style="margin:0 0 10px 0;">${p.texto}</p>
-                            ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px;">` : ""}
-                        </div>
-                    `;
+                            <div onclick="verPerfil('${p.autor}')" style="font-weight:bold; color:#075e54; cursor:pointer; margin-bottom:10px;">@${p.autor}</div>
+                            <p>${p.texto}</p>
+                            ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px; margin-top:10px;">` : ""}
+                        </div>`;
                 }
             });
         });
     }
 
+    function buscarUsuarios(val) {
+        if(val.length < 2) { document.getElementById('resultados-busqueda').innerHTML = ""; return; }
+        rdb.ref('usuarios').once('value', s => {
+            let html = "";
+            s.forEach(u => {
+                if(u.key.includes(val.toLowerCase()) && u.key !== miUsuario) {
+                    html += `<div class="card" onclick="verPerfil('${u.key}')" style="padding:10px; cursor:pointer;">@${u.key}</div>`;
+                }
+            });
+            document.getElementById('resultados-busqueda').innerHTML = html;
+        });
+    }
+
     function verPerfil(user = miUsuario) {
+        user = user.toLowerCase();
         document.getElementById('perfil-usuario').style.display = 'block';
         document.getElementById('nom-perfil').innerText = "@" + user;
         
-        // Mover la caja de publicar al perfil si es el mío
-        const postBox = document.getElementById('post-box-container');
-        const target = (user.toLowerCase() === miUsuario.toLowerCase()) ? document.getElementById('post-box-perfil') : null;
-        if(target) target.appendChild(postBox);
-        else document.getElementById('main-layout').insertBefore(postBox, document.getElementById('muro-dinamico'));
+        // Configurar botones
+        const areaBtn = document.getElementById('area-botones-perfil');
+        if(user === miUsuario) {
+            areaBtn.innerHTML = `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
+            document.getElementById('btn-edit-portada').style.display = 'block';
+            document.getElementById('post-box-perfil').appendChild(document.getElementById('post-box-container'));
+        } else {
+            document.getElementById('btn-edit-portada').style.display = 'none';
+            document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
+            
+            if(misAmigos.includes(user)) {
+                areaBtn.innerHTML = `<button class="btn-main" style="background:#ccc; cursor:default;">✓ Amigos</button>`;
+            } else {
+                rdb.ref(`solicitudes/${user}/${miUsuario}`).once('value', s => {
+                    areaBtn.innerHTML = s.exists() ? `<button class="btn-main" style="background:#888;">Solicitud Enviada</button>` : `<button onclick="enviarSolicitud('${user}')" class="btn-main">Agregar Amigo</button>`;
+                });
+            }
+            areaBtn.innerHTML += `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
+        }
 
-        rdb.ref('perfiles/' + user.toLowerCase()).on('value', s => {
+        rdb.ref('perfiles/' + user).on('value', s => {
             const d = s.val();
             const pic = document.getElementById('foto-perfil-v');
             const port = document.getElementById('portada-v');
-            if(d) {
-                if(d.foto) { pic.style.backgroundImage = `url(${d.foto})`; pic.innerText = ""; }
-                if(d.portada) port.style.backgroundImage = `url(${d.portada})`;
-            }
+            pic.style.backgroundImage = d && d.foto ? `url(${d.foto})` : "";
+            pic.innerText = d && d.foto ? "" : user.charAt(0).toUpperCase();
+            port.style.backgroundImage = d && d.portada ? `url(${d.portada})` : "";
         });
 
         rdb.ref('posts').orderByChild('autor').equalTo(user).on('value', s => {
             const m = document.getElementById('muro-perfil'); m.innerHTML = "";
-            const posts = [];
-            s.forEach(child => { let d = child.val(); d.id = child.key; posts.unshift(d); });
-            posts.forEach(p => {
-                m.innerHTML += `
-                    <div class="card">
-                        ${p.autor === miUsuario ? `<button class="btn-delete" onclick="eliminarPost('${p.id}')">×</button>` : ''}
-                        <p>${p.texto}</p>
-                        ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px;">` : ""}
-                    </div>`;
+            s.forEach(child => {
+                const p = child.val();
+                m.innerHTML = `<div class="card"><p>${p.texto}</p>${p.img ? `<img src="${p.img}" style="width:100%;">` : ""}</div>` + m.innerHTML;
             });
         });
     }
 
+    function enviarSolicitud(target) {
+        rdb.ref(`solicitudes/${target}/${miUsuario}`).set(true).then(() => {
+            notify("Solicitud Enviada", "success");
+            verPerfil(target);
+        });
+    }
+
+    function abrirPanelSolicitudes() {
+        document.getElementById('panel-solicitudes').style.display = 'block';
+        const lista = document.getElementById('lista-solicitudes');
+        rdb.ref('solicitudes/' + miUsuario).on('value', s => {
+            lista.innerHTML = s.exists() ? "" : "<p style='text-align:center;'>No hay solicitudes</p>";
+            s.forEach(sol => {
+                lista.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>@${sol.key}</span>
+                    <div>
+                        <button onclick="aceptarAmigo('${sol.key}')" style="background:#25d366; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Aceptar</button>
+                        <button onclick="rechazarAmigo('${sol.key}')" style="background:#ff4d4d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">X</button>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function aceptarAmigo(quien) {
+        rdb.ref(`amigos/${miUsuario}/${quien}`).set(true);
+        rdb.ref(`amigos/${quien}/${miUsuario}`).set(true);
+        rdb.ref(`solicitudes/${miUsuario}/${quien}`).remove();
+        notify("¡Nueva amistad confirmada!", "success");
+    }
+
+    function rechazarAmigo(quien) { rdb.ref(`solicitudes/${miUsuario}/${quien}`).remove(); notify("Solicitud eliminada", "error"); }
+
+    async function publicarPost() {
+        const t = document.getElementById('post-text').value.trim();
+        const p = document.getElementById('post-privacy').value;
+        const file = document.getElementById('file-post').files[0];
+        const btn = document.getElementById('btn-publicar');
+        if(!t && !file) return;
+        btn.disabled = true;
+
+        let url = "";
+        if(file) {
+            const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+                const data = await res.json(); url = data.secure_url;
+            } catch(e) { notify("Error al subir imagen", "error"); }
+        }
+
+        rdb.ref('posts').push({ autor: miUsuario, texto: t, img: url, privacidad: p, fecha: Date.now() })
+        .then(() => { 
+            notify("Publicación compartida", "success");
+            document.getElementById('post-text').value = ""; 
+            btn.disabled = false;
+        });
+    }
+
+    function eliminarPost(id) { if(confirm("¿Borrar publicación?")) rdb.ref('posts/' + id).remove().then(() => notify("Post eliminado", "error")); }
+    
     async function subirImagen(tipo) {
-        const inputId = tipo === 'foto' ? 'f-perfil' : 'f-portada';
-        const file = document.getElementById(inputId).files[0];
+        const file = document.getElementById(tipo === 'foto' ? 'f-perfil' : 'f-portada').files[0];
         if(!file) return;
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", UPLOAD_PRESET);
+        const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
         const data = await res.json();
         const update = {}; update[tipo === 'foto' ? 'foto' : 'portada'] = data.secure_url;
-        rdb.ref('perfiles/' + miUsuario.toLowerCase()).update(update);
+        rdb.ref('perfiles/' + miUsuario).update(update).then(() => notify("Perfil actualizado", "success"));
     }
 
     function cerrarPerfil() { 
-        document.getElementById('perfil-usuario').style.display = 'none'; 
-        // Devolver caja de publicar al muro principal
+        document.getElementById('perfil-usuario').style.display = 'none';
         document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
     }
-    
-    function toggleMenu(e) { e.stopPropagation(); document.getElementById('menuPerfil').classList.toggle('show'); }
-    function cambiarFondo(t) { document.body.className = ""; if(t!=='blanco') document.body.classList.add('tema-'+t); }
-    function abrirDM() { document.getElementById('dm-section').style.display = 'block'; }
-    function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
-    function abrirConfig() { alert("Configuración en desarrollo."); }
 
+    function actualizarAvatarUI() {
+        rdb.ref('perfiles/' + miUsuario).on('value', s => {
+            const d = s.val();
+            if(d && d.foto) document.getElementById('avatar-global').style.backgroundImage = `url(${d.foto})`;
+            document.getElementById('avatar-letra').innerText = d && d.foto ? "" : miUsuario.charAt(0).toUpperCase();
+        });
+    }
+
+    function toggleMenu(e) { e.stopPropagation(); document.getElementById('menuPerfil').classList.toggle('show'); }
+    function cambiarFondo(t) { document.body.className = t === 'oscuro' ? 'tema-oscuro' : ''; }
     window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
 </script>
-
 </body>
 </html>
