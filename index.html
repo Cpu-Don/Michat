@@ -5,42 +5,72 @@
     <title>Sincro - Red Social</title>
     <meta content="width=device-width,initial-scale=1" name="viewport"/>
     <style>
-        /* [TUS ESTILOS ORIGINALES INTACTOS] */
         body { background: #f0f2f5; margin: 0; padding: 0; font-family: Segoe UI, Helvetica, Arial, sans-serif; transition: 0.3s; }
+        
+        /* --- SISTEMA DE TEMAS --- */
         :root { --bg-body: #f0f2f5; --bg-card: white; --text-main: #1c1e21; --border: #ddd; }
         body.tema-oscuro { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --border: #3e4042; }
         body.tema-azul { --bg-body: #0a192f; --bg-card: #112240; --text-main: #ccd6f6; --border: #233554; }
+
         body { background: var(--bg-body) !important; color: var(--text-main) !important; }
         .card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+
+        /* Cabecera */
         .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .header h1 { margin: 0; font-size: 24px; cursor: pointer; letter-spacing: 1px; }
+        
         .nav-icons { display: flex; gap: 20px; align-items: center; }
         .dm-icon { background: #054d44; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .dm-icon:hover { background: #25d366; }
+
         .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; position: relative; background-size: cover; background-position: center; }
+        
+        /* Círculo de notificaciones */
         #notif-badge { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; border: 1px solid white; }
+
         .profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; z-index: 2000; border: 1px solid var(--border); }
         .profile-menu div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .profile-menu div:hover { background: rgba(0,0,0,0.05); }
         .show { display: block !important; }
-        .tabs { display: flex; background: white; border-radius: 10px; padding: 5px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 8px; color: #65676b; }
-        .tab.active { color: #075e54; background: #e6f2f1; font-weight: bold; }
-        .profile-pic-circle { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; margin: -55px auto 10px; }
 
-        /* [NUEVOS ESTILOS PARA LAS FUNCIONES PEDIDAS] */
+        /* Inputs y Botones */
+        #acceso { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px; margin: 100px auto; color: black; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .tabs { display: flex; background: white; border-radius: 10px; padding: 5px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #65676b; }
+        .tab.active { color: #075e54; background: #e6f2f1; font-weight: bold; }
+
+        /* Estilos Perfil */
+        .profile-pic-container { position: relative; width: 110px; height: 110px; margin: -55px auto 10px auto; }
+        .profile-pic-circle { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .edit-btn-small { position: absolute; bottom: 5px; right: 5px; background: #075e54; color: white; border: 2px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
+        
+        .btn-delete { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 18px; opacity: 0.6; }
+        
+        /* Buscador */
+        .search-container { margin-bottom: 15px; }
+        .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; }
+
+        /* --- NUEVOS ESTILOS PARA CHAT Y SPAM --- */
+        .badge-spam { background: #ff4d4d; color: white; border-radius: 10px; padding: 2px 8px; font-size: 10px; font-weight: bold; margin-left: 5px; display: none; }
         .chat-popup { position: fixed; bottom: 0; right: 20px; width: 300px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px 10px 0 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 3000; }
         .chat-header { background: #075e54; color: white; padding: 10px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
         .chat-messages { height: 250px; overflow-y: auto; padding: 10px; background: var(--bg-body); display: flex; flex-direction: column; gap: 8px; }
-        .msg-yo { align-self: flex-end; background: #dcf8c6; color: black; padding: 6px 10px; border-radius: 10px 10px 0 10px; max-width: 80%; font-size: 14px; }
-        .msg-otro { align-self: flex-start; background: white; color: black; padding: 6px 10px; border-radius: 10px 10px 10px 0; border: 1px solid #ddd; max-width: 80%; font-size: 14px; }
-        .ajustes-menu-chat { display: none; position: absolute; top: 40px; right: 10px; background: var(--bg-card); border: 1px solid var(--border); padding: 5px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .menu-engranaje { display: none; position: absolute; top: 40px; right: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 3100; color: var(--text-main); min-width: 160px; }
+        .menu-engranaje div { padding: 10px; cursor: pointer; font-size: 12px; border-bottom: 1px solid var(--border); }
+        .msg-yo { align-self: flex-end; background: #dcf8c6; color: black; padding: 6px 10px; border-radius: 10px 10px 0 10px; max-width: 80%; font-size: 13px; }
+        .msg-otro { align-self: flex-start; background: white; color: black; padding: 6px 10px; border-radius: 10px 10px 10px 0; border: 1px solid #ddd; max-width: 80%; font-size: 13px; }
+        .btn-bloquear { background: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body onclick="activarAudio()">
+<body>
 
 <div id="app">
     <div id="acceso">
         <h1 style="color:#075e54;">Sincro</h1>
-        <input id="usr" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
-        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px;">
+        <input id="usr" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
+        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
         <button onclick="entrar()" class="btn-main" style="width:100%;">ENTRAR</button>
     </div>
 
@@ -54,9 +84,14 @@
                     <div id="notif-badge">0</div>
                     <div id="menuPerfil" class="profile-menu">
                         <div onclick="verPerfil()">👤 Mi Perfil</div>
-                        <div onclick="verSeccionSpam()">📂 Solicitudes de Chat</div>
-                        <div onclick="cambiarFondo('oscuro')">⚫ Modo Oscuro</div>
-                        <div onclick="location.reload()" style="color:red;">🚪 Salir</div>
+                        <div onclick="verBandejaSpam()" style="display:flex; justify-content:space-between; align-items:center;">📩 Solicitudes Chat <span id="badge-spam-count" class="badge-spam">0</span></div>
+                        <div id="btn-admin-panel" onclick="abrirPanelAdmin()" style="display:none; color:gold; font-weight:bold;">👑 Panel Admin</div>
+                        <div onclick="crearGrupo()" style="color:#25d366; font-weight:bold;">➕ Crear Grupo</div>
+                        <div style="font-weight:bold; background:rgba(0,0,0,0.05); padding:5px 12px; font-size:11px;">FONDO:</div>
+                        <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
+                        <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
+                        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
+                        <div onclick="location.reload()" style="color:red; border-top:1px solid #eee;">🚪 Salir</div>
                     </div>
                 </div>
             </div>
@@ -67,38 +102,71 @@
             <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
         </div>
 
-        <div id="post-box-container"></div> <div id="muro-dinamico"></div>
+        <div class="search-container">
+            <input type="text" class="search-box" id="user-search" placeholder="🔍 Buscar personas para agregar..." onkeyup="buscarUsuarios(this.value)">
+            <div id="resultados-busqueda"></div>
+        </div>
+
+        <div id="post-box-container">
+            <div class="card">
+                <textarea id="post-text" placeholder="¿Qué quieres compartir?" style="width:100%; border:none; outline:none; resize:none; background:transparent; color:inherit; font-size:16px; min-height: 60px;"></textarea>
+                <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button onclick="document.getElementById('file-post').click()" style="background:#f0f2f5; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:13px; color: black;">📷 Galería</button>
+                        <select id="post-privacy" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                            <option value="publico">🌍 Público</option>
+                            <option value="amigos">👥 Amigos</option>
+                        </select>
+                    </div>
+                    <button class="btn-main" id="btn-publicar" onclick="publicarPost()">Publicar</button>
+                </div>
+                <input type="file" id="file-post" style="display:none" accept="image/*,video/*">
+            </div>
+        </div>
+
+        <div id="muro-dinamico"></div>
     </div>
 
-    <div id="dm-section" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:900; padding:20px; overflow-y:auto;">
-        <h2>Mensajes Directos</h2>
-        <div class="card">
-            <h4>Crear Grupo</h4>
-            <input id="name-grupo" placeholder="Nombre del grupo..." style="padding:8px; width:60%;">
-            <button onclick="crearGrupoNuevo()" class="btn-main">Crear</button>
+    <div id="perfil-usuario" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:950; overflow-y:auto; padding-bottom:100px;">
+        <div id="portada-v" style="width:100%; height:200px; background:#075e54; position:relative; background-size:cover; background-position:center;">
+            <button id="btn-edit-portada" onclick="document.getElementById('f-portada').click()" style="display:none; position:absolute; bottom:15px; right:15px; background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:12px;">Cambiar Portada</button>
         </div>
-        <div id="lista-grupos"></div>
-        <hr>
-        <div id="lista-contactos-dm"></div>
-        <button onclick="cerrarDM()" class="btn-main" style="background:#888; margin-top:20px;">Volver</button>
+        <div style="text-align:center; padding: 0 20px;">
+            <div class="profile-pic-container">
+                <div id="foto-perfil-v" class="profile-pic-circle">U</div>
+                <div id="btn-edit-foto" class="edit-btn-small" style="display:none;" onclick="document.getElementById('f-perfil').click()">+</div>
+            </div>
+            <h2 id="nom-perfil" style="margin:5px 0; font-size: 24px;">@Usuario</h2>
+            <div id="area-botones-perfil" style="margin-bottom: 20px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;"></div>
+        </div>
+        <div id="muro-perfil-container" style="max-width:600px; margin:20px auto; padding:0 20px;">
+            <div id="post-box-perfil"></div>
+            <div id="muro-perfil"></div>
+        </div>
+        <input type="file" id="f-perfil" style="display:none" accept="image/*" onchange="subirImagen('foto')">
+        <input type="file" id="f-portada" style="display:none" accept="image/*" onchange="subirImagen('portada')">
     </div>
 
     <div id="chat-popup-box" class="chat-popup">
         <div class="chat-header">
-            <span id="chat-popup-user">Chat</span>
-            <div>
-                <span onclick="toggleAjustesChat()" style="cursor:pointer; margin-right:10px;">⚙️</span>
-                <span onclick="document.getElementById('chat-popup-box').style.display='none'" style="cursor:pointer;">×</span>
+            <span id="chat-popup-titulo">Chat</span>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <span onclick="toggleEngranaje()" style="cursor:pointer;">⚙️</span>
+                <span onclick="document.getElementById('chat-popup-box').style.display='none'" style="cursor:pointer; font-size:20px;">×</span>
             </div>
-            <div id="ajustes-chat" class="ajustes-menu-chat">
-                <div onclick="verMultimedia()" style="cursor:pointer; padding:8px;">🖼️ Multimedia</div>
-                <div onclick="alert('Silenciado')" style="cursor:pointer; padding:8px;">🔔 Mutear</div>
+            <div id="box-engranaje" class="menu-engranaje">
+                <div id="opt-invitar" onclick="mostrarListaInvitar()" style="display:none; color:#25d366; font-weight:bold;">➕ Invitar Amigos</div>
+                <div onclick="verSoloFotos()">🖼️ Contenido Multimedia</div>
+                <div onclick="toast('Notificaciones silenciadas')">🔔 Mutear</div>
+                <div id="opt-bloquear-chat" onclick="bloquearUsuarioChat()" style="color:orange;">🚫 Bloquear</div>
+                <div onclick="eliminarChatTotal()" style="color:red; font-weight:bold;">🗑️ Eliminar Chat</div>
             </div>
         </div>
         <div id="chat-popup-messages" class="chat-messages"></div>
-        <div style="padding:10px; display:flex; gap:5px; border-top:1px solid var(--border);">
-            <input id="chat-popup-input" style="flex:1;" onkeypress="if(event.key==='Enter') enviarMensaje()">
-            <button onclick="enviarMensaje()" class="btn-main">></button>
+        <div style="padding:10px; display:flex; gap:5px; border-top:1px solid var(--border); background:var(--bg-card);">
+            <input id="chat-input-text" placeholder="Escribe..." style="flex:1; border:1px solid var(--border); border-radius:5px; padding:5px; background:var(--bg-body); color:var(--text-main);">
+            <button onclick="enviarMensajeChat()" class="btn-main" style="padding:5px 10px;">></button>
         </div>
     </div>
 </div>
@@ -110,101 +178,249 @@
     const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const rdb = firebase.database();
-    
-    // [SONIDO E IMAGEN]
-    const sonidoPing = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+
+    const CLOUD_NAME = "dhtyepcjg"; 
+    const UPLOAD_PRESET = "Historial";
+    const ADMIN_USER = "chat"; // CAMBIA ESTO POR TU USUARIO
+
     let miUsuario = "";
+    let seccionActual = "publico";
     let misAmigos = [];
-    let chatAbiertoCon = "";
-    let esGrupo = false;
+    let chatActivo = "";
+    let esGrupoActivo = false;
 
-    // [LO QUE ME PEDISTE: IMPLEMENTACIÓN DE LOGICA]
+    function toast(mensaje, tipo = 'exito') {
+        const t = document.createElement('div');
+        t.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${tipo==='exito'?'#25d366':'#ff4d4d'}; color:white; padding:12px 25px; border-radius:30px; z-index:10000; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:0.5s;`;
+        t.innerText = mensaje;
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.top = '-100px'; setTimeout(() => t.remove(), 500); }, 3000);
+    }
 
-    // 1. Creador de Grupo (Sin botón de unirse para ti) + Abre chat al instante
-    function crearGrupoNuevo() {
-        const nom = document.getElementById('name-grupo').value.trim();
+    function entrar() {
+        const u = document.getElementById('usr').value.trim().toLowerCase();
+        const p = document.getElementById('clv').value.trim();
+        if(!u || !p) return toast("Ingresa datos", "error");
+        rdb.ref('usuarios/' + u).once('value', s => {
+            if(s.exists() && s.val().toString() === p) { miUsuario = u; iniciarApp(); }
+            else if(!s.exists()) { rdb.ref('usuarios/' + u).set(p).then(() => { miUsuario = u; iniciarApp(); }); }
+            else { toast("Error de clave", "error"); }
+        });
+    }
+
+    function iniciarApp() {
+        document.getElementById('acceso').style.display = 'none';
+        document.getElementById('main-layout').style.display = 'block';
+        if(miUsuario === ADMIN_USER) document.getElementById('btn-admin-panel').style.display = 'block';
+        rdb.ref('amigos/' + miUsuario).on('value', s => {
+            misAmigos = s.val() ? Object.keys(s.val()) : [];
+            escucharPosts();
+        });
+        escucharSpam();
+        actualizarAvatarUI();
+    }
+
+    // --- LÓGICA DE GRUPOS (AUTO-APERTURA) ---
+    function crearGrupo() {
+        const nom = prompt("Nombre del grupo:");
         if(!nom) return;
         const gRef = rdb.ref('grupos').push();
-        gRef.set({ nombre: nom, creador: miUsuario }).then(() => {
-            rdb.ref('miembros_grupos/' + gRef.key + '/' + miUsuario).set(true);
-            document.getElementById('name-grupo').value = "";
-            abrirChatPopup(gRef.key, true, nom); // SE ABRE AL CREAR
+        const idG = gRef.key;
+        gRef.set({ nombre: nom, creador: miUsuario, fecha: Date.now() }).then(() => {
+            rdb.ref('miembros_grupos/' + idG + '/' + miUsuario).set(true);
+            abrirChatPopup(idG, true, nom);
         });
     }
 
-    // 2. Filtro de Spam (Mensajes de no-amigos van a bandeja aparte)
-    function enviarMensaje() {
-        const txt = document.getElementById('chat-popup-input').value.trim();
-        if(!txt) return;
-
-        // Si no son amigos y es chat privado, se registra como solicitud
-        if(!esGrupo && !misAmigos.includes(chatAbiertoCon)) {
-            rdb.ref('solicitudes_chat/' + chatAbiertoCon + '/' + miUsuario).set({
-                texto: txt, fecha: Date.now()
-            });
-        }
-
-        const path = esGrupo ? 'chats_grupos/' + chatAbiertoCon : 'chats/' + (miUsuario < chatAbiertoCon ? miUsuario + "_" + chatAbiertoCon : chatAbiertoCon + "_" + miUsuario);
-        rdb.ref(path).push({ envia: miUsuario, texto: txt, fecha: Date.now() });
-        document.getElementById('chat-popup-input').value = "";
-    }
-
-    // 3. Sonido de Notificación (Solo si no es tu mensaje)
-    function escucharNotificaciones(path) {
-        rdb.ref(path).limitToLast(1).on('child_added', s => {
-            const m = s.val();
-            if(m.envia !== miUsuario && (Date.now() - m.fecha < 5000)) {
-                sonidoPing.play().catch(() => {});
-            }
-        });
-    }
-
-    // 4. DM Siempre Visible en Perfil
-    function verPerfil(user = miUsuario) {
-        user = user.toLowerCase();
-        // [Aquí va toda tu lógica de Cloudinary y Perfil intacta]
-        document.getElementById('perfil-usuario').style.display = 'block';
-        const areaBtn = document.getElementById('area-botones-perfil');
-        areaBtn.innerHTML = "";
-        
-        if(user !== miUsuario) {
-            // EL BOTÓN DM SIEMPRE ESTÁ PRESENTE
-            areaBtn.innerHTML += `<button onclick="abrirChatPopup('${user}')" class="btn-main" style="background:#25d366;">Enviar DM</button>`;
-        }
-        areaBtn.innerHTML += `<button onclick="cerrarPerfil()" class="btn-main" style="background:#888; margin-left:5px;">Cerrar</button>`;
-    }
-
-    // [FUNCIONES COMPLEMENTARIAS]
-    function abrirChatPopup(id, esG = false, nom = "") {
-        chatAbiertoCon = id; esGrupo = esG;
-        document.getElementById('chat-popup-user').innerText = esG ? "👥 "+nom : "@"+id;
+    // --- LÓGICA DE CHAT Y ENGRANAJE ---
+    function abrirChatPopup(id, esG = false, tit = "") {
+        chatActivo = id; esGrupoActivo = esG;
+        document.getElementById('chat-popup-titulo').innerText = tit || "@"+id;
         document.getElementById('chat-popup-box').style.display = 'flex';
-        const path = esG ? 'chats_grupos/'+id : 'chats/'+(miUsuario<id?miUsuario+"_"+id:id+"_"+miUsuario);
+        document.getElementById('opt-invitar').style.display = esG ? 'block' : 'none';
+        document.getElementById('opt-bloquear-chat').style.display = esG ? 'none' : 'block';
         
+        const path = esG ? 'chats_grupos/'+id : 'chats/'+(miUsuario<id?miUsuario+"_"+id:id+"_"+miUsuario);
         rdb.ref(path).off();
         rdb.ref(path).on('value', s => {
-            const box = document.getElementById('chat-popup-messages'); box.innerHTML = "";
+            const box = document.getElementById('chat-popup-messages');
+            box.innerHTML = "";
             s.forEach(m => {
                 const d = m.val();
                 box.innerHTML += `<div class="${d.envia===miUsuario?'msg-yo':'msg-otro'}">${d.texto}</div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
-        escucharNotificaciones(path);
     }
 
-    function toggleAjustesChat() {
-        const m = document.getElementById('ajustes-chat');
-        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    function enviarMensajeChat() {
+        const inp = document.getElementById('chat-input-text');
+        const txt = inp.value.trim();
+        if(!txt) return;
+        if(!esGrupoActivo && !misAmigos.includes(chatActivo)) {
+            rdb.ref('spam/' + chatActivo + '/' + miUsuario).set({ texto: txt, fecha: Date.now() });
+        }
+        const path = esGrupoActivo ? 'chats_grupos/'+chatActivo : 'chats/'+(miUsuario<chatActivo?miUsuario+"_"+chatActivo:chatActivo+"_"+miUsuario);
+        rdb.ref(path).push({ envia: miUsuario, texto: txt, fecha: Date.now() });
+        inp.value = "";
     }
 
-    function activarAudio() { sonidoPing.play().then(() => { sonidoPing.pause(); sonidoPing.currentTime = 0; }).catch(()=>{}); }
-    function entrar() { miUsuario = document.getElementById('usr').value.trim().toLowerCase(); document.getElementById('acceso').style.display='none'; document.getElementById('main-layout').style.display='block'; iniciarApp(); }
-    function abrirDM() { document.getElementById('dm-section').style.display='block'; }
-    function cerrarDM() { document.getElementById('dm-section').style.display='none'; }
+    function eliminarChatTotal() {
+        if(!confirm("¿Eliminar historial?")) return;
+        const path = esGrupoActivo ? 'chats_grupos/'+chatActivo : 'chats/'+(miUsuario<chatActivo?miUsuario+"_"+chatActivo:chatActivo+"_"+miUsuario);
+        if(esGrupoActivo) {
+            rdb.ref('grupos/'+chatActivo).once('value', s => {
+                if(s.val().creador === miUsuario) rdb.ref(path).remove().then(() => toast("Historial borrado para todos"));
+                else toast("Solo el creador puede borrar el grupo", "error");
+            });
+        } else { rdb.ref(path).remove().then(() => toast("Chat borrado")); }
+    }
+
+    function verSoloFotos() {
+        const path = esGrupoActivo ? 'chats_grupos/'+chatActivo : 'chats/'+(miUsuario<chatActivo?miUsuario+"_"+chatActivo:chatActivo+"_"+miUsuario);
+        rdb.ref(path).once('value', s => {
+            let h = `<div style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:6000; padding:20px; overflow-y:auto; color:white;">
+                     <h3>Multimedia del Chat</h3><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">`;
+            s.forEach(m => { if(m.val().texto.includes("cloudinary")) h += `<img src="${m.val().texto}" style="width:100%; border-radius:5px;">`; });
+            h += `</div><button onclick="this.parentElement.remove()" class="btn-main" style="margin-top:20px;">Cerrar</button></div>`;
+            document.body.insertAdjacentHTML('beforeend', h);
+        });
+    }
+
+    function mostrarListaInvitar() {
+        let h = `<div style="position:fixed; top:100px; left:50%; transform:translateX(-50%); background:var(--bg-card); border:1px solid var(--border); padding:20px; z-index:5000; border-radius:10px; width:280px; box-shadow:0 5px 20px rgba(0,0,0,0.3);">
+                <h4>Invitar Amigos</h4><div style="max-height:200px; overflow-y:auto;">`;
+        if(misAmigos.length === 0) h += `<p style="color:gray;">No tienes amigos.</p>`;
+        else misAmigos.forEach(a => { h += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>@${a}</span><button onclick="rdb.ref('miembros_grupos/'+chatActivo+'/${a}').set(true); toast('Añadido')" class="btn-main" style="padding:2px 8px;">+</button></div>`; });
+        h += `</div><button onclick="this.parentElement.remove()" style="width:100%; margin-top:10px;">Cerrar</button></div>`;
+        document.body.insertAdjacentHTML('beforeend', h);
+    }
+
+    // --- SPAM Y PERFIL ---
+    function escucharSpam() {
+        rdb.ref('spam/' + miUsuario).on('value', s => {
+            const n = s.numChildren();
+            document.getElementById('badge-spam-count').innerText = n;
+            document.getElementById('badge-spam-count').style.display = n > 0 ? 'block' : 'none';
+        });
+    }
+
+    function verBandejaSpam() {
+        const p = document.createElement('div');
+        p.style = "position:fixed; inset:0; background:var(--bg-body); z-index:4000; padding:20px; overflow-y:auto;";
+        p.innerHTML = `<h3>Mensajes de Desconocidos</h3><div id="l-spam"></div><button onclick="this.parentElement.remove()" class="btn-main" style="margin-top:20px;">Cerrar</button>`;
+        document.body.appendChild(p);
+        rdb.ref('spam/'+miUsuario).on('value', s => {
+            const l = document.getElementById('l-spam'); l.innerHTML = s.exists() ? "" : "No hay spam.";
+            s.forEach(i => { l.innerHTML += `<div class="card" style="display:flex; justify-content:space-between;"><span>@${i.key}: ${i.val().texto}</span><button onclick="abrirChatPopup('${i.key}')" class="btn-main">Responder</button></div>`; });
+        });
+    }
+
+    function verPerfil(user = miUsuario) {
+        user = user.toLowerCase();
+        document.getElementById('perfil-usuario').style.display = 'block';
+        document.getElementById('nom-perfil').innerText = "@" + user;
+        const areaBtn = document.getElementById('area-botones-perfil'); areaBtn.innerHTML = "";
+        
+        if(user === miUsuario) {
+            areaBtn.innerHTML = `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
+            document.getElementById('btn-edit-portada').style.display = 'block';
+            document.getElementById('btn-edit-foto').style.display = 'flex';
+            document.getElementById('post-box-perfil').appendChild(document.getElementById('post-box-container'));
+        } else {
+            document.getElementById('btn-edit-portada').style.display = 'none';
+            document.getElementById('btn-edit-foto').style.display = 'none';
+            document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
+            areaBtn.innerHTML += `<button onclick="abrirChatPopup('${user}')" class="btn-main" style="background:#25d366;">Enviar DM</button>`;
+            if(misAmigos.includes(user)) areaBtn.innerHTML += `<button class="btn-main" style="background:#ccc;">✓ Amigos</button>`;
+            else areaBtn.innerHTML += `<button onclick="enviarSolicitud('${user}')" class="btn-main">Agregar</button>`;
+            areaBtn.innerHTML += `<button onclick="bloquearUsuario('${user}')" class="btn-bloquear">Bloquear</button>`;
+            areaBtn.innerHTML += `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
+        }
+
+        rdb.ref('perfiles/' + user).on('value', s => {
+            const d = s.val(); const pic = document.getElementById('foto-perfil-v'); const port = document.getElementById('portada-v');
+            pic.style.backgroundImage = d && d.foto ? `url(${d.foto})` : "";
+            pic.innerText = d && d.foto ? "" : user.charAt(0).toUpperCase();
+            port.style.backgroundImage = d && d.portada ? `url(${d.portada})` : "";
+        });
+
+        rdb.ref('posts').orderByChild('autor').equalTo(user).on('value', s => {
+            const m = document.getElementById('muro-perfil'); m.innerHTML = "";
+            s.forEach(child => { const p = child.val(); m.innerHTML = `<div class="card"><p>${p.texto}</p>${p.img ? `<img src="${p.img}" style="width:100%;">` : ""}</div>` + m.innerHTML; });
+        });
+    }
+
+    // --- PANEL ADMIN (MULTIMEDIA SEPARADA) ---
+    function abrirPanelAdmin() {
+        const p = document.createElement('div');
+        p.style = "position:fixed; inset:0; background:var(--bg-body); z-index:7000; padding:20px; overflow-y:auto;";
+        p.innerHTML = `<h2>Panel Maestro - Multimedia</h2>
+            <button onclick="adminCargarGaleria('chats')" class="btn-main">Ver Fotos Chats Privados</button>
+            <button onclick="adminCargarGaleria('chats_grupos')" class="btn-main" style="margin-left:10px;">Ver Fotos Grupos</button>
+            <hr><div id="admin-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"></div>
+            <button onclick="this.parentElement.remove()" class="btn-main" style="margin-top:20px; background:red;">Cerrar</button>`;
+        document.body.appendChild(p);
+    }
+
+    function adminCargarGaleria(path) {
+        const grid = document.getElementById('admin-grid'); grid.innerHTML = "Cargando...";
+        rdb.ref(path).once('value', s => {
+            grid.innerHTML = "";
+            s.forEach(chat => { chat.forEach(m => {
+                if(m.val().texto && m.val().texto.includes("cloudinary")) 
+                    grid.innerHTML += `<div><small>${chat.key}</small><img src="${m.val().texto}" style="width:100%; border-radius:5px;"></div>`;
+            });});
+        });
+    }
+
+    // --- FUNCIONES BASE RESTANTES ---
+    function escucharPosts() {
+        rdb.ref('posts').on('value', s => {
+            const muro = document.getElementById('muro-dinamico'); muro.innerHTML = "";
+            const posts = []; s.forEach(child => { let data = child.val(); data.id = child.key; posts.unshift(data); });
+            posts.forEach(p => {
+                let esAmigo = misAmigos.includes(p.autor.toLowerCase()) || p.autor === miUsuario;
+                let mostrar = (seccionActual === 'publico') ? (p.privacidad === 'publico' || p.autor === miUsuario) : esAmigo;
+                if(mostrar) muro.innerHTML += `<div class="card">${p.autor === miUsuario ? `<button class="btn-delete" onclick="eliminarPost('${p.id}')">×</button>` : ''}<div onclick="verPerfil('${p.autor}')" style="font-weight:bold; color:#075e54; cursor:pointer; margin-bottom:10px;">@${p.autor}</div><p>${p.texto}</p>${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px;">` : ""}</div>`;
+            });
+        });
+    }
+
+    async function publicarPost() {
+        const texto = document.getElementById('post-text').value.trim();
+        const priv = document.getElementById('post-privacy').value;
+        const file = document.getElementById('file-post');
+        const btn = document.getElementById('btn-publicar');
+        if(!texto && !file.files[0]) return;
+        btn.disabled = true;
+        let url = "";
+        if(file.files[0]) {
+            const fd = new FormData(); fd.append("file", file.files[0]); fd.append("upload_preset", UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: fd });
+            const d = await res.json(); url = d.secure_url;
+        }
+        rdb.ref('posts').push({ autor: miUsuario, texto: texto, img: url, privacidad: priv, fecha: Date.now() }).then(() => { toast("Publicado"); document.getElementById('post-text').value = ""; file.value = ""; btn.disabled = false; });
+    }
+
+    async function subirImagen(tipo) {
+        const file = document.getElementById(tipo === 'foto' ? 'f-perfil' : 'f-portada').files[0];
+        if(!file) return;
+        const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", UPLOAD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: fd });
+        const d = await res.json();
+        const upd = {}; upd[tipo === 'foto' ? 'foto' : 'portada'] = d.secure_url;
+        rdb.ref('perfiles/' + miUsuario).update(upd).then(() => toast("Actualizado"));
+    }
+
     function toggleMenu(e) { e.stopPropagation(); document.getElementById('menuPerfil').classList.toggle('show'); }
-    function cambiarFondo(t) { document.body.className = t==='blanco'?'':'tema-'+t; }
-    // ... [Aquí siguen el resto de tus funciones de posts y Cloudinary]
+    function toggleEngranaje() { const m = document.getElementById('box-engranaje'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+    function cambiarFondo(t) { document.body.className = t === 'blanco' ? '' : 'tema-' + t; }
+    function cerrarPerfil() { document.getElementById('perfil-usuario').style.display = 'none'; document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico')); }
+    function actualizarAvatarUI() { rdb.ref('perfiles/' + miUsuario).on('value', s => { const d = s.val(); if(d && d.foto) document.getElementById('avatar-global').style.backgroundImage = `url(${d.foto})`; document.getElementById('avatar-letra').innerText = d && d.foto ? "" : miUsuario.charAt(0).toUpperCase(); }); }
+    function buscarUsuarios(v) { if(v.length<2) { document.getElementById('resultados-busqueda').innerHTML = ""; return; } rdb.ref('usuarios').once('value', s => { let h = ""; s.forEach(u => { if(u.key.includes(v.toLowerCase()) && u.key !== miUsuario) h += `<div class="card" onclick="verPerfil('${u.key}')" style="padding:10px; cursor:pointer;">@${u.key}</div>`; }); document.getElementById('resultados-busqueda').innerHTML = h; }); }
+    function enviarSolicitud(t) { rdb.ref('solicitudes/'+t.toLowerCase()+'/'+miUsuario).set(true).then(() => toast("Enviada")); }
+    window.onclick = () => { document.getElementById('menuPerfil').classList.remove('show'); document.getElementById('box-engranaje').style.display='none'; };
 </script>
 </body>
 </html>
