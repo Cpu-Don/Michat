@@ -303,7 +303,7 @@
             document.getElementById('post-text').value = "";
             fileInput.value = "";
             btn.disabled = false;
-        });
+        }); 
     }
 
     function eliminarPost(id) {
@@ -543,72 +543,118 @@ function inyectarBotonesAccionPerfil(usuarioVisto) {
         <button id="btn-add-${usuarioVisto}" onclick="enviarSolicitudSincro('${usuarioVisto}')" style="background:#128c7e; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">👤 AGREGAR AMIGO</button>
         <button onclick="bloquearUsuarioSincro('${usuarioVisto}')" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">🚫 BLOQUEAR</button>
     `;
-    btnViejo.parentNode.appendChild(div);
+/* ==========================================================================
+   SINCRO: MÓDULO MAESTRO + SISTEMA DE GRUPOS (VRS. PRO)
+   ========================================================================== */
+
+function activarFuncionesMaestras() {
+    // Identidad y Sistemas base
+    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarBotonAdminSincro(); }
+    escucharNotificacionesSincro(); 
+    configurarObservadorDeChats();
+    iniciarObservadorPerfiles();
+    
+    // ACTIVAR GRUPOS
+    inyectarSeccionGrupos();
+
+    // Reemplazo de alertas feas
+    window.alert = function(msg) { crearNotificacionSincro(msg, 'info'); };
+    window.confirm = function(msg) { return window.sincroConfirm(msg); }; 
 }
 
-/* --- 4. GESTIÓN DE AMISTAD (SOLICITUDES) --- */
-function enviarSolicitudSincro(dest) {
-    rdb.ref(`solicitudes/${dest}/${miUsuario}`).set({ remitente: miUsuario, fecha: Date.now(), estado: "pendiente" })
-    .then(() => { 
-        mostrarAviso("Solicitud enviada", "info");
-        const btn = document.getElementById(`btn-add-${dest}`);
+/* --- 1. SISTEMA DE GRUPOS SINCRO --- */
+function inyectarSeccionGrupos() {
+    // Buscamos donde poner el botón de "Crear Grupo" (por ejemplo, en el menú principal)
+    const nav = document.querySelector('.tabs') || document.body;
+    if (document.getElementById('btn-seccion-grupos')) return;
+
+    const btnG = document.createElement('div');
+    btnG.id = 'btn-seccion-grupos';
+    btnG.innerHTML = "➕ CREAR GRUPO";
+    btnG.style = "background:#128c7e; color:white; padding:10px; border-radius:10px; text-align:center; font-weight:bold; cursor:pointer; margin:10px auto; width:90%;";
+    btnG.onclick = () => {
+        window.sincroPrompt("Nombre del nuevo grupo:").then(nombre => {
+            if(nombre) crearNuevoGrupoSincro(nombre);
+        });
+    };
+    nav.prepend(btnG);
+}
+
+function crearNuevoGrupoSincro(nombre) {
+    const idGrupo = 'grupo_' + Date.now();
+    rdb.ref(`grupos/${idGrupo}`).set({
+        nombre: nombre,
+        creador: miUsuario,
+        fecha: Date.now(),
+        miembros: { [miUsuario]: true }
+    }).then(() => {
+        mostrarAviso(`¡Grupo "${nombre}" creado!`, "info");
+    });
+}
+
+/* --- 2. DIÁLOGOS PERSONALIZADOS (PROMPT Y CONFIRM) --- */
+// Esto reemplaza al cuadro gris feo para pedir texto (como nombres de grupos)
+window.sincroPrompt = function(titulo) {
+    return new Promise((resolve) => {
+        const panel = document.createElement('div');
+        panel.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:50000; display:flex; justify-content:center; align-items:center;";
+        panel.innerHTML = `
+            <div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:300px; text-align:center;">
+                <p style="font-weight:bold; margin-bottom:15px; color:black;">${titulo}</p>
+                <input type="text" id="sincro-input" style="width:90%; padding:10px; border-radius:10px; border:2px solid #075e54; margin-bottom:20px; outline:none;">
+                <div style="display:flex; gap:10px;">
+                    <button id="sp-cancel" style="background:#eee; flex:1; padding:10px; border-radius:10px; border:none;">Cancelar</button>
+                    <button id="sp-ok" style="background:#075e54; color:white; flex:1; padding:10px; border-radius:10px; border:none; font-weight:bold;">Crear</button>
+                </div>
+            </div>`;
+        document.body.appendChild(panel);
+        const input = document.getElementById('sincro-input');
+        input.focus();
+        document.getElementById('sp-ok').onclick = () => { const v = input.value; panel.remove(); resolve(v); };
+        document.getElementById('sp-cancel').onclick = () => { panel.remove(); resolve(null); };
+    });
+};
+
+/* --- 3. LÓGICA DE DM Y AGREGAR (CORREGIDO) --- */
+function sincroLógicaAbrirDM(idReceptor) {
+    const idDM = [miUsuario, idReceptor].sort().join('_');
+    mostrarAviso(`Conectando con ${idReceptor}...`, "info");
+    
+    // Si ya tienes la función abrirChatPrivado en tu código base, la llamamos
+    if(typeof abrirChatPrivado === 'function') {
+        abrirChatPrivado(idReceptor, `@${idReceptor}`);
+    } else {
+        // Si no existe, simulamos la entrada al chat
+        document.getElementById('seccion-chats')?.click();
+    }
+}
+
+function sincroLógicaEnviarSolicitud(idDestino) {
+    rdb.ref(`solicitudes/${idDestino}/${miUsuario}`).set({
+        remitente: miUsuario,
+        fecha: Date.now(),
+        estado: "pendiente"
+    }).then(() => {
+        mostrarAviso("Solicitud enviada correctamente", "info");
+        const btn = document.getElementById(`btn-add-${idDestino}`);
         if(btn) { btn.innerText = "⏳ PENDIENTE"; btn.style.background = "#95a5a6"; btn.disabled = true; }
     });
 }
 
-function escucharNotificacionesSincro() {
-    rdb.ref(`solicitudes/${miUsuario}`).on('child_added', s => {
-        if(s.val().estado === "pendiente") {
-            const cartel = document.createElement('div');
-            cartel.className = 'cartel-solicitud';
-            cartel.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.3); z-index:25000; width:90%; max-width:320px; border-top:5px solid #075e54;";
-            cartel.innerHTML = `
-                <p style="margin-bottom:15px; font-weight:bold; color:black;">👤 ${s.key} quiere ser tu amigo</p>
-                <div style="display:flex; gap:10px;">
-                    <button onclick="gestionarAmigo('${s.key}', 'aceptar', this)" style="background:#075e54; color:white; border:none; padding:10px; border-radius:8px; flex:1;">ACEPTAR</button>
-                    <button onclick="gestionarAmigo('${s.key}', 'rechazar', this)" style="background:#eee; color:black; border:none; padding:10px; border-radius:8px; flex:1;">RECHAZAR</button>
-                </div>`;
-            document.body.appendChild(cartel);
-        }
-    });
-}
+/* --- 4. DISEÑO DE BOTONES EN PERFIL --- */
+function inyectarBotonesAccionPerfil(usuarioVisto, btnAncla) {
+    btnAncla.style.display = 'none';
+    if(document.getElementById('btns-perfil-sincro')) return;
 
-function gestionarAmigo(otro, accion, el) {
-    if(accion === 'aceptar') {
-        rdb.ref(`amigos/${miUsuario}/${otro}`).set("confirmado");
-        rdb.ref(`amigos/${otro}/${miUsuario}`).set("confirmado");
-        mostrarAviso("¡Amigo agregado!", "info");
-    }
-    rdb.ref(`solicitudes/${miUsuario}/${otro}`).remove();
-    el.closest('.cartel-solicitud').remove();
-}
-
-/* --- 5. ALERTAS BONITAS Y SPAM --- */
-function crearNotificacionSincro(txt, tipo) {
-    let color = (tipo === 'error') ? "#e74c3c" : (tipo === 'spam' ? "#f39c12" : "#075e54");
-    const aviso = document.createElement('div');
-    aviso.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${color}; color:white; padding:15px 25px; border-radius:30px; z-index:30000; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.3); animation: slideSincro 0.5s forwards; text-align:center; min-width:280px;`;
-    aviso.innerHTML = txt;
-    document.body.appendChild(aviso);
-    setTimeout(() => { aviso.style.opacity = "0"; setTimeout(() => aviso.remove(), 500); }, 3000);
-}
-
-const stSincro = document.createElement('style');
-stSincro.innerHTML = `@keyframes slideSincro {from{top:-100px;opacity:0}to{top:20px;opacity:1}}`;
-document.head.appendChild(stSincro);
-
-function actualizarContadorSpamSincro() {
-    rdb.ref(`spam/${miUsuario}`).on('value', s => {
-        let n = s.numChildren();
-        if(n > 0) mostrarAviso(`Tienes ${n} mensajes de desconocidos`, "spam");
-    });
-}
-
-function bloquearUsuarioSincro(u) {
-    if(confirm(`¿Bloquear a ${u}?`)) {
-        rdb.ref(`bloqueados/${miUsuario}/${u}`).set(true);
-        mostrarAviso("Usuario bloqueado", "error");
-    }
+    const div = document.createElement('div');
+    div.id = 'btns-perfil-sincro';
+    div.style = "display:flex; flex-direction:column; gap:10px; width:85%; margin:15px auto; max-width:280px;";
+    div.innerHTML = `
+        <button onclick="sincroLógicaAbrirDM('${usuarioVisto}')" style="background:#075e54; color:white; border:none; padding:14px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.1);">📩 ENVIAR DM</button>
+        <button id="btn-add-${usuarioVisto}" onclick="sincroLógicaEnviarSolicitud('${usuarioVisto}')" style="background:#128c7e; color:white; border:none; padding:14px; border-radius:15px; font-weight:bold; cursor:pointer;">👤 AGREGAR AMIGO</button>
+        <button onclick="window.sincroConfirm('¿Bloquear a ${usuarioVisto}?').then(res => { if(res) sincroLógicaBloquearUsuario('${usuarioVisto}'); })" style="background:#ff4444; color:white; border:none; padding:14px; border-radius:15px; font-weight:bold; cursor:pointer;">🚫 BLOQUEAR</button>
+    `;
+    btnAncla.parentNode.appendChild(div);
 }
 </script>
 
