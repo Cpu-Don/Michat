@@ -1,264 +1,164 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Sincro - Red Social</title>
-  <meta content='width=device-width,initial-scale=1' name='viewport'/>
-  <style>
-    body { background:#f0f2f5; margin:0; padding:0; height:100vh; width:100vw; font-family: Segoe UI, Helvetica, Arial, sans-serif; }
-    
-    /* Cabecera Superior */
-    .header { background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
-    .nav-icons { display: flex; gap: 20px; align-items: center; }
-    .dm-icon { background: #054d44; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
-    .dm-icon:hover { background: #25d366; }
+    <meta charset="UTF-8">
+    <title>Sincro - Red Social</title>
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <style>
+        body { background: #f0f2f5; margin: 0; padding: 0; font-family: Segoe UI, Helvetica, Arial, sans-serif; transition: 0.3s; }
+        
+        /* --- SISTEMA DE TEMAS --- */
+        :root { --bg-body: #f0f2f5; --bg-card: white; --text-main: #1c1e21; --border: #ddd; }
+        body.tema-oscuro { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --border: #3e4042; }
+        body.tema-azul { --bg-body: #0a192f; --bg-card: #112240; --text-main: #ccd6f6; --border: #233554; }
 
-    /* Contenedor Principal */
-    #app { width: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-    #main-layout { display:none; width:100%; max-width: 650px; padding: 20px; box-sizing: border-box; }
-    
-    /* Muro / Cards */
-    .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid #ddd; }
-    .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-    .post-user { font-weight: bold; color: #075e54; }
-    .post-img { width: 100%; border-radius: 8px; margin-top: 10px; }
-    
-    /* Tabs de Navegación */
-    .tabs { display: flex; background: white; border-radius: 10px; margin-bottom: 20px; overflow: hidden; border: 1px solid #ddd; }
-    .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: bold; color: #65676b; transition: 0.3s; }
-    .tab.active { color: #075e54; background: #e6f2f1; border-bottom: 3px solid #075e54; }
+        body { background: var(--bg-body) !important; color: var(--text-main) !important; }
+        .card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
 
-    /* --- SISTEMA DE TEMAS Y PERFIL --- */
-:root { 
-  --bg-body: #f0f2f5; 
-  --bg-card: white; 
-  --text-main: #1c1e21; 
-  --border: #ddd; 
-}
-body.tema-oscuro { 
-  --bg-body: #18191a; 
-  --bg-card: #242526; 
-  --text-main: #e4e6eb; 
-  --border: #3e4042; 
-}
-body.tema-azul { 
-  --bg-body: #0a192f; 
-  --bg-card: #112240; 
-  --text-main: #ccd6f6; 
-  --border: #233554; 
-}
+        /* Cabecera */
+        .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .header h1 { margin: 0; font-size: 24px; }
+        
+        /* Avatar y Menú */
+        .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; position: relative; }
+        .profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; z-index: 2000; border: 1px solid var(--border); }
+        .profile-menu div { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .profile-menu div:hover { background: rgba(0,0,0,0.05); }
+        .show { display: block !important; }
 
-body { background: var(--bg-body) !important; color: var(--text-main) !important; transition: 0.3s; margin: 0; }
-.card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; color: var(--text-main) !important; }
-
-.user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; cursor: pointer; border: 2px solid white; display: flex; justify-content: center; align-items: center; font-weight: bold; position: relative; color: white; }
-.profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); z-index: 2000; text-align: left; }
-.profile-menu div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
-.profile-menu div:hover { background: rgba(0,0,0,0.05); }
-.show { display: block !important; }
-
-    /* Acceso */
-    #acceso { background:white; padding:40px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:320px; text-align:center; margin-top: 100px; }
-    .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
-    
-    /* Seccion DM (Modal o vista) */
-     { display: block !important; }
-
-  </style>
-
+        /* Otros Estilos */
+        #acceso { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px; margin: 100px auto; }
+        .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; margin-top: 70px; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; background: white; border-radius: 8px; }
+        .tab.active { background: #e6f2f1; color: #075e54; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-  <div id='app'>
-    <div id='acceso'>
-      <h1 style='color:#075e54;'>Sincro</h1>
-      <input id='usr' placeholder='Usuario' style='width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='text'/>
-      <input id='clv' placeholder='Clave' style='width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='password'/>
-      <button onclick='entrar()' class="btn-main">ENTRAR</button>
+<div id="app">
+    <div id="acceso">
+        <h1 style="color:#075e54;">Sincro</h1>
+        <input id="usr" placeholder="Usuario" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px;">
+        <button onclick="entrar()" class="btn-main">ENTRAR</button>
     </div>
 
-    <div id='main-layout'>
-      <div class="header" style="position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box;">
-        <h1>Sincro</h1>
-        <div class="user-avatar" onclick="toggleMenu(event)">
-    <span id="avatar-letra">U</span>
-    <div id="menuPerfil" class="profile-menu">
-        <div onclick="alert('Perfil de ' + miUsuario)">👤 Ver perfil</div>
-        <div onclick="abrirConfig()">⚙️ Configuración</div>
-        <div style="font-weight:bold; background:rgba(0,0,0,0.05); color:#666; padding:5px 15px; cursor:default;">Fondo:</div>
-        <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
-        <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
-        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
-        <div onclick="location.reload()" style="color:red; border-top:1px solid #ddd;">🚪 Salir</div>
-    </div>
-</div>
-
-        <div class="nav-icons">
-          <div class="dm-icon" onclick="abrirDM()">DM ✉</div>
-          <span onclick="location.reload()" style="cursor:pointer; font-size:12px;">Salir</span>
+    <div id="main-layout" style="display:none; max-width: 600px; margin: auto; padding: 20px;">
+        <div class="header">
+            <h1>Sincro</h1>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div onclick="abrirDM()" style="cursor:pointer; background:rgba(255,255,255,0.2); padding:5px 12px; border-radius:20px;">DM ✉</div>
+                
+                <div class="user-avatar" onclick="toggleMenu(event)">
+                    <span id="avatar-letra">U</span>
+                    <div id="menuPerfil" class="profile-menu">
+                        <div onclick="alert('Tu perfil')">👤 Ver perfil</div>
+                        <div onclick="abrirConfig()">⚙️ Configuración</div>
+                        <div style="font-weight:bold; background:rgba(0,0,0,0.05); padding:5px 12px; font-size:12px;">TEMAS:</div>
+                        <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
+                        <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
+                        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
+                        <div onclick="location.reload()" style="color:red; border-top:1px solid #eee;">🚪 Salir</div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <div style="margin-top: 70px;"> <div class="tabs">
-        
-        <div id="tab-publico" class="tab active" onclick="cambiarSeccion('publico')">Noticias</div>
-          <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
+        <div class="tabs">
+            <div id="tab-publico" class="tab active" onclick="cambiarSeccion('publico')">Noticias</div>
+            <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
         </div>
 
         <div class="card">
-          <textarea id="post-text" placeholder="¿Qué quieres compartir?" style="width:100%; border:none; outline:none; resize:none; font-size:16px; min-height:50px;"></textarea>
-          <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button onclick="document.getElementById('file-post').click()" style="background:#f0f2f5; border:none; padding:8px 15px; border-radius:20px; cursor:pointer; font-size:13px;">📷 Galería</button>
-            <select id="post-privacy" style="border:none; background:#f0f2f5; padding:5px; border-radius:5px; font-size:12px;">
-              <option value="publico">🌍 Público</option>
-              <option value="amigos">👥 Amigos</option>
-            </select>
-            <button id="btn-publicar" onclick="publicarPost()" class="btn-main" style="width:auto; padding:8px 25px;">Publicar</button>
-          </div>
-          <input type="file" id="file-post" style="display:none" accept="image/*,video/*">
+            <textarea id="post-text" placeholder="¿Qué quieres compartir?" style="width:100%; border:none; outline:none; resize:none;"></textarea>
+            <button class="btn-main" onclick="publicarPost()" style="margin-top:10px;">Publicar</button>
         </div>
 
         <div id="muro-dinamico"></div>
-      </div>
     </div>
 
-    <div id="dm-section">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; padding-bottom:10px;">
-        <h2 style="margin:0; color:#075e54;">Mensajes Directos</h2>
-        <button onclick="cerrarDM()" style="background:#ddd; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Volver</button>
-      </div>
-      <div id="lista-contactos-dm" style="margin-top:20px;">
-        <p style="color:gray; text-align:center;">Aquí aparecerán tus amigos para chatear una vez acepten tu solicitud.</p>
-      </div>
+    <div id="dm-section" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:900; padding:20px; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="color:#075e54;">Mensajes Directos</h2>
+            <button onclick="cerrarDM()" style="padding:5px 15px; border-radius:5px; border:none; cursor:pointer;">Volver</button>
+        </div>
+        <div id="lista-contactos-dm" style="text-align:center; color:gray; margin-top:50px;">Aquí aparecerán tus amigos.</div>
     </div>
 
-  </div>
+    <div id="config-section" style="display:none; background:white; padding:20px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); width:280px; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3000; color: black;">
+        <h3 style="margin-top:0; color:#075e54;">Configuración</h3>
+        <input type="password" id="nueva-clv" placeholder="Nueva contraseña" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:5px;">
+        <button onclick="guardarConfig()" class="btn-main">Guardar</button>
+        <button onclick="cerrarConfig()" style="width:100%; margin-top:10px; background:#ddd; border:none; padding:10px; border-radius:5px; cursor:pointer;">Cancelar</button>
+    </div>
+</div>
 
-  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
-  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <script>
+<script>
+    // Configuración Firebase (Reemplaza con tus datos reales)
     const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const rdb = firebase.database();
 
-    const CLOUD_NAME = "dhtyepcjg";
-    const UPLOAD_PRESET = "Historial";
-
     let miUsuario = "";
-    let seccionActual = "publico";
 
     function entrar() {
-      const u = document.getElementById('usr').value.trim();
-      const p = document.getElementById('clv').value.trim();
-      if(!u || !p) return alert("Ingresa datos");
-      
-      rdb.ref('usuarios/' + u.toLowerCase()).once('value', s => {
-        if(s.exists() && s.val().toString() === p) {
-          miUsuario = u; iniciarApp();
-        } else if(!s.exists()) {
-          rdb.ref('usuarios/' + u.toLowerCase()).set(p).then(() => { miUsuario = u; iniciarApp(); });
-        } else { alert("Error de clave"); }
-      });
+        const u = document.getElementById('usr').value.trim();
+        const p = document.getElementById('clv').value.trim();
+        if(!u || !p) return alert("Ingresa datos");
+
+        rdb.ref('usuarios/' + u.toLowerCase()).once('value', s => {
+            if(s.exists() && s.val().toString() === p) {
+                miUsuario = u;
+                iniciarApp();
+            } else if(!s.exists()) {
+                rdb.ref('usuarios/' + u.toLowerCase()).set(p).then(() => {
+                    miUsuario = u;
+                    iniciarApp();
+                });
+            } else {
+                alert("Error de clave");
+            }
+        });
     }
 
     function iniciarApp() {
-      document.getElementById('acceso').style.display = 'none';
-      document.getElementById('main-layout').style.display = 'block';
-      escucharPosts();
+        document.getElementById('acceso').style.display = 'none';
+        document.getElementById('main-layout').style.display = 'block';
+        document.getElementById('avatar-letra').innerText = miUsuario.charAt(0).toUpperCase();
     }
 
-    function cambiarSeccion(sec) {
-      seccionActual = sec;
-      document.getElementById('tab-publico').className = (sec === 'publico') ? 'tab active' : 'tab';
-      document.getElementById('tab-amigos').className = (sec === 'amigos') ? 'tab active' : 'tab';
-      escucharPosts();
+    /* --- LÓGICA DEL MENÚ --- */
+    function toggleMenu(e) {
+        e.stopPropagation();
+        document.getElementById('menuPerfil').classList.toggle('show');
+    }
+
+    window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
+
+    function cambiarFondo(tipo) {
+        document.body.className = "";
+        if(tipo === 'oscuro') document.body.classList.add('tema-oscuro');
+        if(tipo === 'azul') document.body.classList.add('tema-azul');
     }
 
     function abrirDM() { document.getElementById('dm-section').style.display = 'block'; }
     function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
+    function abrirConfig() { document.getElementById('config-section').style.display = 'block'; }
+    function cerrarConfig() { document.getElementById('config-section').style.display = 'none'; }
 
-// --- LÓGICA DEL MENÚ DE PERFIL Y TEMAS ---
-function toggleMenu(e) { 
-    e.stopPropagation(); 
-    const menu = document.getElementById('menuPerfil');
-    if (menu) menu.classList.toggle('show'); 
-}
-
-function cambiarFondo(tipo) {
-    const b = document.body;
-    b.className = ""; // Limpia temas anteriores
-    if(tipo === 'oscuro') b.classList.add('tema-oscuro');
-    if(tipo === 'azul') b.classList.add('tema-azul');
-}
-
-// Cierra el menú automáticamente si haces clic fuera de él
-window.onclick = function() {
-    const m = document.getElementById('menuPerfil');
-    if(m) m.classList.remove('show');
-}
-
-    
-    async function publicarPost() {
-      const texto = document.getElementById('post-text').value.trim();
-      const fileInput = document.getElementById('file-post');
-      const privacidad = document.getElementById('post-privacy').value;
-      const btn = document.getElementById('btn-publicar');
-
-      if(!texto && !fileInput.files[0]) return;
-      btn.disabled = true; btn.innerText = "...";
-
-      let mediaUrl = "";
-      if(fileInput.files[0]) {
-        const formData = new FormData();
-        formData.append("file", fileInput.files[0]);
-        formData.append("upload_preset", UPLOAD_PRESET);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        mediaUrl = data.secure_url;
-      }
-
-      rdb.ref('posts').push({
-        u: miUsuario,
-        t: texto,
-        img: mediaUrl,
-        p: privacidad,
-        h: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-      }).then(() => {
-        document.getElementById('post-text').value = "";
-        fileInput.value = "";
-        btn.disabled = false; btn.innerText = "Publicar";
-      });
-    }
-
-    function escucharPosts() {
-      rdb.ref('posts').on('value', s => {
-        const muro = document.getElementById('muro-dinamico');
-        muro.innerHTML = "";
-        const lista = [];
-        s.forEach(child => {
-          const p = child.val();
-          if(seccionActual === "publico" && p.p === "publico") lista.unshift(p);
-          else if(seccionActual === "amigos" && (p.p === "amigos" || p.u === miUsuario)) lista.unshift(p);
+    function guardarConfig() {
+        const nc = document.getElementById('nueva-clv').value.trim();
+        if(!nc) return alert("Escribe una clave");
+        rdb.ref('usuarios/' + miUsuario.toLowerCase()).set(nc).then(() => {
+            alert("Clave actualizada");
+            cerrarConfig();
         });
-
-        lista.forEach(p => {
-          const div = document.createElement('div');
-          div.className = "card";
-          div.innerHTML = `
-            <div class="post-header">
-              <span class="post-user">${p.u}</span>
-              <span style="font-size:10px; color:#999">${p.h} • ${p.p === 'amigos' ? '👥' : '🌍'}</span>
-            </div>
-            <div style="font-size:15px">${p.t}</div>
-            ${p.img ? `<img src="${p.img}" class="post-img">` : ""}
-          `;
-          muro.appendChild(div);
-        });
-      });
     }
-  </script>
+</script>
+
 </body>
 </html>
