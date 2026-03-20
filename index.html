@@ -220,8 +220,9 @@
             document.getElementById('solic-count-text').innerText = count > 0 ? `(${count})` : "";
         });
 
-            actualizarAvatarUI();
-    activarPoderesAdmin(); // <--- Esta es la que despierta al Admin
+        actualizarAvatarUI();
+            // ACTIVAR TODO EL SISTEMA SINCRO (Admin, Spam, Perfiles, etc.)
+    activarFuncionesMaestras();
     }
 
     function cambiarSeccion(s) {
@@ -416,86 +417,215 @@
     function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
     function abrirConfig() { toast("Pronto podrás cambiar tu nombre y clave.", "error"); }
     window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
-// --- PARTE A: ACTIVACIÓN Y VENTANA ---
-function activarPoderesAdmin() {
-    if(miUsuario === 'chat') {
-        const menu = document.getElementById('menuPerfil');
-        if(document.getElementById('btn-admin-sincro')) return;
-        const btn = document.createElement('div');
-        btn.id = 'btn-admin-sincro';
-        btn.innerHTML = "🚀 PANEL DE CONTROL (ADMIN)";
-        btn.style = "color:#075e54; font-weight:bold; padding:12px; border-bottom:1px solid #ddd; cursor:pointer;";
-        btn.onclick = () => { 
-            document.getElementById('admin-panel-sincro').style.display = 'block'; 
-            cargarCarpetasAdmin(); 
-        };
-        menu.prepend(btn);
-        crearEstructuraAdmin();
-    }
+/* ==========================================================================
+   SINCRO: MÓDULO MAESTRO TODO-EN-UNO (VERSIÓN FINAL)
+   1. Admin (chat) | 2. Grupos | 3. Engranaje | 4. Perfiles | 5. Spam/Alertas
+   ========================================================================== */
+
+function activarFuncionesMaestras() {
+    // Identidad Maestro
+    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarBotonAdminSincro(); }
+    
+    // Inicialización de Sistemas
+    escucharNotificacionesSincro(); 
+    configurarObservadorDeChats();
+    actualizarContadorSpamSincro();
+    iniciarObservadorPerfiles();
+
+    // Reemplazo de Alertas del Sistema
+    window.mostrarAviso = function(mensaje, tipo = 'info') { crearNotificacionSincro(mensaje, tipo); };
 }
 
-function crearEstructuraAdmin() {
-    if(document.getElementById('admin-panel-sincro')) return;
-    const div = document.createElement('div');
-    div.id = 'admin-panel-sincro';
-    div.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; overflow-y:auto; padding:20px; box-sizing:border-box; color:black;";
-    div.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #075e54;">
-            <h2>📁 Carpetas Sincro</h2>
-            <button onclick="this.parentElement.parentElement.style.display='none'" style="padding:10px;">Cerrar</button>
+/* --- 1. SUPER ADMIN (CARPETAS, SCROLL Y BORRADO) --- */
+function inyectarBotonAdminSincro() {
+    const menu = document.getElementById('menuPerfil'); // Ajustar ID según tu HTML
+    if (!menu || document.getElementById('btn-admin-sincro')) return;
+    const btn = document.createElement('div');
+    btn.id = 'btn-admin-sincro';
+    btn.innerHTML = "🚀 PANEL DE CONTROL (ADMIN)";
+    btn.style = "color:#075e54; font-weight:bold; padding:15px; border-bottom:2px solid #ddd; cursor:pointer; background:#f0f7f6;";
+    btn.onclick = () => { document.getElementById('admin-panel-sincro').style.display = 'block'; };
+    menu.prepend(btn);
+    
+    // Estructura del Panel
+    const panel = document.createElement('div');
+    panel.id = 'admin-panel-sincro';
+    panel.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:10000; overflow-y:auto; padding:20px; color:black; font-family:sans-serif;";
+    panel.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #075e54; padding-bottom:10px;">
+            <h2 style="margin:0;">📁 Maestro de Archivos Sincro</h2>
+            <button onclick="document.getElementById('admin-panel-sincro').style.display='none'" style="padding:10px; border-radius:8px; border:1px solid #ccc;">Cerrar</button>
         </div>
-        <button onclick="confirm('¿BORRAR TODO?') && rdb.ref().remove() && location.reload()" style="width:100%; background:red; color:white; padding:15px; margin:20px 0; border:none; border-radius:10px; font-weight:bold;">🚨 BOTÓN DE PÁNICO</button>
-        <div id="admin-lista-carpetas" style="display:grid; gap:10px; grid-template-columns:1fr 1fr;"></div>
-        <div id="admin-visor-contenido" style="margin-top:20px; display:none;">
-            <div id="admin-scroll-multimedia" style="display:flex; flex-direction:column; gap:20px; padding-bottom:50px;"></div>
+        <div style="display:grid; gap:10px; grid-template-columns:1fr 1fr; margin-top:20px;">
+            <div onclick="adminListarCarpetas('msg_privados')" style="background:#075e54; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer; font-weight:bold;">PRIVADOS</div>
+            <div onclick="adminListarCarpetas('grupos')" style="background:#128c7e; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer; font-weight:bold;">GRUPOS</div>
+        </div>
+        <div id="admin-lista-carpetas" style="margin-top:20px;"></div>
+        <div id="admin-visor-multimedia" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px;">
+            <div id="admin-scroll-multimedia"></div>
         </div>`;
-    document.body.appendChild(div);
+    document.body.appendChild(panel);
 }
-// --- PARTE B: NAVEGACIÓN DE CARPETAS Y BORRADO ---
-function cargarCarpetasAdmin() {
-    rdb.ref('msg_privados').once('value', s => {
-        const lista = document.getElementById('admin-lista-carpetas');
-        lista.innerHTML = "";
-        if(!s.exists()) { lista.innerHTML = "<p>No hay chats privados aún.</p>"; return; }
+
+function adminListarCarpetas(tipo) {
+    const lista = document.getElementById('admin-lista-carpetas');
+    lista.innerHTML = "<p>Cargando carpetas...</p>";
+    rdb.ref(tipo).once('value', s => {
+        lista.innerHTML = `<button onclick="document.getElementById('admin-lista-carpetas').innerHTML=''" style="width:100%; padding:10px; margin-bottom:15px;">⬅️ Limpiar Lista</button>`;
         s.forEach(chat => {
+            const nombre = chat.val().nombre || chat.key;
             lista.innerHTML += `
-                <div onclick="verCarpetaAdmin('msg_privados/${chat.key}')" 
-                     style="background:#e6f2f1; padding:15px; border-radius:10px; border:1px solid #075e54; text-align:center; font-weight:bold; cursor:pointer;">
-                     📂 ${chat.key}
+                <div style="background:#f9f9f9; border:2px solid #075e54; padding:15px; margin-bottom:10px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <span onclick="verMultimediaSincro('${tipo}/${chat.key}')" style="cursor:pointer; font-weight:bold; flex:1;">📁 ${nombre}</span>
+                    <button onclick="if(confirm('¿ELIMINAR CHAT DE RAÍZ?')){ rdb.ref('${tipo}/${chat.key}').remove(); adminListarCarpetas('${tipo}'); }" style="background:red; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer;">BORRAR TODO</button>
                 </div>`;
         });
     });
 }
 
-function verCarpetaAdmin(ruta) {
-    const visor = document.getElementById('admin-visor-contenido');
+function verMultimediaSincro(ruta) {
+    const visor = document.getElementById('admin-visor-multimedia');
     const scroll = document.getElementById('admin-scroll-multimedia');
     visor.style.display = 'block';
-    scroll.innerHTML = "<p style='text-align:center;'>Cargando multimedia...</p>";
+    scroll.innerHTML = `<button onclick="document.getElementById('admin-visor-multimedia').style.display='none'" style="width:100%; padding:15px; background:white; font-weight:bold; border-radius:10px; margin-bottom:20px;">CERRAR GALERÍA</button>`;
     
     rdb.ref(ruta).once('value', s => {
-        scroll.innerHTML = "";
-        let tieneFotos = false;
         s.forEach(msg => {
-            if(msg.val().img) {
-                tieneFotos = true;
-                scroll.innerHTML += `
-                <div style="position:relative; margin-bottom:10px; border:2px solid #eee; border-radius:10px; overflow:hidden;">
-                    <img src="${msg.val().img}" style="width:100%; display:block;">
-                    <button onclick="if(confirm('¿Borrar foto?')) { rdb.ref('${ruta}/${msg.key}').remove(); verCarpetaAdmin('${ruta}'); }" 
-                            style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer;">
-                            BORRAR
-                    </button>
-                </div>`;
+            const d = msg.val();
+            if(d.img || d.video) {
+                const item = document.createElement('div');
+                item.style = "margin-bottom:25px; position:relative; text-align:center;";
+                item.innerHTML = `
+                    ${d.img ? `<img src="${d.img}" style="max-width:100%; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.5);">` : `<video src="${d.video}" controls style="max-width:100%; border-radius:15px;"></video>`}
+                    <button onclick="if(confirm('¿Borrar este archivo?')){ rdb.ref('${ruta}/${msg.key}').remove(); verMultimediaSincro('${ruta}'); }" style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; padding:10px; border-radius:10px; cursor:pointer;">ELIMINAR</button>
+                `;
+                scroll.appendChild(item);
             }
         });
-        if(!tieneFotos) scroll.innerHTML = "<p style='text-align:center; padding:20px;'>Esta carpeta no tiene fotos.</p>";
-        
-        // Auto-scroll para ver el contenido nuevo
-        scroll.scrollIntoView({behavior: "smooth"});
+        scroll.lastElementChild?.scrollIntoView({behavior: "smooth"});
     });
 }
 
+/* --- 2. LÓGICA DE GRUPOS E INVITACIONES --- */
+function crearGrupoSincro(idG, nombreG) {
+    rdb.ref(`grupos/${idG}/miembros/${miUsuario}`).set(true).then(() => {
+        if(typeof abrirChatGrupo === 'function') abrirChatGrupo(idG, nombreG);
+    });
+}
+
+/* --- 3. EL ENGRANAJE (⚙️) 4 FUNCIONES --- */
+function configurarObservadorDeChats() {
+    setInterval(() => {
+        const header = document.querySelector('.chat-header') || document.querySelector('#headerChat');
+        if (header && !document.getElementById('btn-gear-sincro')) {
+            const gear = document.createElement('span');
+            gear.id = 'btn-gear-sincro';
+            gear.innerHTML = " ⚙️ ";
+            gear.style = "cursor:pointer; font-size:22px; float:right; margin-right:10px;";
+            gear.onclick = () => { 
+                mostrarAviso("Opciones de Chat: Multimedia | Mutear | Bloquear | Eliminar", "info"); 
+            };
+            header.appendChild(gear);
+        }
+    }, 2000);
+}
+
+/* --- 4. PERFILES (DM, AGREGAR, BLOQUEAR) --- */
+function iniciarObservadorPerfiles() {
+    setInterval(() => {
+        const userV = document.getElementById('nombre-usuario-perfil')?.innerText;
+        if(userV && userV !== miUsuario) inyectarBotonesAccionPerfil(userV);
+    }, 2000);
+}
+
+function inyectarBotonesAccionPerfil(usuarioVisto) {
+    const contenedor = document.getElementById('perfil-detalles') || document.querySelector('.perfil-contenedor');
+    if (!contenedor || document.getElementById('btns-perfil-sincro')) return;
+
+    const div = document.createElement('div');
+    div.id = 'btns-perfil-sincro';
+    div.style = "display:flex; gap:10px; padding:15px; background:white; border-top:1px solid #eee; position:sticky; bottom:0; width:100%; box-sizing:border-box;";
+    div.innerHTML = `
+        <button onclick="abrirChatDirecto('${usuarioVisto}')" style="background:#075e54; color:white; border:none; padding:12px; border-radius:25px; flex:1; font-weight:bold; cursor:pointer;">MENSAJE</button>
+        <button id="btn-add-${usuarioVisto}" onclick="enviarSolicitudSincro('${usuarioVisto}')" style="background:#128c7e; color:white; border:none; padding:12px; border-radius:25px; flex:1; font-weight:bold; cursor:pointer;">AGREGAR</button>
+        <button onclick="bloquearUsuarioSincro('${usuarioVisto}')" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:25px; flex:1; font-weight:bold; cursor:pointer;">BLOQUEAR</button>
+    `;
+    contenedor.appendChild(div);
+}
+
+function enviarSolicitudSincro(dest) {
+    rdb.ref(`solicitudes/${dest}/${miUsuario}`).set({ remitente: miUsuario, fecha: Date.now(), estado: "pendiente" })
+    .then(() => { 
+        mostrarAviso("Solicitud enviada", "info");
+        const btn = document.getElementById(`btn-add-${dest}`);
+        if(btn) { btn.innerText = "⏳ PENDIENTE"; btn.disabled = true; btn.style.background = "#95a5a6"; }
+    });
+}
+
+function escucharNotificacionesSincro() {
+    rdb.ref(`solicitudes/${miUsuario}`).on('child_added', s => {
+        if(s.val().estado === "pendiente") {
+            const cartel = document.createElement('div');
+            cartel.className = 'cartel-solicitud';
+            cartel.style = "position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.3); z-index:25000; width:90%; max-width:350px; border-top:4px solid #075e54;";
+            cartel.innerHTML = `
+                <p style="margin:0 0 15px 0; font-weight:bold; text-align:center;">👤 ${s.key} quiere ser tu amigo</p>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="gestionarAmigo('${s.key}', 'aceptar', this)" style="background:#075e54; color:white; border:none; padding:12px; border-radius:10px; flex:1; font-weight:bold;">ACEPTAR</button>
+                    <button onclick="gestionarAmigo('${s.key}', 'rechazar', this)" style="background:#eee; border:none; padding:12px; border-radius:10px; flex:1;">RECHAZAR</button>
+                </div>`;
+            document.body.appendChild(cartel);
+        }
+    });
+}
+
+function gestionarAmigo(otro, accion, elemento) {
+    if(accion === 'aceptar') {
+        rdb.ref(`amigos/${miUsuario}/${otro}`).set("confirmado");
+        rdb.ref(`amigos/${otro}/${miUsuario}`).set("confirmado");
+        mostrarAviso("¡Ahora son amigos!", "info");
+    }
+    rdb.ref(`solicitudes/${miUsuario}/${otro}`).remove();
+    elemento.closest('.cartel-solicitud').remove();
+}
+
+/* --- 5. ALERTAS BONITAS Y FILTRO SPAM --- */
+function crearNotificacionSincro(txt, tipo) {
+    let color = (tipo === 'error') ? "#e74c3c" : (tipo === 'spam' ? "#f39c12" : "#075e54");
+    const aviso = document.createElement('div');
+    aviso.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${color}; color:white; padding:15px 25px; border-radius:30px; z-index:30000; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.5s forwards; text-align:center; min-width:280px;`;
+    aviso.innerHTML = txt;
+    document.body.appendChild(aviso);
+    setTimeout(() => { aviso.style.animation = "slideOut 0.5s forwards"; setTimeout(() => aviso.remove(), 500); }, 3500);
+}
+
+const st = document.createElement('style');
+st.innerHTML = `@keyframes slideIn{from{top:-100px;opacity:0}to{top:20px;opacity:1}} @keyframes slideOut{from{top:20px;opacity:1}to{top:-100px;opacity:0}}`;
+document.head.appendChild(st);
+
+function actualizarContadorSpamSincro() {
+    rdb.ref(`spam/${miUsuario}`).on('value', s => {
+        let n = s.numChildren();
+        let b = document.getElementById('burbuja-roja-spam');
+        if(n > 0) {
+            if(!b) {
+                b = document.createElement('div'); b.id = 'burbuja-roja-spam';
+                b.style = "background:red; color:white; border-radius:50%; width:20px; height:20px; position:absolute; top:0; right:0; display:flex; justify-content:center; align-items:center; font-size:10px; font-weight:bold; border:2px solid white;";
+                const icon = document.getElementById('icono-spam'); // Ajustar ID
+                if(icon) icon.appendChild(b);
+            }
+            b.innerText = n;
+            mostrarAviso(`Tienes ${n} mensajes de desconocidos`, "spam");
+        } else if(b) { b.remove(); }
+    });
+}
+
+function bloquearUsuarioSincro(u) {
+    if(confirm(`¿Bloquear a ${u}?`)) {
+        rdb.ref(`bloqueados/${miUsuario}/${u}`).set(true);
+        mostrarAviso("Usuario bloqueado", "error");
+    }
+}
 </script>
 
 </body>
