@@ -51,6 +51,15 @@
         /* Buscador */
         .search-container { margin-bottom: 15px; }
         .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; }
+
+        /* --- NUEVOS ESTILOS PARA CHAT EMERGENTE --- */
+        .chat-popup { position: fixed; bottom: 0; right: 20px; width: 300px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px 10px 0 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 3000; }
+        .chat-header { background: #075e54; color: white; padding: 10px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .chat-messages { height: 250px; overflow-y: auto; padding: 10px; background: var(--bg-body); font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-input-area { border-top: 1px solid var(--border); padding: 10px; display: flex; gap: 5px; background: var(--bg-card); }
+        .chat-input-area input { flex: 1; border: 1px solid var(--border); border-radius: 5px; padding: 5px 10px; outline: none; background: var(--bg-body); color: var(--text-main); }
+        .msg-yo { align-self: flex-end; background: #dcf8c6; color: #000; padding: 6px 10px; border-radius: 10px 10px 0 10px; max-width: 80%; }
+        .msg-otro { align-self: flex-start; background: #fff; color: #000; padding: 6px 10px; border-radius: 10px 10px 10px 0; border: 1px solid #eee; max-width: 80%; }
     </style>
 </head>
 <body>
@@ -154,8 +163,20 @@
             <h2 style="margin:0; color:#075e54;">Mensajes Directos</h2>
             <button onclick="cerrarDM()" style="background:#ddd; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Volver</button>
         </div>
-        <div id="lista-contactos-dm" style="margin-top:20px; text-align:center;">
-            <p style="color:gray;">Aquí aparecerán tus amigos para chatear.</p>
+        <div id="lista-contactos-dm" style="margin-top:20px; display: flex; flex-direction: column; gap: 10px;">
+            <p style="color:gray; text-align: center;">Tus amigos aparecerán aquí.</p>
+        </div>
+    </div>
+
+    <div id="chat-popup-box" class="chat-popup">
+        <div class="chat-header" onclick="document.getElementById('chat-popup-box').style.display='none'">
+            <span id="chat-popup-user">Chat</span>
+            <span>×</span>
+        </div>
+        <div id="chat-popup-messages" class="chat-messages"></div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-popup-input" placeholder="Mensaje..." onkeypress="if(event.key==='Enter') enviarMsgPopup()">
+            <button onclick="enviarMsgPopup()" class="btn-main" style="padding: 5px 10px;">></button>
         </div>
     </div>
 </div>
@@ -174,8 +195,9 @@
     let miUsuario = "";
     let seccionActual = "publico";
     let misAmigos = [];
+    let chatAbiertoCon = "";
 
-    // --- FUNCIÓN DE NOTIFICACIÓN MODERNA (Sin GitHub.io alert) ---
+    // --- FUNCIÓN DE NOTIFICACIÓN MODERNA ---
     function toast(mensaje, tipo = 'exito') {
         const t = document.createElement('div');
         t.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${tipo==='exito'?'#25d366':'#ff4d4d'}; color:white; padding:12px 25px; border-radius:30px; z-index:10000; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:0.5s;`;
@@ -206,13 +228,12 @@
         document.getElementById('acceso').style.display = 'none';
         document.getElementById('main-layout').style.display = 'block';
         
-        // Escuchar Amigos
         rdb.ref('amigos/' + miUsuario).on('value', s => {
             misAmigos = s.val() ? Object.keys(s.val()) : [];
+            actualizarListaDM(); // Actualiza los contactos en DM
             escucharPosts();
         });
 
-        // Escuchar Solicitudes
         rdb.ref('solicitudes/' + miUsuario).on('value', s => {
             const count = s.numChildren();
             document.getElementById('notif-badge').innerText = count;
@@ -356,7 +377,8 @@
             document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
             
             if(misAmigos.includes(user)) {
-                areaBtn.innerHTML = `<button class="btn-main" style="background:#ccc; cursor:default;">✓ Amigos</button>`;
+                areaBtn.innerHTML = `<button class="btn-main" style="background:#ccc; cursor:default;">✓ Amigos</button>
+                                     <button onclick="abrirChatPopup('${user}')" class="btn-main" style="background:#25d366;">Mensaje</button>`;
             } else {
                 rdb.ref(`solicitudes/${user}/${miUsuario}`).once('value', s => {
                     areaBtn.innerHTML = s.exists() ? `<button class="btn-main" style="background:#888;">Solicitud Enviada</button>` : `<button onclick="enviarSolicitud('${user}')" class="btn-main">Agregar Amigo</button>`;
@@ -415,6 +437,52 @@
     function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
     function abrirConfig() { toast("Pronto podrás cambiar tu nombre y clave.", "error"); }
     window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
+
+    // --- NUEVAS FUNCIONES DE CHAT Y DM ---
+    function actualizarListaDM() {
+        const lista = document.getElementById('lista-contactos-dm');
+        if(misAmigos.length === 0) return;
+        lista.innerHTML = "";
+        misAmigos.forEach(amigo => {
+            lista.innerHTML += `
+                <div class="card" onclick="abrirChatPopup('${amigo}')" style="cursor:pointer; display:flex; align-items:center; gap:10px; padding:10px;">
+                    <div style="width:30px; height:30px; border-radius:50%; background:#25d366; color:white; display:flex; justify-content:center; align-items:center; font-weight:bold;">${amigo[0].toUpperCase()}</div>
+                    <span>@${amigo}</span>
+                </div>`;
+        });
+    }
+
+    function abrirChatPopup(user) {
+        chatAbiertoCon = user;
+        document.getElementById('chat-popup-user').innerText = "@" + user;
+        document.getElementById('chat-popup-box').style.display = 'flex';
+        cerrarDM(); // Cierra la lista si estaba abierta
+        
+        // Escuchar mensajes en tiempo real entre los dos
+        const chatId = miUsuario < user ? miUsuario + "_" + user : user + "_" + miUsuario;
+        rdb.ref('chats/' + chatId).off(); // Limpia escuchas previas
+        rdb.ref('chats/' + chatId).on('value', s => {
+            const box = document.getElementById('chat-popup-messages');
+            box.innerHTML = "";
+            s.forEach(m => {
+                const msg = m.val();
+                const div = document.createElement('div');
+                div.className = msg.envia === miUsuario ? 'msg-yo' : 'msg-otro';
+                div.innerText = msg.texto;
+                box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function enviarMsgPopup() {
+        const input = document.getElementById('chat-popup-input');
+        const txt = input.value.trim();
+        if(!txt) return;
+        const chatId = miUsuario < chatAbiertoCon ? miUsuario + "_" + chatAbiertoCon : chatAbiertoCon + "_" + miUsuario;
+        rdb.ref('chats/' + chatId).push({ envia: miUsuario, texto: txt, fecha: Date.now() });
+        input.value = "";
+    }
 </script>
 
 </body>
