@@ -29,13 +29,44 @@
     .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: bold; color: #65676b; transition: 0.3s; }
     .tab.active { color: #075e54; background: #e6f2f1; border-bottom: 3px solid #075e54; }
 
+    /* --- SISTEMA DE TEMAS Y PERFIL --- */
+:root { 
+  --bg-body: #f0f2f5; 
+  --bg-card: white; 
+  --text-main: #1c1e21; 
+  --border: #ddd; 
+}
+body.tema-oscuro { 
+  --bg-body: #18191a; 
+  --bg-card: #242526; 
+  --text-main: #e4e6eb; 
+  --border: #3e4042; 
+}
+body.tema-azul { 
+  --bg-body: #0a192f; 
+  --bg-card: #112240; 
+  --text-main: #ccd6f6; 
+  --border: #233554; 
+}
+
+body { background: var(--bg-body) !important; color: var(--text-main) !important; transition: 0.3s; margin: 0; }
+.card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; color: var(--text-main) !important; }
+
+.user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; cursor: pointer; border: 2px solid white; display: flex; justify-content: center; align-items: center; font-weight: bold; position: relative; color: white; }
+.profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); z-index: 2000; text-align: left; }
+.profile-menu div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
+.profile-menu div:hover { background: rgba(0,0,0,0.05); }
+.show { display: block !important; }
+
     /* Acceso */
     #acceso { background:white; padding:40px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:320px; text-align:center; margin-top: 100px; }
     .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
     
     /* Seccion DM (Modal o vista) */
-    #dm-section { display: none; background: white; position: fixed; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); z-index: 999; padding: 20px; box-sizing: border-box; }
+     { display: block !important; }
+
   </style>
+
 </head>
 <body>
 
@@ -50,6 +81,19 @@
     <div id='main-layout'>
       <div class="header" style="position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box;">
         <h1>Sincro</h1>
+        <div class="user-avatar" onclick="toggleMenu(event)">
+    <span id="avatar-letra">U</span>
+    <div id="menuPerfil" class="profile-menu">
+        <div onclick="alert('Perfil de ' + miUsuario)">👤 Ver perfil</div>
+        <div onclick="abrirConfig()">⚙️ Configuración</div>
+        <div style="font-weight:bold; background:rgba(0,0,0,0.05); color:#666; padding:5px 15px; cursor:default;">Fondo:</div>
+        <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
+        <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
+        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
+        <div onclick="location.reload()" style="color:red; border-top:1px solid #ddd;">🚪 Salir</div>
+    </div>
+</div>
+
         <div class="nav-icons">
           <div class="dm-icon" onclick="abrirDM()">DM ✉</div>
           <span onclick="location.reload()" style="cursor:pointer; font-size:12px;">Salir</span>
@@ -57,7 +101,8 @@
       </div>
 
       <div style="margin-top: 70px;"> <div class="tabs">
-          <div id="tab-publico" class="tab active" onclick="cambiarSeccion('publico')">Noticias</div>
+        
+        <div id="tab-publico" class="tab active" onclick="cambiarSeccion('publico')">Noticias</div>
           <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
         </div>
 
@@ -135,6 +180,27 @@
     function abrirDM() { document.getElementById('dm-section').style.display = 'block'; }
     function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
 
+// --- LÓGICA DEL MENÚ DE PERFIL Y TEMAS ---
+function toggleMenu(e) { 
+    e.stopPropagation(); 
+    const menu = document.getElementById('menuPerfil');
+    if (menu) menu.classList.toggle('show'); 
+}
+
+function cambiarFondo(tipo) {
+    const b = document.body;
+    b.className = ""; // Limpia temas anteriores
+    if(tipo === 'oscuro') b.classList.add('tema-oscuro');
+    if(tipo === 'azul') b.classList.add('tema-azul');
+}
+
+// Cierra el menú automáticamente si haces clic fuera de él
+window.onclick = function() {
+    const m = document.getElementById('menuPerfil');
+    if(m) m.classList.remove('show');
+}
+
+    
     async function publicarPost() {
       const texto = document.getElementById('post-text').value.trim();
       const fileInput = document.getElementById('file-post');
