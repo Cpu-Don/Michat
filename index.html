@@ -16,7 +16,7 @@
         .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .header h1 { margin: 0; font-size: 24px; cursor: pointer; letter-spacing: 1px; }
         
-        .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; relative; background-size: cover; background-position: center; }
+        .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; position: relative; background-size: cover; background-position: center; }
         #notif-badge { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; border: 1px solid white; }
 
         .profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; z-index: 2000; border: 1px solid var(--border); }
@@ -30,14 +30,15 @@
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #65676b; }
         .tab.active { color: #075e54; background: #e6f2f1; font-weight: bold; }
 
-        .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; margin-bottom: 10px; }
+        .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; margin-bottom: 10px; box-sizing: border-box; }
 
-        /* Estilos Perfil y Edición */
         .profile-pic-container { position: relative; width: 110px; height: 110px; margin: -55px auto 10px auto; }
         .profile-pic-circle { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; font-weight: bold; }
-        .edit-btn-small { position: absolute; bottom: 5px; right: 5px; background: #075e54; color: white; border: 2px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; display: none; }
         
-        .btn-delete { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 18px; opacity: 0.6; }
+        /* Iconos de edición mejorados */
+        .edit-icon { position: absolute; background: white; color: #075e54; border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 16px; border: 1px solid #ddd; }
+        #btn-foto-perfil { bottom: 5px; right: 5px; }
+        #btn-portada { top: 15px; right: 15px; }
     </style>
 </head>
 <body>
@@ -45,8 +46,8 @@
 <div id="app">
     <div id="acceso">
         <h1 style="color:#075e54;">Sincro</h1>
-        <input id="usr" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
-        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px;">
+        <input id="usr" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
+        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
         <button onclick="entrar()" class="btn-main" style="width:100%;">ENTRAR</button>
     </div>
 
@@ -96,8 +97,8 @@
         <div id="muro-dinamico"></div>
     </div>
 
-    <div id="panel-solicitudes" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:960; padding:20px;">
-        <h2 style="text-align:center; color:#075e54;">Solicitudes Pendientes</h2>
+    <div id="panel-solicitudes" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:960; padding:20px; box-sizing: border-box;">
+        <h2 style="text-align:center; color:#075e54;">Solicitudes</h2>
         <div id="lista-solicitudes" style="max-width:500px; margin:auto;"></div>
         <div style="text-align:center; margin-top:20px;">
             <button onclick="document.getElementById('panel-solicitudes').style.display='none'" class="btn-main" style="background:#ddd; color:black;">Cerrar</button>
@@ -106,14 +107,14 @@
 
     <div id="perfil-usuario" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:950; overflow-y:auto; padding-bottom:100px;">
         <div id="portada-v" style="width:100%; height:200px; background:#075e54; position:relative; background-size:cover; background-position:center;">
-            <div id="btn-portada" onclick="document.getElementById('f-portada').click()" style="display:none; position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.6); color:#075e54; border-radius:50%; width:35px; height:35px; display:flex; justify-content:center; align-items:center; cursor:pointer; font-size:18px;">📷</div>
+            <div id="btn-portada" onclick="document.getElementById('f-portada').click()" class="edit-icon" style="display:none;">📷</div>
         </div>
-        <div style="text-align:center; padding: 0 20px;">
+        <div style="text-align:center;">
             <div class="profile-pic-container">
                 <div id="foto-perfil-v" class="profile-pic-circle">U</div>
-                <div id="btn-foto-perfil" onclick="document.getElementById('f-perfil').click()" class="edit-btn-small">📷</div>
+                <div id="btn-foto-perfil" onclick="document.getElementById('f-perfil').click()" class="edit-icon" style="display:none;">📷</div>
             </div>
-            <h2 id="nom-perfil" style="margin:5px 0;">@Usuario</h2>
+            <h2 id="nom-perfil">@Usuario</h2>
             <div id="area-botones-perfil" style="margin-bottom: 20px; display:flex; justify-content:center; gap:10px;"></div>
         </div>
         <div id="muro-perfil-container" style="max-width:600px; margin:20px auto; padding:0 20px;">
@@ -140,7 +141,6 @@
     let seccionActual = "publico";
     let misAmigos = [];
 
-    // Notificaciones visuales
     function notify(msg, type = 'success') {
         const div = document.createElement('div');
         div.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${type==='success'?'#25d366':'#ff4d4d'}; color:white; padding:12px 25px; border-radius:30px; z-index:10000; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:0.5s;`;
@@ -157,7 +157,7 @@
         rdb.ref('usuarios/' + u).once('value', s => {
             if(s.exists() && s.val().toString() === p) { miUsuario = u; iniciarApp(); }
             else if(!s.exists()) { rdb.ref('usuarios/' + u).set(p).then(() => { miUsuario = u; iniciarApp(); }); }
-            else { notify("Contraseña incorrecta", "error"); }
+            else { notify("Clave incorrecta", "error"); }
         });
     }
 
@@ -194,49 +194,48 @@
     }
 
     function verPerfil(user = miUsuario) {
-        user = user.toLowerCase();
+        const target = user.toLowerCase();
         document.getElementById('perfil-usuario').style.display = 'block';
-        document.getElementById('nom-perfil').innerText = "@" + user;
+        document.getElementById('nom-perfil').innerText = "@" + target;
         
         const areaBtn = document.getElementById('area-botones-perfil');
-        if(user === miUsuario) {
+        areaBtn.innerHTML = ""; // Limpiar siempre
+
+        if(target === miUsuario) {
             areaBtn.innerHTML = `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
-            document.getElementById('btn-portada').style.display = 'flex'; // Mostrar icono portada
-            document.getElementById('btn-foto-perfil').style.display = 'flex'; // Mostrar icono perfil
+            document.getElementById('btn-portada').style.display = 'flex';
+            document.getElementById('btn-foto-perfil').style.display = 'flex';
             document.getElementById('post-box-perfil').appendChild(document.getElementById('post-box-container'));
         } else {
-            // Ocultar iconos de edición en perfil ajeno
             document.getElementById('btn-portada').style.display = 'none';
             document.getElementById('btn-foto-perfil').style.display = 'none';
-            
             document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
             
-            let btnDM = `<button onclick="notify('Abriendo chat con @${user}...') " class="btn-main" style="background:#054d44;">DM ✉</button>`;
+            let btnDM = `<button onclick="notify('Abriendo chat...') " class="btn-main" style="background:#054d44;">DM ✉</button>`;
 
-            if(misAmigos.includes(user)) {
+            if(misAmigos.includes(target)) {
                 areaBtn.innerHTML = `<button class="btn-main" style="background:#ccc; cursor:default;">✓ Amigos</button>` + btnDM;
             } else {
-                rdb.ref(`solicitudes/${user}/${miUsuario}`).once('value', s => {
-                    // CORRECCIÓN LÓGICA: Se envía el nombre capturado de 'user'
+                rdb.ref(`solicitudes/${target}/${miUsuario}`).once('value', s => {
                     let btnSolicitud = s.exists() ? 
                         `<button class="btn-main" style="background:#888;">Enviada</button>` : 
-                        `<button onclick="enviarSolicitud('${user}')" class="btn-main">Enviar Solicitud</button>`;
+                        `<button onclick="enviarSolicitud('${target}')" class="btn-main">Solicitud</button>`;
                     areaBtn.innerHTML = btnSolicitud + btnDM;
                 });
             }
             areaBtn.innerHTML += `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Cerrar</button>`;
         }
 
-        rdb.ref('perfiles/' + user).on('value', s => {
+        rdb.ref('perfiles/' + target).on('value', s => {
             const d = s.val();
             const pic = document.getElementById('foto-perfil-v');
             const port = document.getElementById('portada-v');
             pic.style.backgroundImage = d && d.foto ? `url(${d.foto})` : "";
-            pic.innerText = d && d.foto ? "" : user.charAt(0).toUpperCase();
+            pic.innerText = d && d.foto ? "" : target.charAt(0).toUpperCase();
             port.style.backgroundImage = d && d.portada ? `url(${d.portada})` : "";
         });
 
-        rdb.ref('posts').orderByChild('autor').equalTo(user).on('value', s => {
+        rdb.ref('posts').orderByChild('autor').equalTo(target).on('value', s => {
             const m = document.getElementById('muro-perfil'); m.innerHTML = "";
             s.forEach(child => {
                 const p = child.val();
@@ -246,22 +245,111 @@
     }
 
     function enviarSolicitud(target) {
-        // CORRECCIÓN LÓGICA: Se envía la solicitud al receptor 'target'
-        rdb.ref(`solicitudes/${target.toLowerCase()}/${miUsuario}`).set(true).then(() => {
-            notify("¡Solicitud enviada a @" + target + "!");
-            verPerfil(target); // Refrescar botones
+        rdb.ref(`solicitudes/${target}/${miUsuario}`).set(true).then(() => {
+            notify("Solicitud enviada");
+            verPerfil(target);
         });
     }
 
-    // El resto de funciones se mantienen igual...
     function abrirSolicitudes() {
         document.getElementById('panel-solicitudes').style.display = 'block';
         const lista = document.getElementById('lista-solicitudes');
         rdb.ref('solicitudes/' + miUsuario).on('value', s => {
-            lista.innerHTML = s.exists() ? "" : "<p style='text-align:center;'>No tienes solicitudes.</p>";
+            lista.innerHTML = s.exists() ? "" : "<p style='text-align:center;'>Sin solicitudes.</p>";
             s.forEach(sol => {
                 lista.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>@${sol.key} quiere ser tu amigo</span>
+                    <span>@${sol.key}</span>
                     <div style="display:flex; gap:5px;">
                         <button onclick="aceptarAmigo('${sol.key}')" style="background:#25d366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Aceptar</button>
-                        <button onclick="rech
+                        <button onclick="rechazarAmigo('${sol.key}')" style="background:#ff4d4d; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">X</button>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function aceptarAmigo(quien) {
+        rdb.ref(`amigos/${miUsuario}/${quien}`).set(true);
+        rdb.ref(`amigos/${quien}/${miUsuario}`).set(true);
+        rdb.ref(`solicitudes/${miUsuario}/${quien}`).remove();
+        notify("¡Nuevo amigo!");
+    }
+
+    function rechazarAmigo(quien) { rdb.ref(`solicitudes/${miUsuario}/${quien}`).remove(); }
+
+    function cambiarSeccion(s) {
+        seccionActual = s;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + s).classList.add('active');
+        escucharPosts();
+    }
+
+    function escucharPosts() {
+        rdb.ref('posts').on('value', s => {
+            const muro = document.getElementById('muro-dinamico'); muro.innerHTML = "";
+            const posts = [];
+            s.forEach(child => { let d = child.val(); d.id = child.key; posts.unshift(d); });
+            posts.forEach(p => {
+                let esAmigo = misAmigos.includes(p.autor.toLowerCase()) || p.autor === miUsuario;
+                let mostrar = (seccionActual === 'publico') ? (p.privacidad === 'publico' || p.autor === miUsuario) : esAmigo;
+                if(mostrar) {
+                    muro.innerHTML += `<div class="card">
+                        <div onclick="verPerfil('${p.autor}')" style="font-weight:bold; color:#075e54; cursor:pointer; margin-bottom:5px;">@${p.autor}</div>
+                        <p>${p.texto}</p>
+                        ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px;">` : ""}
+                    </div>`;
+                }
+            });
+        });
+    }
+
+    async function publicarPost() {
+        const t = document.getElementById('post-text').value.trim();
+        const p = document.getElementById('post-privacy').value;
+        const file = document.getElementById('file-post').files[0];
+        const btn = document.getElementById('btn-publicar');
+        if(!t && !file) return;
+        btn.disabled = true;
+
+        let url = "";
+        if(file) {
+            const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: fd });
+            const data = await res.json(); url = data.secure_url;
+        }
+
+        rdb.ref('posts').push({ autor: miUsuario, texto: t, img: url, privacidad: p, fecha: Date.now() }).then(() => {
+            notify("Publicado");
+            document.getElementById('post-text').value = "";
+            btn.disabled = false;
+        });
+    }
+
+    async function subirImagen(tipo) {
+        const file = document.getElementById(tipo === 'foto' ? 'f-perfil' : 'f-portada').files[0];
+        const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", UPLOAD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: fd });
+        const data = await res.json();
+        const up = {}; up[tipo === 'foto' ? 'foto' : 'portada'] = data.secure_url;
+        rdb.ref('perfiles/' + miUsuario).update(up).then(() => notify("Imagen lista"));
+    }
+
+    function cerrarPerfil() { 
+        document.getElementById('perfil-usuario').style.display = 'none';
+        document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
+    }
+    
+    function actualizarAvatarUI() {
+        rdb.ref('perfiles/' + miUsuario).on('value', s => {
+            const d = s.val();
+            if(d && d.foto) document.getElementById('avatar-global').style.backgroundImage = `url(${d.foto})`;
+            document.getElementById('avatar-letra').innerText = d && d.foto ? "" : miUsuario.charAt(0).toUpperCase();
+        });
+    }
+
+    function toggleMenu(e) { e.stopPropagation(); document.getElementById('menuPerfil').classList.toggle('show'); }
+    function cambiarFondo(t) { document.body.className = t === 'oscuro' ? 'tema-oscuro' : ''; }
+    window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
+</script>
+</body>
+</html>
