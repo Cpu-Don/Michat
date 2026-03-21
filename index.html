@@ -2,88 +2,141 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sincro - Super Admin & Grupos</title>
+    <title>Sincro - Red Social</title>
     <meta content="width=device-width,initial-scale=1" name="viewport"/>
     <style>
-        :root { --bg-body: #f0f2f5; --bg-card: white; --text-main: #1c1e21; --border: #ddd; --primary: #075e54; --admin: #dc3545; }
+        body { background: #f0f2f5; margin: 0; padding: 0; font-family: Segoe UI, Helvetica, Arial, sans-serif; transition: 0.3s; }
+        
+        /* --- SISTEMA DE TEMAS --- */
+        :root { --bg-body: #f0f2f5; --bg-card: white; --text-main: #1c1e21; --border: #ddd; }
         body.tema-oscuro { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --border: #3e4042; }
-        body { background: var(--bg-body); color: var(--text-main); margin: 0; font-family: 'Segoe UI', sans-serif; transition: 0.3s; }
+        body.tema-azul { --bg-body: #0a192f; --bg-card: #112240; --text-main: #ccd6f6; --border: #233554; }
+
+        body { background: var(--bg-body) !important; color: var(--text-main) !important; }
+        .card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+
+        /* Cabecera */
+        .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .header h1 { margin: 0; font-size: 24px; cursor: pointer; letter-spacing: 1px; }
         
-        /* Ventanas Sincro (Alertas Bonitas) */
-        .sincro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9000; }
-        .sincro-modal { background: var(--bg-card); width: 85%; max-width: 320px; border-radius: 20px; padding: 20px; text-align: center; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .menu-item { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 10px; }
-        .menu-item:last-child { border: none; }
+        .nav-icons { display: flex; gap: 20px; align-items: center; }
+        .dm-icon { background: #054d44; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .dm-icon:hover { background: #25d366; }
 
-        /* Carpetas Admin */
-        .carpeta { background: var(--bg-card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .carpeta.grupo { border-left-color: #ffc107; }
+        .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; position: relative; background-size: cover; background-position: center; }
+        .profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; z-index: 2000; border: 1px solid var(--border); }
+        .profile-menu div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .profile-menu div:hover { background: rgba(0,0,0,0.05); }
+        .show { display: block !important; }
+
+        /* Inputs y Botones */
+        #acceso { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px; margin: 100px auto; color: black; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        /* Badges de Notificación (Spam) */
-        .badge-spam { background: #ff4d4d; color: white; border-radius: 50%; padding: 2px 7px; font-size: 11px; margin-left: 5px; font-weight: bold; }
+        .tabs { display: flex; background: white; border-radius: 10px; padding: 5px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #65676b; }
+        .tab.active { color: #075e54; background: #e6f2f1; font-weight: bold; }
 
-        /* Layout Chat */
-        #ventana-chat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 4000; display: none; flex-direction: column; }
-        .chat-header { background: var(--primary); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .admin-header { background: var(--admin) !important; }
-
-        /* Galería Scroll */
-        .galeria-scroll { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; max-height: 300px; overflow-y: auto; margin-top: 10px; padding: 5px; }
-        .galeria-item { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 5px; }
-
-        .btn-main { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
+        /* Estilos Perfil */
+        .profile-pic-container { position: relative; width: 110px; height: 110px; margin: -55px auto 10px auto; }
+        .profile-pic-circle { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .edit-btn-small { position: absolute; bottom: 5px; right: 5px; background: #075e54; color: white; border: 2px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
+        
+        /* Botón eliminar */
+        .btn-delete { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 18px; opacity: 0.6; }
+        .btn-delete:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="acceso" style="width:300px; margin:100px auto; text-align:center; background:white; padding:30px; border-radius:20px; color:black;">
-        <h1 style="color:var(--primary)">Sincro</h1>
-        <input id="usr" placeholder="Usuario" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;">
-        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:10px; margin-bottom:20px; border-radius:5px; border:1px solid #ccc;">
-        <button onclick="entrar()" class="btn-main">ENTRAR</button>
+    <div id="acceso">
+        <h1 style="color:#075e54;">Sincro</h1>
+        <input id="usr" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
+        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
+        <button onclick="entrar()" class="btn-main" style="width:100%;">ENTRAR</button>
     </div>
 
-    <div id="main-layout" style="display:none; padding-top:70px;">
-        <div style="position:fixed; top:0; width:100%; background:var(--primary); color:white; padding:12px; display:flex; justify-content:space-between; align-items:center; z-index:1000; box-sizing:border-box;" id="top-bar">
-            <h2 id="logo-sincro">Sincro</h2>
-            <div style="display:flex; gap:15px; align-items:center;">
-                <div onclick="abrirBandeja()" style="cursor:pointer; position:relative;">
-                    DM ✉ <span id="spam-bubble" class="badge-spam" style="display:none;">0</span>
+    <div id="main-layout" style="display:none; max-width: 600px; margin: auto; padding: 20px; margin-top: 60px;">
+        <div class="header">
+            <h1 onclick="cerrarPerfil()">Sincro</h1>
+            <div class="nav-icons">
+                <div class="dm-icon" onclick="abrirDM()">DM ✉</div>
+                <div class="user-avatar" id="avatar-global" onclick="toggleMenu(event)">
+                    <span id="avatar-letra">U</span>
+                    <div id="menuPerfil" class="profile-menu">
+                        <div onclick="verPerfil()">👤 Mi Perfil</div>
+                        <div onclick="abrirConfig()">⚙️ Configuración</div>
+                        <div style="font-weight:bold; background:rgba(0,0,0,0.05); padding:5px 12px; font-size:11px;">FONDO:</div>
+                        <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
+                        <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
+                        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
+                        <div onclick="location.reload()" style="color:red; border-top:1px solid #eee;">🚪 Salir</div>
+                    </div>
                 </div>
-                <div id="mi-avatar" style="width:35px; height:35px; background:#25d366; border-radius:50%; border:2px solid white; cursor:pointer;"></div>
             </div>
         </div>
-        <div id="muro" style="padding:15px; max-width:600px; margin:auto;"></div>
+
+        <div class="tabs">
+            <div id="tab-publico" class="tab active" onclick="cambiarSeccion('publico')">Noticias</div>
+            <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
+        </div>
+
+        <div id="post-box-container">
+            <div class="card">
+                <textarea id="post-text" placeholder="¿Qué quieres compartir?" style="width:100%; border:none; outline:none; resize:none; background:transparent; color:inherit; font-size:16px; min-height: 60px;"></textarea>
+                <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button onclick="document.getElementById('file-post').click()" style="background:#f0f2f5; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:13px; color: black;">📷 Galería</button>
+                        <select id="post-privacy" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                            <option value="publico">🌍 Público</option>
+                            <option value="amigos">👥 Amigos</option>
+                        </select>
+                    </div>
+                    <button class="btn-main" id="btn-publicar" onclick="publicarPost()">Publicar</button>
+                </div>
+                <input type="file" id="file-post" style="display:none" accept="image/*,video/*">
+            </div>
+        </div>
+
+        <div id="muro-dinamico"></div>
     </div>
 
-    <div id="bandeja-section" style="display:none; position:fixed; top:0; width:100%; height:100%; background:var(--bg-body); z-index:2000; padding-top:70px; overflow-y:auto;">
-        <div style="padding:15px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3>Mis Conversaciones</h3>
-                <button onclick="document.getElementById('bandeja-section').style.display='none'" class="btn-main" style="width:auto; padding:5px 15px;">Volver</button>
+    <div id="perfil-usuario" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:950; overflow-y:auto; padding-bottom:100px;">
+        <div id="portada-v" style="width:100%; height:200px; background:#075e54; position:relative; background-size:cover; background-position:center;">
+            <button onclick="document.getElementById('f-portada').click()" style="position:absolute; bottom:15px; right:15px; background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:12px;">Cambiar Portada</button>
+        </div>
+
+        <div style="text-align:center; padding: 0 20px;">
+            <div class="profile-pic-container">
+                <div id="foto-perfil-v" class="profile-pic-circle">U</div>
+                <div class="edit-btn-small" onclick="document.getElementById('f-perfil').click()">+</div>
             </div>
             
-            <h4 style="color:var(--primary);">📁 Chats Privados</h4>
-            <div id="folder-privados"></div>
-
-            <h4 style="color:#ffc107; margin-top:20px;">📁 Grupos</h4>
-            <div id="folder-grupos"></div>
-
-            <h4 style="color:#ff4d4d; margin-top:20px;">📩 Spam (Desconocidos)</h4>
-            <div id="folder-spam"></div>
+            <h2 id="nom-perfil" style="margin:5px 0; font-size: 24px;">@Usuario</h2>
+            <div style="margin-bottom: 20px;">
+                <button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black; padding:8px 25px; border-radius: 20px;">Volver al Muro</button>
+            </div>
         </div>
+
+        <div id="muro-perfil-container" style="max-width:600px; margin:20px auto; padding:0 20px;">
+            <div id="post-box-perfil"></div>
+            <div id="muro-perfil"></div>
+        </div>
+        
+        <input type="file" id="f-perfil" style="display:none" accept="image/*" onchange="subirImagen('foto')">
+        <input type="file" id="f-portada" style="display:none" accept="image/*" onchange="subirImagen('portada')">
     </div>
 
-    <div id="ventana-chat">
-        <div class="chat-header" id="header-chat-color">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <button onclick="cerrarChat()" style="background:none; border:none; color:white; font-size:22px;">←</button>
-                <b id="nombre-chat-header">Chat</b>
-            </div>
-            <span onclick="abrirConfigChat()" style="cursor:pointer; font-size:24px;">⚙️</span>
+    <div id="dm-section" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:900; padding:20px; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+            <h2 style="margin:0; color:#075e54;">Mensajes Directos</h2>
+            <button onclick="cerrarDM()" style="background:#ddd; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Volver</button>
         </div>
-        <div id="lista-mensajes" style="flex:1; overflow-y:auto; padding:15px;"></div>
+        <div id="lista-contactos-dm" style="margin-top:20px; text-align:center;">
+            <p style="color:gray;">Aquí aparecerán tus amigos para chatear.</p>
+        </div>
     </div>
 </div>
 
@@ -95,132 +148,177 @@
     firebase.initializeApp(firebaseConfig);
     const rdb = firebase.database();
 
-    let miUsuario = "";
-    let chatActivo = "";
-    let esGrupoActivo = false;
-    let misAmigos = [];
+    const CLOUD_NAME = "dhtyepcjg"; 
+    const UPLOAD_PRESET = "Historial";
 
-    function toast(m, t='exito') {
-        const d = document.createElement('div');
-        d.style = `position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:${t==='exito'?'#075e54':'#dc3545'}; color:white; padding:12px 25px; border-radius:30px; z-index:10000; font-weight:bold;`;
-        d.innerText = m;
-        document.body.appendChild(d);
-        setTimeout(() => d.remove(), 3000);
-    }
+    let miUsuario = "";
+    let seccionActual = "publico";
 
     function entrar() {
-        const u = document.getElementById('usr').value.trim().toLowerCase();
-        if(!u) return;
-        miUsuario = u;
+        const u = document.getElementById('usr').value.trim();
+        const p = document.getElementById('clv').value.trim();
+        if(!u || !p) return alert("Ingresa datos");
+
+        rdb.ref('usuarios/' + u.toLowerCase()).once('value', s => {
+            if(s.exists() && s.val().toString() === p) {
+                miUsuario = u;
+                iniciarApp();
+            } else if(!s.exists()) {
+                rdb.ref('usuarios/' + u.toLowerCase()).set(p).then(() => {
+                    miUsuario = u;
+                    iniciarApp();
+                });
+            } else { alert("Error de clave"); }
+        });
+    }
+
+    function iniciarApp() {
         document.getElementById('acceso').style.display = 'none';
         document.getElementById('main-layout').style.display = 'block';
-        
-        if(miUsuario === "chat") {
-            document.getElementById('top-bar').classList.add('admin-header');
-            document.getElementById('logo-sincro').innerText = "Super Admin Maestro";
-        }
-
-        // Escuchar Amigos y Spam
-        rdb.ref('amigos/'+miUsuario).on('value', s => misAmigos = s.val() ? Object.keys(s.val()) : []);
-        escucharSpam();
-        actualizarCarpetas();
+        actualizarAvatarUI();
+        escucharPosts();
     }
 
-    // --- CARPETAS Y SPAM ---
-    function escucharSpam() {
-        rdb.ref('mensajes_privados').on('value', s => {
-            let spamCount = 0;
-            s.forEach(chat => {
-                if(!misAmigos.includes(chat.key) && chat.key !== miUsuario) {
-                    spamCount++;
+    function actualizarAvatarUI() {
+        document.getElementById('avatar-letra').innerText = miUsuario.charAt(0).toUpperCase();
+        rdb.ref('perfiles/' + miUsuario.toLowerCase()).on('value', s => {
+            const d = s.val();
+            if(d && d.foto) {
+                document.getElementById('avatar-global').style.backgroundImage = `url(${d.foto})`;
+                document.getElementById('avatar-letra').innerText = "";
+            }
+        });
+    }
+
+    async function publicarPost() {
+        const texto = document.getElementById('post-text').value.trim();
+        const privacidad = document.getElementById('post-privacy').value;
+        const fileInput = document.getElementById('file-post');
+        const btn = document.getElementById('btn-publicar');
+
+        if(!texto && !fileInput.files[0]) return;
+        btn.disabled = true; btn.innerText = "...";
+
+        let mediaUrl = "";
+        if(fileInput.files[0]) {
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("upload_preset", UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+            const data = await res.json();
+            mediaUrl = data.secure_url;
+        }
+
+        rdb.ref('posts').push({
+            autor: miUsuario,
+            texto: texto,
+            img: mediaUrl,
+            privacidad: privacidad,
+            fecha: Date.now()
+        }).then(() => {
+            document.getElementById('post-text').value = "";
+            fileInput.value = "";
+            btn.disabled = false; btn.innerText = "Publicar";
+        });
+    }
+
+    function eliminarPost(id) {
+        if(confirm("¿Seguro que quieres borrar esta publicación?")) {
+            rdb.ref('posts/' + id).remove();
+        }
+    }
+
+    function escucharPosts() {
+        rdb.ref('posts').on('value', s => {
+            const muro = document.getElementById('muro-dinamico');
+            muro.innerHTML = "";
+            const posts = [];
+            s.forEach(child => { 
+                let data = child.val();
+                data.id = child.key;
+                posts.unshift(data); 
+            });
+
+            posts.forEach(p => {
+                if(p.privacidad === 'publico' || p.autor === miUsuario) {
+                    muro.innerHTML += `
+                        <div class="card">
+                            ${p.autor === miUsuario ? `<button class="btn-delete" onclick="eliminarPost('${p.id}')">×</button>` : ''}
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                                <div onclick="verPerfil('${p.autor}')" style="font-weight:bold; color:#075e54; cursor:pointer;">@${p.autor}</div>
+                                <span style="font-size:10px; color:gray;">${p.privacidad === 'publico' ? '🌍' : '👥'}</span>
+                            </div>
+                            <p style="margin:0 0 10px 0;">${p.texto}</p>
+                            ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px;">` : ""}
+                        </div>
+                    `;
                 }
             });
-            const b = document.getElementById('spam-bubble');
-            b.innerText = spamCount;
-            b.style.display = spamCount > 0 ? 'inline-block' : 'none';
         });
     }
 
-    function actualizarCarpetas() {
-        rdb.ref('mensajes_privados').on('value', s => {
-            const p = document.getElementById('folder-privados');
-            const sp = document.getElementById('folder-spam');
-            p.innerHTML = ""; sp.innerHTML = "";
-            s.forEach(chat => {
-                const html = `<div class="carpeta" onclick="abrirChat('${chat.key}', false)"><span>@${chat.key}</span> 📁</div>`;
-                if(misAmigos.includes(chat.key)) p.innerHTML += html;
-                else if(chat.key !== miUsuario) sp.innerHTML += html;
+    function verPerfil(user = miUsuario) {
+        document.getElementById('perfil-usuario').style.display = 'block';
+        document.getElementById('nom-perfil').innerText = "@" + user;
+        
+        // Mover la caja de publicar al perfil si es el mío
+        const postBox = document.getElementById('post-box-container');
+        const target = (user.toLowerCase() === miUsuario.toLowerCase()) ? document.getElementById('post-box-perfil') : null;
+        if(target) target.appendChild(postBox);
+        else document.getElementById('main-layout').insertBefore(postBox, document.getElementById('muro-dinamico'));
+
+        rdb.ref('perfiles/' + user.toLowerCase()).on('value', s => {
+            const d = s.val();
+            const pic = document.getElementById('foto-perfil-v');
+            const port = document.getElementById('portada-v');
+            if(d) {
+                if(d.foto) { pic.style.backgroundImage = `url(${d.foto})`; pic.innerText = ""; }
+                if(d.portada) port.style.backgroundImage = `url(${d.portada})`;
+            }
+        });
+
+        rdb.ref('posts').orderByChild('autor').equalTo(user).on('value', s => {
+            const m = document.getElementById('muro-perfil'); m.innerHTML = "";
+            const posts = [];
+            s.forEach(child => { let d = child.val(); d.id = child.key; posts.unshift(d); });
+            posts.forEach(p => {
+                m.innerHTML += `
+                    <div class="card">
+                        ${p.autor === miUsuario ? `<button class="btn-delete" onclick="eliminarPost('${p.id}')">×</button>` : ''}
+                        <p>${p.texto}</p>
+                        ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px;">` : ""}
+                    </div>`;
             });
         });
-        rdb.ref('msg_grupos').on('value', s => {
-            const g = document.getElementById('folder-grupos'); g.innerHTML = "";
-            s.forEach(grupo => {
-                g.innerHTML += `<div class="carpeta grupo" onclick="abrirChat('${grupo.key}', true)"><span>👥 ${grupo.key}</span> 📁</div>`;
-            });
-        });
     }
 
-    // --- ENGRANAJE DE 4 FUNCIONES ---
-    function abrirConfigChat() {
-        const overlay = document.createElement('div');
-        overlay.className = "sincro-overlay";
-        overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
-        overlay.innerHTML = `
-            <div class="sincro-modal">
-                <h3 style="color:var(--primary); margin-top:0;">Gestión de Chat</h3>
-                <div class="menu-item" onclick="verMultimedia()">🖼️ Ver Contenido Multimedia</div>
-                <div class="menu-item" onclick="toast('Notificaciones silenciadas')">🔇 Mutear</div>
-                ${!esGrupoActivo ? `<div class="menu-item" onclick="bloquear()">🚫 Bloquear Usuario</div>` : ''}
-                <div class="menu-item" onclick="borrarChatCompleto()" style="color:#ff4d4d; font-weight:bold;">🗑️ Eliminar (Todo)</div>
-                <br>
-                <button onclick="this.parentElement.parentElement.remove()" class="btn-main" style="background:#eee; color:black;">Cerrar</button>
-            </div>`;
-        document.body.appendChild(overlay);
+    async function subirImagen(tipo) {
+        const inputId = tipo === 'foto' ? 'f-perfil' : 'f-portada';
+        const file = document.getElementById(inputId).files[0];
+        if(!file) return;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        const update = {}; update[tipo === 'foto' ? 'foto' : 'portada'] = data.secure_url;
+        rdb.ref('perfiles/' + miUsuario.toLowerCase()).update(update);
     }
 
-    function verMultimedia() {
-        const overlay = document.createElement('div');
-        overlay.className = "sincro-overlay";
-        overlay.innerHTML = `
-            <div class="sincro-modal" style="max-width:350px;">
-                <h4>Galería de @${chatActivo}</h4>
-                <div class="galeria-scroll" id="visor-media">Cargando fotos...</div>
-                <button onclick="this.parentElement.parentElement.remove()" class="btn-main" style="margin-top:15px;">Cerrar</button>
-            </div>`;
-        document.body.appendChild(overlay);
-        // Aquí cargarías las fotos reales de Firebase haciendo un loop
-        document.getElementById('visor-media').innerHTML = `<p style="font-size:12px; color:gray;">No hay fotos recientes.</p>`;
+    function cerrarPerfil() { 
+        document.getElementById('perfil-usuario').style.display = 'none'; 
+        // Devolver caja de publicar al muro principal
+        document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
     }
+    
+    function toggleMenu(e) { e.stopPropagation(); document.getElementById('menuPerfil').classList.toggle('show'); }
+    function cambiarFondo(t) { document.body.className = ""; if(t!=='blanco') document.body.classList.add('tema-'+t); }
+    function abrirDM() { document.getElementById('dm-section').style.display = 'block'; }
+    function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
+    function abrirConfig() { alert("Configuración en desarrollo."); }
 
-    function borrarChatCompleto() {
-        if(miUsuario === "chat" || confirm("¿Eliminar toda la base de datos de este chat?")) {
-            const path = esGrupoActivo ? 'msg_grupos/' : 'mensajes_privados/';
-            rdb.ref(path + chatActivo).remove();
-            toast("Borrado total ejecutado", "error");
-            document.querySelectorAll('.sincro-overlay').forEach(el => el.remove());
-            cerrarChat();
-        }
-    }
-
-    // --- LOGICA DE GRUPOS ---
-    function crearGrupo(nombre) {
-        // Al crear un grupo, te inscribe y lo abre automático
-        rdb.ref('msg_grupos/'+nombre).push({ texto: "Grupo creado por " + miUsuario, autor: "Sincro" });
-        toast("Grupo creado con éxito");
-        abrirChat(nombre, true);
-    }
-
-    function abrirChat(id, esGrupo) {
-        chatActivo = id;
-        esGrupoActivo = esGrupo;
-        document.getElementById('ventana-chat').style.display = 'flex';
-        document.getElementById('nombre-chat-header').innerText = (esGrupo ? "👥 " : "@") + id;
-        if(miUsuario === "chat") document.getElementById('header-chat-color').classList.add('admin-header');
-        else document.getElementById('header-chat-color').classList.remove('admin-header');
-    }
-
-    function cerrarChat() { document.getElementById('ventana-chat').style.display = 'none'; }
-    function abrirBandeja() { document.getElementById('bandeja-section').style.display = 'block'; }
+    window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
 </script>
+
 </body>
 </html>
