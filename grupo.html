@@ -2,58 +2,131 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sincro - Grupo</title>
+    <title>Sincro - Sala Grupal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background:#e5ddd5; margin:0; font-family: sans-serif; height:100vh; display:flex; flex-direction:column; }
-        .header { background:#075e54; color:white; padding:15px; display:flex; align-items:center; gap:10px; font-weight:bold; }
-        .m-box { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
-        .msg { background:white; padding:8px 12px; border-radius:8px; max-width:80%; font-size:14px; box-shadow:0 1px 1px rgba(0,0,0,0.1); }
+        body { background:#e5ddd5; margin:0; font-family: sans-serif; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+        
+        /* Cabecera idéntica a tu estilo */
+        .header { background:#075e54; color:white; padding:15px; display:flex; align-items:center; gap:15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
+        .back-btn { cursor:pointer; font-size:22px; font-weight:bold; }
+        .group-info { display:flex; flex-direction:column; }
+        .group-name { font-size: 16px; font-weight: bold; }
+        .group-status { font-size: 11px; color: #25d366; }
+
+        /* Caja de mensajes */
+        .m-box { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+        .msg { padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; word-break:break-all; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .mio { background:#dcf8c6; align-self:flex-end; }
-        .input-area { background:#f0f0f0; padding:10px; display:flex; gap:10px; }
-        input { flex:1; padding:12px; border-radius:20px; border:none; outline:none; }
-        button { background:#075e54; color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; font-weight:bold; }
+        .otro { background:white; align-self:flex-start; }
+        
+        .user-label { color:#128c7e; font-weight:bold; font-size:12px; display:block; margin-bottom:3px; }
+        .time-label { font-size:10px; color:#888; text-align:right; margin-top:4px; }
+
+        /* Área de entrada */
+        .input-area { background:#f0f0f0; padding:15px; display:flex; gap:10px; align-items:center; }
+        input { flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none; font-size: 14px; }
+        button { background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size: 18px; display:flex; justify-content:center; align-items:center; }
+        
+        .chat-media { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <span onclick="location.href='index.html'" style="cursor:pointer;">←</span>
-        <span id="gn">Cargando grupo...</span>
+        <div class="back-btn" onclick="window.location.href='index.html'">←</div>
+        <div class="group-info">
+            <span class="group-name" id="gn">Cargando grupo...</span>
+            <span class="group-status">Chat Grupal</span>
+        </div>
     </div>
+
     <div id="m-box" class="m-box"></div>
+
     <div class="input-area">
-        <input type="text" id="m" placeholder="Escribe..." onkeypress="if(event.key==='Enter') enviar()">
+        <input type="text" id="m" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviar()">
         <button onclick="enviar()">></button>
     </div>
 
-    <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
-    <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script>
         const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const rdb = firebase.database();
-        const gid = new URLSearchParams(window.location.search).get('g');
-        const miUser = localStorage.getItem('g_user') || "Invitado";
 
-        // Cargar Nombre
-        rdb.ref('lista_grupos/'+gid).on('value', s => { if(s.exists()) document.getElementById('gn').innerText = s.val().nombre; });
+        // Obtener ID del grupo desde la URL y usuario desde localStorage
+        const params = new URLSearchParams(window.location.search);
+        const gid = params.get('id');
+        const miUsuario = localStorage.getItem('sincro_user') || "Invitado";
 
-        // Leer Mensajes
-        rdb.ref('chats_grupos/'+gid).on('value', s => {
-            const b = document.getElementById('m-box'); b.innerHTML = "";
-            s.forEach(c => {
-                const m = c.val();
-                const d = document.createElement('div');
-                d.className = "msg" + (m.u === miUser ? " mio" : "");
-                d.innerHTML = `<small style="color:#075e54; font-weight:bold;">${m.u}</small><br>${m.t}`;
-                b.appendChild(d);
-            });
-            b.scrollTop = b.scrollHeight;
+        if(!gid) {
+            alert("Grupo no encontrado");
+            window.location.href = "index.html";
+        }
+
+        // 1. Cargar nombre del grupo
+        rdb.ref('lista_grupos/' + gid).on('value', s => {
+            if(s.exists()) {
+                document.getElementById('gn').innerText = s.val().n;
+            } else {
+                document.getElementById('gn').innerText = "Grupo eliminado";
+            }
         });
 
+        // 2. Escuchar mensajes del grupo
+        rdb.ref('mensajes_grupos/' + gid).on('value', (snapshot) => {
+            const box = document.getElementById('m-box');
+            box.innerHTML = "";
+            
+            snapshot.forEach((child) => {
+                const m = child.val();
+                const esMio = (m.u === miUsuario);
+                
+                const d = document.createElement('div');
+                d.className = "msg " + (esMio ? "mio" : "otro");
+                
+                // Procesar texto (links e imágenes)
+                const texto = linkify(m.t);
+                
+                d.innerHTML = `
+                    <span class="user-label">${m.u}</span>
+                    ${texto}
+                    <div class="time-label">${m.h || ""}</div>
+                `;
+                box.appendChild(d);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+
+        // 3. Función enviar
         function enviar() {
-            const i = document.getElementById('m'), t = i.value.trim();
-            if(t) { rdb.ref('chats_grupos/'+gid).push({ u: miUser, t: t }); i.value = ""; }
+            const input = document.getElementById('m');
+            const texto = input.value.trim();
+            if(!texto) return;
+
+            const ahora = new Date();
+            const hora = ahora.getHours() + ":" + (ahora.getMinutes() < 10 ? '0' : '') + ahora.getMinutes();
+
+            rdb.ref('mensajes_grupos/' + gid).push({
+                u: miUsuario,
+                t: texto.replace(/</g, "&lt;"),
+                h: hora
+            }).then(() => {
+                input.value = "";
+            });
+        }
+
+        // Función para detectar links e imágenes (Cloudinary)
+        function linkify(text) {
+            if(!text) return "";
+            if(text.includes("res.cloudinary.com")) {
+                if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return '<img src="'+text+'" class="chat-media" onclick="window.open(this.src)">';
+                if(text.match(/\.(mp4|mov|avi|webm)$/i)) return '<video src="'+text+'" class="chat-media" controls></video>';
+            }
+            const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return text.replace(urlPattern, url => `<a href="${url}" target="_blank" style="color:#075e54; font-weight:bold;">${url}</a>`);
         }
     </script>
 </body>
