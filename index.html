@@ -80,6 +80,15 @@
       </div>
     </div>
 
+    <div id="modal-crear-grupo">
+      <div class="modal-box" style="max-width:300px; text-align:center;">
+        <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo</h3>
+        <input id="nom-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; margin-bottom:15px;" type="text"/>
+        <button onclick="confirmarCrearGrupo()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">CREAR</button>
+        <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cancelar</button>
+      </div>
+    </div>
+
     <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; font-family:sans-serif; flex-direction:column; border:1px solid #075e54;'>
       <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; flex-direction:column;'>
         <div style='display:flex; justify-content:space-between; align-items:center;'>
@@ -95,15 +104,6 @@
         <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Privado...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
         <button id="btn-send-privado" onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
       </div>
-    </div>
-  </div>
-
-  <div id="modal-crear-grupo">
-    <div class="modal-box" style="max-width:300px; text-align:center;">
-      <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo</h3>
-      <input id="nom-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; margin-bottom:15px;" type="text"/>
-      <button onclick="confirmarCrearGrupo()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">CREAR</button>
-      <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cancelar</button>
     </div>
   </div>
 
@@ -151,9 +151,9 @@
 
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
     function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
-    function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
+    function cerrarReglas() { document.getElementById("modal-reglas").style.none = "none"; }
 
-    // --- INSERTADO: LÓGICA DE GRUPOS ---
+    // --- FUNCIONES DE GRUPOS INSERTADAS ---
     function abrirModalCrearGrupo() {
       document.getElementById("myDropdown").classList.remove("show");
       document.getElementById("modal-crear-grupo").style.display = "flex";
@@ -173,6 +173,7 @@
     function cargarListaGrupos() {
       rdb.ref('lista_grupos').on('value', (snap) => {
         var menu = document.getElementById("lista-grupos-menu");
+        if(!menu) return;
         menu.innerHTML = "";
         snap.forEach((child) => {
           var g = child.val();
@@ -347,7 +348,7 @@
           box.scrollTop = box.scrollHeight;
         }
       });
-      // CARGAR GRUPOS AL INICIAR
+      // INICIAR CARGA DE GRUPOS
       cargarListaGrupos();
     }
 
