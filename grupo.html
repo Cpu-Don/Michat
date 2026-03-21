@@ -1,0 +1,19 @@
+async function crearGrupoProceso() {
+    const nombre = document.getElementById('nuevo-nombre-grupo').value.trim();
+    if(!nombre) return alert("Ponle nombre al grupo");
+
+    const idGrupo = "grupo_" + Math.random().toString(36).substring(2, 8);
+    
+    // Guardar en Firebase
+    await rdb.ref('lista_grupos/' + idGrupo).set({
+        nombre: nombre,
+        creador: miUsuario
+    });
+
+    // Guardar token y usuario para la otra página
+    localStorage.setItem('g_token', btoa(idGrupo));
+    localStorage.setItem('g_user', miUsuario);
+    
+    // REDIRIGIR a la nueva página en GitHub
+    window.location.href = "grupo.html?g=" + idGrupo;
+}
