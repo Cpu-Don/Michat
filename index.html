@@ -15,8 +15,13 @@
     .show { display: block !important; }
     #modal-reglas, #modal-online { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
-    /* Estilo para los links en el chat */
     .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
+    
+    /* Estilos Multimedia */
+    .chat-media { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; border: 1px solid #ddd; cursor: pointer; }
+    .btn-adjuntar { background: #ccc; color: #333; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; font-weight: bold; }
+    .btn-disabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); }
+    .status-off { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px; display: none; }
   </style>
 </head>
 <body>
@@ -40,7 +45,13 @@
           <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
           <div class='dropdown-content' id='myDropdown'>
             <span onclick='abrirReglas()'>Reglas</span>
-            <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat</span>
+            <div id="admin-limpieza-media" style="display:none;">
+                <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
+                <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
+                <span onclick='limpiarMultimedia("publico")' style='color:#4CAF50;'>Limpiar Fotos Públicas</span>
+                <span onclick='limpiarMultimedia("total")' style='color:red; font-weight:bold;'>LIMPIEZA TOTAL FOTOS</span>
+            </div>
+            <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat Texto</span>
             <span onclick='location.reload()' style='color:red;'>Salir</span>
           </div>
         </div>
@@ -50,9 +61,14 @@
         <button id='tgl' onclick='lock()' style='background:#25d366; border:none; padding:3px 10px; border-radius:5px; cursor:pointer; font-weight:bold;'>ACTIVO</button>
       </div>
       <div id='m-box' style='flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;'></div>
-      <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px;'>
+      
+      <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px; align-items:center;'>
+        <button id="btn-plus-publico" onclick="document.getElementById('file-global').click()" class="btn-adjuntar">
+            + <span id="label-off" class="status-off">OFF</span>
+        </button>
+        <input type="file" id="file-global" style="display:none" accept="image/*,video/*" onchange="subirMultimedia(this, 'global')">
         <input id='msg' onkeypress='if(event.key==="Enter") send()' placeholder='Escribe...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;' type='text'/>
-        <button onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
+        <button id="btn-send-global" onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
       </div>
     </div>
 
@@ -65,16 +81,18 @@
         <small id='p-status' style='font-size:10px; color:#25d366; font-weight:bold; height:12px;'></small>
       </div>
       <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#e5ddd5; display:flex; flex-direction:column; gap:8px;'></div>
-      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd;'>
+      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd; align-items:center;'>
+        <button onclick="document.getElementById('file-privado').click()" style="background:#ccc; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer;">+</button>
+        <input type="file" id="file-privado" style="display:none" accept="image/*,video/*" onchange="subirMultimedia(this, 'privado')">
         <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Privado...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
-        <button onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
+        <button id="btn-send-privado" onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
       </div>
     </div>
   </div>
 
   <div id='modal-reglas'>
     <div class='modal-box'>
-      <h3 style='color:#075e54; margin-top:0;'>Reglas del Sistema</h3>
+      <h3 style='color:#075e54; margin-top:0;'>Chat En Linea</h3>
       <div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'></div>
       <div id='admin-editor' style='display:none; border-top:1px solid #eee; padding-top:10px;'>
         <textarea id='edit-reglas' placeholder='Nuevas reglas...' style='width:100%; height:60px; font-size:12px;'></textarea>
@@ -103,10 +121,14 @@
     firebase.initializeApp(firebaseConfig);
     const rdb = firebase.database();
 
+    const CLOUD_NAME = "dhtyepcjg";
+    const UPLOAD_PRESET = "Historial"; 
+
     var ok = true;
     var miUsuario = "";
     var usuarioDestino = "";
     var escribiendoTimeout;
+    var multimediaBloqueado = false;
     var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
     const EMOJIS = ['❤️', '🥲', '🤣', '🥰'];
 
@@ -115,6 +137,11 @@
     function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
 
     function linkify(text) {
+      if(!text) return "";
+      if(text.includes("res.cloudinary.com")) {
+          if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return '<img src="'+text+'" class="chat-media" onclick="window.open(this.src)">';
+          if(text.match(/\.(mp4|mov|avi|webm)$/i)) return '<video src="'+text+'" class="chat-media" controls></video>';
+      }
       var urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
       return text.replace(urlPattern, function(url) {
         return '<a href="' + url + '" target="_blank" class="chat-link">' + url + '</a>';
@@ -129,6 +156,69 @@
         hash |= 0;
       }
       return "sala_" + Math.abs(hash);
+    }
+
+    // --- MANEJO DE BLOQUEO MULTIMEDIA ---
+    function toggleMediaPublico() {
+        let nuevoEstado = !multimediaBloqueado;
+        rdb.ref('config/multimedia_bloqueado').set(nuevoEstado);
+    }
+
+    rdb.ref('config/multimedia_bloqueado').on('value', (s) => {
+        multimediaBloqueado = s.val() || false;
+        const btnPlus = document.getElementById('btn-plus-publico');
+        const btnMenu = document.getElementById('btn-lock-media');
+        const labelOff = document.getElementById('label-off');
+        if(multimediaBloqueado) {
+            if(btnPlus) btnPlus.classList.add('btn-disabled');
+            if(labelOff) labelOff.style.display = "block";
+            if(btnMenu) btnMenu.innerText = "Activar Multimedia";
+        } else {
+            if(btnPlus) btnPlus.classList.remove('btn-disabled');
+            if(labelOff) labelOff.style.display = "none";
+            if(btnMenu) btnMenu.innerText = "Bloquear Multimedia";
+        }
+    });
+
+    async function subirMultimedia(input, tipo) {
+      // Verificación instantánea en Firebase antes de subir
+      if(tipo === 'global') {
+          const s = await rdb.ref('config/multimedia_bloqueado').once('value');
+          if(s.val() === true) { 
+              alert("Multimedia bloqueado por administrador."); 
+              input.value = ""; return; 
+          }
+      }
+      
+      const file = input.files[0];
+      if(!file) return;
+      const btn = (tipo === 'global') ? document.getElementById('btn-send-global') : document.getElementById('btn-send-privado');
+      btn.innerText = "...";
+      
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", UPLOAD_PRESET);
+      
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if(tipo === 'global') { 
+            if(multimediaBloqueado) { alert("Bloqueo activo."); return; }
+            document.getElementById('msg').value = data.secure_url; send(); 
+        } else { 
+            document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); 
+        }
+      } catch (err) { alert("Error al subir"); } finally { btn.innerText = ">"; input.value = ""; }
+    }
+
+    function limpiarMultimedia(tipo) {
+        const esMedia = (url) => url && url.includes("res.cloudinary.com");
+        if(tipo === "publico" || tipo === "total") {
+            rdb.ref('mensajes').once('value', (s) => { s.forEach((c) => { if(esMedia(c.val().t)) rdb.ref('mensajes/'+c.key).remove(); }); });
+        }
+        if(tipo === "privado" || tipo === "total") {
+            rdb.ref('privados').once('value', (s) => { s.forEach((sala) => { sala.forEach((msg) => { if(esMedia(msg.val().t)) rdb.ref('privados/'+sala.key+'/'+msg.key).remove(); }); }); });
+        }
     }
 
     function entrar() {
@@ -155,9 +245,18 @@
     function iniciar() {
       document.getElementById('acceso').style.display = 'none';
       document.getElementById('chat').style.display = 'flex';
+      
       if(miUsuario === "Chat") { 
          document.getElementById('admin-editor').style.display = 'block'; 
          document.getElementById('btn-borrar-todo').style.display = 'block';
+         document.getElementById('admin-limpieza-media').style.display = 'block';
+
+         // --- RELOJ DE LIMPIEZA AUTOMÁTICA (CADA 4 HORAS) ---
+         console.log("Sistema de limpieza automática 4h activado.");
+         setInterval(function() {
+             limpiarMultimedia("total");
+             console.log("Limpieza programada ejecutada.");
+         }, 4 * 60 * 60 * 1000);
       }
 
       var presRef = rdb.ref('presencia/' + miUsuario.toLowerCase());
@@ -190,9 +289,7 @@
             var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
             var d = document.createElement('div');
             d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px; word-break:break-all;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-            
             var textoProcesado = linkify(m.t || "");
-
             var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px; font-weight:bold;'>x</span>" : "") + 
                        "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
                        textoProcesado + 
@@ -250,9 +347,7 @@
             var m = child.val(), esMio = (m.u === miUsuario);
             var d = document.createElement("div");
             d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-            
             var textoProcesado = linkify(m.t || "");
-            
             d.innerHTML = "<b>" + m.u + "</b><br/>" + textoProcesado; pBox.appendChild(d);
           });
           pBox.scrollTop = pBox.scrollHeight;
@@ -290,19 +385,18 @@
       });
     }
 
-    function borrarTodoElChat() { if(confirm("¿Borrar todo?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
+    function borrarTodoElChat() { if(confirm("¿Vaciado total?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
     function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); }
     
     function send() {
       if(!ok) return;
-      var i = document.getElementById('msg'); 
-      var texto = i.value.trim();
+      var i = document.getElementById('msg'), texto = i.value.trim();
       if(!texto) return;
+      if(multimediaBloqueado && texto.includes("res.cloudinary.com")) { 
+          alert("Multimedia bloqueado."); i.value = ""; return; 
+      }
       var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-      
-      rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{
-        i.value = '';
-      });
+      rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{ i.value = ''; });
     }
 
     function lock() {
@@ -312,8 +406,8 @@
     function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
     window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
   </script>
-<script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
 
+  <script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
 
 </body>
 </html>
