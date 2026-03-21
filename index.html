@@ -13,19 +13,20 @@
     .dropdown-content span { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; }
     .dropdown-content span:hover { background-color: #f1f1f1; }
     .show { display: block !important; }
+    
+    /* ESTILOS MODAL GRUPOS */
     #modal-reglas, #modal-online, #modal-crear-grupo { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
-    .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
     
-    /* Estilos Multimedia */
+    .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
     .chat-media { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; border: 1px solid #ddd; cursor: pointer; }
     .btn-adjuntar { background: #ccc; color: #333; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; font-weight: bold; }
     .btn-disabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); }
     .status-off { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px; display: none; }
 
-    /* Estilo para lista de grupos */
-    .item-grupo { padding: 10px 16px; border-bottom: 1px solid #eee; font-size: 13px; color: #333; cursor: pointer; display: flex; justify-content: space-between; }
-    .item-grupo:hover { background: #f1f1f1; }
+    /* Estilo para los ítems de grupos en el menú */
+    .item-grupo-menu { padding: 12px 16px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; color: #075e54; font-weight: bold; display: block; }
+    .item-grupo-menu:hover { background: #f1f1f1; }
   </style>
 </head>
 <body>
@@ -49,9 +50,9 @@
           <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
           <div class='dropdown-content' id='myDropdown'>
             <span onclick='abrirReglas()'>Reglas</span>
+            
             <span onclick="abrirModalCrearGrupo()" style="color:#25d366; font-weight:bold;">+ Crear Grupo</span>
-            <div style="background:#eee; padding:5px; font-size:10px; color:#666; text-align:center;">MIS GRUPOS</div>
-            <div id="lista-grupos-menu"></div>
+            <div id="lista-grupos-nav" style="background:#f1f1f1; max-height:150px; overflow-y:auto;"></div>
             
             <div id="admin-limpieza-media" style="display:none;">
                 <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
@@ -81,8 +82,8 @@
     </div>
 
     <div id="modal-crear-grupo">
-      <div class="modal-box" style="max-width:300px; text-align:center;">
-        <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo</h3>
+      <div class="modal-box" style="text-align:center;">
+        <h3 style="color:#075e54; margin-top:0;">Crear Nuevo Grupo</h3>
         <input id="nom-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; margin-bottom:15px;" type="text"/>
         <button onclick="confirmarCrearGrupo()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">CREAR</button>
         <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cancelar</button>
@@ -151,9 +152,9 @@
 
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
     function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
-    function cerrarReglas() { document.getElementById("modal-reglas").style.none = "none"; }
+    function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
 
-    // --- FUNCIONES DE GRUPOS INSERTADAS ---
+    /* LÓGICA DE GRUPOS NUEVA */
     function abrirModalCrearGrupo() {
       document.getElementById("myDropdown").classList.remove("show");
       document.getElementById("modal-crear-grupo").style.display = "flex";
@@ -161,29 +162,35 @@
 
     function confirmarCrearGrupo() {
       var nom = document.getElementById("nom-grupo").value.trim();
-      if(!nom) return alert("Escribe un nombre");
-      var idG = "g_" + Date.now();
-      rdb.ref('lista_grupos/' + idG).set({ n: nom, c: miUsuario }).then(() => {
+      if(!nom) { alert("Escribe un nombre para el grupo"); return; }
+      
+      var idGrupo = "g_" + Date.now(); // Genera un ID único basado en tiempo
+      
+      // Guardamos la información del grupo en Firebase
+      rdb.ref('lista_grupos/' + idGrupo).set({
+        n: nom,        // Nombre
+        c: miUsuario,  // Creador
+        f: new Date().getTime()
+      }).then(() => {
         document.getElementById("modal-crear-grupo").style.display = "none";
         document.getElementById("nom-grupo").value = "";
-        window.location.href = "grupo.html?id=" + idG;
+        // Redirecciona al chat de grupo pasando el ID
+        window.location.href = "grupo.html?id=" + idGrupo;
       });
     }
 
-    function cargarListaGrupos() {
-      rdb.ref('lista_grupos').on('value', (snap) => {
-        var menu = document.getElementById("lista-grupos-menu");
-        if(!menu) return;
-        menu.innerHTML = "";
-        snap.forEach((child) => {
+    function cargarGruposMenu() {
+      rdb.ref('lista_grupos').on('value', (snapshot) => {
+        var contenedor = document.getElementById("lista-grupos-nav");
+        if(!contenedor) return;
+        contenedor.innerHTML = "";
+        snapshot.forEach((child) => {
           var g = child.val();
-          if(g.c === miUsuario || miUsuario === "Chat") {
-            var span = document.createElement("span");
-            span.className = "item-grupo";
-            span.innerHTML = "📁 " + g.n;
-            span.onclick = () => window.location.href = "grupo.html?id=" + child.key;
-            menu.appendChild(span);
-          }
+          var div = document.createElement("a");
+          div.className = "item-grupo-menu";
+          div.innerHTML = "📂 " + g.n;
+          div.onclick = () => { window.location.href = "grupo.html?id=" + child.key; };
+          contenedor.appendChild(div);
         });
       });
     }
@@ -234,10 +241,7 @@
     async function subirMultimedia(input, tipo) {
       if(tipo === 'global') {
           const s = await rdb.ref('config/multimedia_bloqueado').once('value');
-          if(s.val() === true) { 
-              alert("Multimedia bloqueado por administrador."); 
-              input.value = ""; return; 
-          }
+          if(s.val() === true) { alert("Multimedia bloqueado por administrador."); input.value = ""; return; }
       }
       const file = input.files[0];
       if(!file) return;
@@ -256,16 +260,6 @@
             document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); 
         }
       } catch (err) { alert("Error al subir"); } finally { btn.innerText = ">"; input.value = ""; }
-    }
-
-    function limpiarMultimedia(tipo) {
-        const esMedia = (url) => url && url.includes("res.cloudinary.com");
-        if(tipo === "publico" || tipo === "total") {
-            rdb.ref('mensajes').once('value', (s) => { s.forEach((c) => { if(esMedia(c.val().t)) rdb.ref('mensajes/'+c.key).remove(); }); });
-        }
-        if(tipo === "privado" || tipo === "total") {
-            rdb.ref('privados').once('value', (s) => { s.forEach((sala) => { sala.forEach((msg) => { if(esMedia(msg.val().t)) rdb.ref('privados/'+sala.key+'/'+msg.key).remove(); }); }); });
-        }
     }
 
     function entrar() {
@@ -297,70 +291,51 @@
          document.getElementById('admin-editor').style.display = 'block'; 
          document.getElementById('btn-borrar-todo').style.display = 'block';
          document.getElementById('admin-limpieza-media').style.display = 'block';
-         setInterval(function() {
-             limpiarMultimedia("total");
-         }, 4 * 60 * 60 * 1000);
+         setInterval(() => { rdb.ref('mensajes').remove(); }, 4 * 60 * 60 * 1000);
       }
 
-      var presRef = rdb.ref('presencia/' + miUsuario.toLowerCase());
-      presRef.set(miUsuario);
-      presRef.onDisconnect().remove();
+      rdb.ref('presencia/' + miUsuario.toLowerCase()).set(miUsuario);
+      rdb.ref('presencia/' + miUsuario.toLowerCase()).onDisconnect().remove();
 
       rdb.ref('presencia').on('value', (s) => {
-        var usuarios = s.val() || {};
-        var count = Object.keys(usuarios).length;
+        var count = s.numChildren();
         document.getElementById('online-count').innerText = "Conectados: " + count + " ▼";
         var listaDiv = document.getElementById('lista-online');
         listaDiv.innerHTML = "";
-        Object.values(usuarios).forEach(nombre => {
-          var item = document.createElement('div');
-          item.innerHTML = "• <b style='color:#075e54;'>" + nombre + "</b>";
-          listaDiv.appendChild(item);
+        s.forEach(child => {
+          listaDiv.innerHTML += "• <b style='color:#075e54;'>" + child.val() + "</b><br>";
         });
       });
 
-      rdb.ref('config/reglas').on('value', (s) => {
-        document.getElementById('reglas-texto').innerText = s.exists() ? s.val() : "Bienvenido.";
-      });
-      
       rdb.ref('mensajes').on('value', (snapshot) => {
         var box = document.getElementById('m-box');
-        if (!box) return;
         box.innerHTML = ""; 
-        if(snapshot.exists()){
-          snapshot.forEach((child) => {
-            var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
-            var d = document.createElement('div');
-            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px; word-break:break-all;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-            var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px; font-weight:bold;'>x</span>" : "") + 
-                       "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
-                       linkify(m.t || "") + 
-                       "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + "</div>" +
-                       "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
-            EMOJIS.forEach(emoji => {
-              var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
-              var activo = (m.reacciones && m.reacciones[emoji] && m.reacciones[emoji][miUsuario]);
-              html += "<span onclick='reaccionar(\""+id+"\",\""+emoji+"\")' style='cursor:pointer; font-size:12px; background:"+(activo?"#c5e1a5":"#f0f0f0")+"; padding:2px 5px; border-radius:5px;'>" + emoji + (count > 0 ? " " + count : "") + "</span>";
-            });
-            html += "</div>";
-            d.innerHTML = html; box.appendChild(d);
-          });
-          box.scrollTop = box.scrollHeight;
-        }
+        snapshot.forEach((child) => {
+          var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
+          var d = document.createElement('div');
+          d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; margin-bottom:5px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
+          d.innerHTML = "<small onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer;'>"+m.u+"</small><br>"+linkify(m.t);
+          box.appendChild(d);
+        });
+        box.scrollTop = box.scrollHeight;
       });
-      // INICIAR CARGA DE GRUPOS
-      cargarListaGrupos();
+      
+      // Iniciamos la carga de grupos en el menú
+      cargarGruposMenu();
     }
 
-    function verQuienesEstanOnline() {
-      document.getElementById('modal-online').style.display = 'flex';
-      if(miUsuario === "Chat") document.getElementById('admin-limpiar').style.display = 'block';
+    function send() {
+      var i = document.getElementById('msg'), t = i.value.trim();
+      if(!t || !ok) return;
+      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;") });
+      i.value = "";
     }
 
-    function limpiarPresencia() {
-      if(confirm("¿Eliminar usuarios fantasmas?")) {
-        rdb.ref('presencia').remove().then(() => { location.reload(); });
-      }
+    function lock() {
+      ok = !ok;
+      var b = document.getElementById('tgl');
+      b.innerText = ok ? "ACTIVO" : "BLOQUEADO";
+      b.style.background = ok ? "#25d366" : "#ff5252";
     }
 
     function abrirPrivado(nombre) {
@@ -372,85 +347,33 @@
     }
 
     function cerrarPrivado() {
-      if(usuarioDestino) {
-        var idSala = generarIdSala(miUsuario, usuarioDestino);
-        rdb.ref("privados/" + idSala).off();
-        rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
-      }
       document.getElementById("p-chat").style.display = "none";
       usuarioDestino = "";
     }
 
     function escucharPrivados() {
       var idSala = generarIdSala(miUsuario, usuarioDestino);
-      var primero = true;
       rdb.ref("privados/" + idSala).on("value", (snapshot) => {
         var pBox = document.getElementById("p-box"); pBox.innerHTML = "";
-        if(snapshot.exists()){
-          snapshot.forEach((child) => {
-            var m = child.val(), esMio = (m.u === miUsuario);
-            var d = document.createElement("div");
-            d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-            d.innerHTML = "<b>" + m.u + "</b><br/>" + linkify(m.t || ""); pBox.appendChild(d);
-          });
-          pBox.scrollTop = pBox.scrollHeight;
-          if(!primero) audioNotif.play().catch(function(e){});
-          primero = false;
-        }
+        snapshot.forEach((child) => {
+          var m = child.val(), esMio = (m.u === miUsuario);
+          var d = document.createElement("div");
+          d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
+          d.innerHTML = "<b>"+m.u+"</b><br>"+linkify(m.t);
+          pBox.appendChild(d);
+        });
+        pBox.scrollTop = pBox.scrollHeight;
       });
-      rdb.ref("escribiendo/" + idSala + "/" + usuarioDestino).on("value", (s) => {
-        document.getElementById("p-status").innerText = s.exists() ? usuarioDestino + " está escribiendo..." : "";
-      });
-    }
-
-    function notificarEscribiendo() {
-      if(!usuarioDestino) return;
-      var idSala = generarIdSala(miUsuario, usuarioDestino);
-      rdb.ref("escribiendo/" + idSala + "/" + miUsuario).set(true);
-      clearTimeout(escribiendoTimeout);
-      escribiendoTimeout = setTimeout(() => { rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove(); }, 2000);
     }
 
     function enviarPrivado() {
-      var input = document.getElementById("p-msg"), val = input.value.trim();
-      if (!val || !usuarioDestino) return;
-      var idSala = generarIdSala(miUsuario, usuarioDestino);
-      rdb.ref("privados/" + idSala).push({ u: miUsuario, t: val.replace(/</g, "&lt;"), h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes() }).then(() => {
-          input.value = ""; rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove();
-      });
+      var i = document.getElementById("p-msg"), v = i.value.trim();
+      if(!v) return;
+      rdb.ref("privados/" + generarIdSala(miUsuario, usuarioDestino)).push({ u: miUsuario, t: v });
+      i.value = "";
     }
 
-    function reaccionar(msgId, emoji) {
-      rdb.ref('mensajes/' + msgId + '/reacciones').once('value', (s) => {
-        var data = s.val() || {};
-        EMOJIS.forEach(e => { if(data[e] && data[e][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + e + '/' + miUsuario).remove(); });
-        if(!data[emoji] || !data[emoji][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + emoji + '/' + miUsuario).set(true);
-      });
-    }
-
-    function borrarTodoElChat() { if(confirm("¿Vaciado total?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); }
-    function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); }
-    
-    function send() {
-      if(!ok) return;
-      var i = document.getElementById('msg'), texto = i.value.trim();
-      if(!texto) return;
-      if(multimediaBloqueado && texto.includes("res.cloudinary.com")) { 
-          alert("Multimedia bloqueado."); i.value = ""; return; 
-      }
-      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-      rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{ i.value = ''; });
-    }
-
-    function lock() {
-      ok = !ok; var b = document.getElementById('tgl'), i = document.getElementById('msg');
-      b.innerText = ok ? "ACTIVO" : "BLOQUEADO"; b.style.background = ok ? "#25d366" : "#ff5252"; i.disabled = !ok;
-    }
-    function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
     window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
   </script>
-
-  <script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
-
 </body>
 </html>
