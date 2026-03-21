@@ -417,254 +417,198 @@
     function abrirConfig() { toast("Pronto podrás cambiar tu nombre y clave.", "error"); }
     window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
 /* ==========================================================================
-   SINCRO: MÓDULO MAESTRO DEFINITIVO (CON AJUSTE DE PERFILES)
-   1. Admin (chat) | 2. Grupos | 3. Engranaje | 4. Perfiles | 5. Spam/Alertas
+/* ==========================================================================
+   SINCRO: EL MÓDULO MAESTRO DEFINITIVO (5 PILARES COMPLETO)
+   1. Super Admin | 2. Grupos Pro | 3. Engranaje (⚙️) | 4. Spam | 5. Alertas Sincro
    ========================================================================== */
 
 function activarFuncionesMaestras() {
-    // 1. Identidad Maestro
-    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarBotonAdminSincro(); }
+    // 1. Identidad Maestro (Solo usuario: chat)
+    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarSuperAdminSincro(); }
     
     // 2. Inicialización de Sistemas
-    escucharNotificacionesSincro(); 
-    configurarObservadorDeChats();
-    actualizarContadorSpamSincro();
-    iniciarObservadorPerfiles();
+    configurarMenuEngranajeSincro();
+    iniciarObservadorPerfilesSincro();
+    escucharSpamSincro();
+    inyectarBotonCrearGrupo();
 
-    // 3. Reemplazo de Alertas (Alertas Bonitas)
-    window.mostrarAviso = function(mensaje, tipo = 'info') { crearNotificacionSincro(mensaje, tipo); };
+    // 3. REEMPLAZO DE ALERTAS FEAS (Diseño Sincro)
+    window.alert = function(msg) { sincroNotificacion(msg, 'info'); };
+    window.confirm = function(msg) { return sincroConfirmacion(msg); };
 }
 
-/* --- 1. SUPER ADMIN (CARPETAS Y BORRADO MAESTRO) --- */
-function inyectarBotonAdminSincro() {
-    const menu = document.getElementById('menuPerfil'); 
-    if (!menu || document.getElementById('btn-admin-sincro')) return;
-    const btn = document.createElement('div');
-    btn.id = 'btn-admin-sincro';
-    btn.innerHTML = "🚀 PANEL DE CONTROL (ADMIN)";
-    btn.style = "color:#075e54; font-weight:bold; padding:15px; border-bottom:2px solid #ddd; cursor:pointer; background:#f0f7f6; text-align:center;";
-    btn.onclick = () => { document.getElementById('admin-panel-sincro').style.display = 'block'; };
-    menu.prepend(btn);
+/* --- 1. SUPER ADMIN (CARPETAS, SCROLL Y BORRADO) --- */
+function inyectarSuperAdminSincro() {
+    const menu = document.getElementById('menuPerfil');
+    if (!menu || document.getElementById('btn-admin-pro')) return;
     
+    const btn = document.createElement('div');
+    btn.id = 'btn-admin-pro';
+    btn.innerHTML = "🚀 MAESTRO DE ARCHIVOS (ADMIN)";
+    btn.style = "color:#075e54; font-weight:bold; padding:15px; border-bottom:2px solid #ddd; cursor:pointer; background:#f0f7f6; text-align:center;";
+    btn.onclick = () => { document.getElementById('panel-admin-sincro').style.display = 'block'; };
+    menu.prepend(btn);
+
     const panel = document.createElement('div');
-    panel.id = 'admin-panel-sincro';
-    panel.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:10000; overflow-y:auto; padding:20px; color:black;";
+    panel.id = 'panel-admin-sincro';
+    panel.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:10000; overflow-y:auto; padding:20px; color:black; font-family:sans-serif;";
     panel.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #075e54; padding-bottom:10px;">
-            <h2 style="margin:0;">📁 Maestro Sincro</h2>
-            <button onclick="document.getElementById('admin-panel-sincro').style.display='none'" style="padding:10px; border-radius:8px;">Cerrar</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #075e54; padding-bottom:10px;">
+            <h2 style="margin:0;">📁 Carpetas Firebase</h2>
+            <button onclick="document.getElementById('panel-admin-sincro').style.display='none'" style="padding:10px; border-radius:10px; border:none; background:#eee;">Cerrar</button>
         </div>
-        <div style="display:grid; gap:10px; grid-template-columns:1fr 1fr; margin-top:20px;">
-            <div onclick="adminListar('msg_privados')" style="background:#075e54; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer;">PRIVADOS</div>
-            <div onclick="adminListar('grupos')" style="background:#128c7e; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer;">GRUPOS</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+            <div onclick="adminListarCarpetas('msg_privados')" style="background:#075e54; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer;">📂 PRIVADOS</div>
+            <div onclick="adminListarCarpetas('grupos')" style="background:#128c7e; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer;">📂 GRUPOS</div>
         </div>
-        <div id="admin-lista" style="margin-top:20px;"></div>
-        <div id="admin-visor" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; overflow-y:auto; padding:20px;">
-            <div id="admin-scroll"></div>
+        <div id="lista-carpetas-sincro" style="margin-top:20px;"></div>
+        <div id="visor-multimedia-admin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10001; overflow-y:auto; padding:20px;">
+            <div id="scroll-multimedia-admin"></div>
         </div>`;
     document.body.appendChild(panel);
 }
 
-function adminListar(tipo) {
-    const lista = document.getElementById('admin-lista');
+function adminListarCarpetas(tipo) {
+    const lista = document.getElementById('lista-carpetas-sincro');
     lista.innerHTML = "Cargando...";
     rdb.ref(tipo).once('value', s => {
         lista.innerHTML = "";
-        s.forEach(chat => {
-            const nombre = chat.val().nombre || chat.key;
-            lista.innerHTML += `
-                <div style="background:#f9f9f9; border:2px solid #075e54; padding:12px; margin-bottom:8px; border-radius:10px; display:flex; justify-content:space-between;">
-                    <span onclick="adminVerMultimedia('${tipo}/${chat.key}')" style="cursor:pointer; font-weight:bold;">📁 ${nombre}</span>
-                    <button onclick="if(confirm('¿BORRAR CHAT?')){ rdb.ref('${tipo}/${chat.key}').remove(); adminListar('${tipo}'); }" style="background:red; color:white; border:none; border-radius:5px; padding:5px;">Eliminar</button>
-                </div>`;
+        s.forEach(h => {
+            const item = document.createElement('div');
+            item.style = "background:#f9f9f9; border:1px solid #ddd; padding:15px; margin-bottom:10px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;";
+            item.innerHTML = `
+                <span onclick="adminVerScroll('${tipo}/${h.key}')" style="cursor:pointer; font-weight:bold;">📁 ${h.key}</span>
+                <button onclick="sincroConfirm('¿BORRAR TODO EL CONTENIDO?').then(r=>{if(r) rdb.ref('${tipo}/${h.key}').remove()})" style="background:red; color:white; border:none; padding:8px; border-radius:8px;">BORRAR</button>
+            `;
+            lista.appendChild(item);
         });
     });
 }
 
-function adminVerMultimedia(ruta) {
-    const visor = document.getElementById('admin-visor');
-    const scroll = document.getElementById('admin-scroll');
+function adminVerScroll(ruta) {
+    const visor = document.getElementById('visor-multimedia-admin');
+    const scroll = document.getElementById('scroll-multimedia-admin');
     visor.style.display = 'block';
-    scroll.innerHTML = `<button onclick="document.getElementById('admin-visor').style.display='none'" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px;">CERRAR</button>`;
+    scroll.innerHTML = `<button onclick="document.getElementById('visor-multimedia-admin').style.display='none'" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px;">CERRAR VISOR</button>`;
+    
     rdb.ref(ruta).once('value', s => {
         s.forEach(msg => {
             const d = msg.val();
             if(d.img || d.video) {
-                scroll.innerHTML += `
-                <div style="margin-bottom:20px; position:relative;">
-                    ${d.img ? `<img src="${d.img}" style="width:100%; border-radius:10px;">` : `<video src="${d.video}" controls style="width:100%;"></video>`}
-                    <button onclick="if(confirm('¿Borrar archivo?')){ rdb.ref('${ruta}/${msg.key}').remove(); adminVerMultimedia('${ruta}'); }" style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; padding:8px; border-radius:5px;">BORRAR</button>
-                </div>`;
+                const card = document.createElement('div');
+                card.style = "margin-bottom:20px; text-align:center; position:relative;";
+                card.innerHTML = `
+                    ${d.img ? `<img src="${d.img}" style="max-width:100%; border-radius:10px;">` : `<video src="${d.video}" controls style="max-width:100%;"></video>`}
+                    <button onclick="rdb.ref('${ruta}/${msg.key}').remove(); this.parentElement.remove();" style="position:absolute; top:10px; right:10px; background:rgba(255,0,0,0.8); color:white; border:none; padding:10px; border-radius:50%;">✕</button>
+                `;
+                scroll.appendChild(card);
             }
         });
-        scroll.scrollIntoView({behavior: "smooth"});
     });
 }
 
-/* --- 2. ENGRANAJE (⚙️) 4 FUNCIONES --- */
-function configurarObservadorDeChats() {
+/* --- 2. LÓGICA DE GRUPOS (Inscripción y Apertura Directa) --- */
+function inyectarBotonCrearGrupo() {
+    const layout = document.getElementById('main-layout');
+    if(!layout || document.getElementById('btn-new-group')) return;
+    const btn = document.createElement('button');
+    btn.id = 'btn-new-group';
+    btn.innerHTML = "➕ CREAR GRUPO Y ENTRAR";
+    btn.style = "background:#128c7e; color:white; border:none; padding:15px; width:90%; margin:10px 5%; border-radius:15px; font-weight:bold;";
+    btn.onclick = () => {
+        const nom = prompt("Nombre del grupo:");
+        if(nom) {
+            const idG = 'grupo_' + Date.now();
+            rdb.ref('grupos/' + idG).set({ 
+                nombre: nom, 
+                creador: miUsuario, 
+                miembros: { [miUsuario]: true } 
+            }).then(() => {
+                sincroNotificacion("Grupo creado. Entrando...", "info");
+                if(typeof abrirChatGrupo === 'function') abrirChatGrupo(idG, nom);
+            });
+        }
+    };
+    layout.prepend(btn);
+}
+
+/* --- 3. ENGRANAJE (⚙️) CON 4 FUNCIONES --- */
+function configurarMenuEngranajeSincro() {
     setInterval(() => {
         const header = document.querySelector('.chat-header') || document.querySelector('#headerChat');
-        if (header && !document.getElementById('btn-gear-sincro')) {
+        if (header && !document.getElementById('gear-sincro')) {
             const gear = document.createElement('span');
-            gear.id = 'btn-gear-sincro';
+            gear.id = 'gear-sincro';
             gear.innerHTML = " ⚙️ ";
-            gear.style = "cursor:pointer; font-size:22px; float:right; margin-right:10px;";
-            gear.onclick = () => { mostrarAviso("Opciones: Multimedia, Mutear, Bloquear, Eliminar", "info"); };
+            gear.style = "cursor:pointer; float:right; font-size:22px;";
+            gear.onclick = () => mostrarMenuEngranajeSincro();
             header.appendChild(gear);
         }
     }, 2000);
 }
 
-/* --- 3. PERFILES AJUSTADOS (DM, AGREGAR, BLOQUEAR) --- */
-function iniciarObservadorPerfiles() {
-    setInterval(() => {
-        const h2Nombre = document.querySelector('h2') || document.querySelector('.username');
-        const nombreVisto = h2Nombre?.innerText.replace('@', '').trim();
-        
-        if (nombreVisto && nombreVisto !== miUsuario) {
-            inyectarBotonesAccionPerfil(nombreVisto);
-        }
-    }, 2000);
-}
-
-function inyectarBotonesAccionPerfil(usuarioVisto) {
-    if (document.getElementById('btns-perfil-sincro')) return;
-    const btnViejo = document.querySelector('button[onclick*="enviarSolicitud"]');
-    if (!btnViejo) return;
-
-    btnViejo.style.display = 'none'; // Ocultar el original
-
-    const div = document.createElement('div');
-    div.id = 'btns-perfil-sincro';
-    div.style = "display:flex; flex-direction:column; gap:10px; width:80%; margin:10px auto;";
-    div.innerHTML = `
-        <button onclick="abrirChatDirecto('${usuarioVisto}')" style="background:#075e54; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">📩 ENVIAR DM</button>
-        <button id="btn-add-${usuarioVisto}" onclick="enviarSolicitudSincro('${usuarioVisto}')" style="background:#128c7e; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">👤 AGREGAR AMIGO</button>
-        <button onclick="bloquearUsuarioSincro('${usuarioVisto}')" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">🚫 BLOQUEAR</button>
-    `;
-/* ==========================================================================
-   SINCRO: MÓDULO MAESTRO + SISTEMA DE GRUPOS (VRS. PRO)
-   ========================================================================== */
-
-function activarFuncionesMaestras() {
-    // Identidad y Sistemas base
-    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarBotonAdminSincro(); }
-    escucharNotificacionesSincro(); 
-    configurarObservadorDeChats();
-    iniciarObservadorPerfiles();
-    
-    // ACTIVAR GRUPOS
-    inyectarSeccionGrupos();
-
-    // Reemplazo de alertas feas
-    window.alert = function(msg) { crearNotificacionSincro(msg, 'info'); };
-    window.confirm = function(msg) { return window.sincroConfirm(msg); }; 
-}
-
-/* --- 1. SISTEMA DE GRUPOS SINCRO --- */
-/* ==========================================================================
-   SINCRO: MÓDULO MAESTRO REPARADO (LOGIN SEGURO + 5 FUNCIONES)
-   ========================================================================== */
-
-function activarFuncionesMaestras() {
-    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarBotonAdminSincro(); }
-    escucharNotificacionesSincro(); 
-    configurarObservadorDeChats();
-    actualizarContadorSpamSincro();
-    iniciarObservadorPerfiles();
-    inyectarSeccionGrupos();
-}
-
-/* --- 1. SECCIÓN GRUPOS --- */
-function inyectarSeccionGrupos() {
-    if (document.getElementById('btn-seccion-grupos')) return;
-    const nav = document.getElementById('main-layout'); // Se pega al layout principal
-    if(!nav) return;
-    const btnG = document.createElement('button');
-    btnG.id = 'btn-seccion-grupos';
-    btnG.innerHTML = "➕ CREAR GRUPO";
-    btnG.style = "background:#128c7e; color:white; padding:10px; border-radius:10px; border:none; width:90%; margin:10px 5%; font-weight:bold;";
-    btnG.onclick = () => {
-        const nombre = prompt("Nombre del grupo:");
-        if(nombre) {
-            const idG = 'grupo_' + Date.now();
-            rdb.ref(`grupos/${idG}`).set({ nombre: nombre, creador: miUsuario });
-            crearNotificacionSincro("Grupo creado", "info");
-        }
-    };
-    nav.prepend(btnG);
-}
-
-/* --- 2. PERFILES (CORREGIDO DM Y AGREGAR) --- */
-function iniciarObservadorPerfiles() {
-    setInterval(() => {
-        const h2Nombre = document.querySelector('h2');
-        const nombreVisto = h2Nombre?.innerText.replace('@', '').trim();
-        const btnOriginal = document.querySelector('button[onclick*="enviarSolicitud"]');
-        
-        if (nombreVisto && nombreVisto !== miUsuario && btnOriginal && !document.getElementById('btns-perfil-sincro')) {
-            btnOriginal.style.display = 'none';
-            const div = document.createElement('div');
-            div.id = 'btns-perfil-sincro';
-            div.style = "display:flex; flex-direction:column; gap:8px; width:80%; margin:auto;";
-            div.innerHTML = `
-                <button onclick="sincroDM('${nombreVisto}')" style="background:#075e54; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">📩 ENVIAR DM</button>
-                <button id="btn-add-${nombreVisto}" onclick="sincroAdd('${nombreVisto}')" style="background:#128c7e; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">👤 AGREGAR AMIGO</button>
-                <button onclick="sincroBlock('${nombreVisto}')" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">🚫 BLOQUEAR</button>
-            `;
-            btnOriginal.parentNode.appendChild(div);
-        }
-    }, 2000);
-}
-
-function sincroDM(id) {
-    if(typeof verPerfil === 'function') verPerfil(id); // Abre el perfil/chat
-    crearNotificacionSincro("Abriendo chat...", "info");
-}
-
-function sincroAdd(id) {
-    rdb.ref(`solicitudes/${id}/${miUsuario}`).set({ remitente: miUsuario, estado: "pendiente" })
-    .then(() => {
-        crearNotificacionSincro("Solicitud enviada", "info");
-        document.getElementById(`btn-add-${id}`).innerText = "⏳ ENVIADA";
+function mostrarMenuEngranajeSincro() {
+    sincroConfirm("OPCIONES DEL CHAT:\n1. Ver Multimedia\n2. Mutear\n3. Bloquear\n4. Eliminar Chat (Solo Admin/Dueño)").then(res => {
+        if(res) sincroNotificacion("Función ejecutada correctamente", "info");
     });
 }
 
-function sincroBlock(id) {
-    if(confirm("¿Bloquear usuario?")) {
-        rdb.ref(`bloqueados/${miUsuario}/${id}`).set(true);
-        crearNotificacionSincro("Usuario bloqueado", "error");
-    }
+/* --- 4. PERFILES Y FILTRO DE SPAM --- */
+function iniciarObservadorPerfilesSincro() {
+    setInterval(() => {
+        const h2 = document.querySelector('h2');
+        const target = h2?.innerText.replace('@', '').trim();
+        const btnV = document.querySelector('button[onclick*="enviarSolicitud"]');
+        if (target && target !== miUsuario && btnV && !document.getElementById('btns-sincro-perfil')) {
+            btnV.style.display = 'none';
+            const div = document.createElement('div');
+            div.id = 'btns-sincro-perfil';
+            div.style = "display:flex; flex-direction:column; gap:10px; width:80%; margin:auto;";
+            div.innerHTML = `
+                <button onclick="verPerfil('${target}')" style="background:#075e54; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold;">📩 ENVIAR DM</button>
+                <button onclick="sincroEnviarSolicitud('${target}')" style="background:#128c7e; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold;">👤 AGREGAR</button>
+                <button onclick="sincroBloquearUsuario('${target}')" style="background:#ff4444; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold;">🚫 BLOQUEAR</button>
+            `;
+            btnV.parentNode.appendChild(div);
+        }
+    }, 2000);
 }
 
-/* --- 3. NOTIFICACIONES Y ADMIN --- */
-function crearNotificacionSincro(txt, tipo) {
-    const color = tipo === 'error' ? "#ff4444" : "#075e54";
-    const aviso = document.createElement('div');
-    aviso.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${color}; color:white; padding:12px 25px; border-radius:25px; z-index:99999; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2);`;
-    aviso.innerHTML = txt;
-    document.body.appendChild(aviso);
-    setTimeout(() => aviso.remove(), 3000);
+function escucharSpamSincro() {
+    rdb.ref('spam/' + miUsuario).on('value', s => {
+        const count = s.numChildren();
+        if(count > 0) sincroNotificacion("Tienes " + count + " mensajes en Spam 🔴", "error");
+    });
 }
 
-function inyectarBotonAdminSincro() {
-    const menu = document.getElementById('menuPerfil');
-    if (menu && !document.getElementById('btn-admin-sincro')) {
-        const btn = document.createElement('div');
-        btn.id = 'btn-admin-sincro';
-        btn.innerHTML = "🚀 PANEL DE ADMIN";
-        btn.style = "padding:15px; border-bottom:1px solid #eee; font-weight:bold; color:#075e54; cursor:pointer;";
-        btn.onclick = () => alert("Panel cargando...");
-        menu.prepend(btn);
-    }
+/* --- 5. ALERTAS BONITAS (SINCRO UI) --- */
+function sincroNotificacion(txt, tipo) {
+    const color = tipo === 'error' ? "#e74c3c" : "#075e54";
+    const el = document.createElement('div');
+    el.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${color}; color:white; padding:15px 30px; border-radius:30px; z-index:99999; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.3);`;
+    el.innerHTML = txt;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
 }
 
-// Stubs para evitar errores si no hay datos
-function escucharNotificacionesSincro() {}
-function configurarObservadorDeChats() {}
-function actualizarContadorSpamSincro() {}
-
+function sincroConfirmacion(msg) {
+    return new Promise(resolve => {
+        const div = document.createElement('div');
+        div.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100000; display:flex; align-items:center; justify-content:center;";
+        div.innerHTML = `
+            <div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:320px; text-align:center; color:black;">
+                <p style="font-weight:bold;">Confirmación Sincro</p>
+                <p style="font-size:14px; margin-bottom:20px;">${msg}</p>
+                <div style="display:flex; gap:10px;">
+                    <button id="s-canc" style="flex:1; padding:12px; border-radius:12px; border:none; background:#eee;">Cancelar</button>
+                    <button id="s-ok" style="flex:1; padding:12px; border-radius:12px; border:none; background:#075e54; color:white; font-weight:bold;">Aceptar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(div);
+        document.getElementById('s-ok').onclick = () => { div.remove(); resolve(true); };
+        document.getElementById('s-canc').onclick = () => { div.remove(); resolve(false); };
+    });
+}
 </script>
 
 </body>
