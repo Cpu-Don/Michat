@@ -9,21 +9,23 @@
     #content, .section, .widget { display: block !important; width: 100%; height: 100%; }
     .navbar, .header-outer, .footer-outer { display: none !important; }
     .dropdown { position: relative; display: inline-block; }
-    .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 150px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1000000; border-radius: 5px; }
+    .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 170px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1000000; border-radius: 5px; }
     .dropdown-content span { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; }
     .dropdown-content span:hover { background-color: #f1f1f1; }
     .show { display: block !important; }
-    #modal-reglas, #modal-online { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
+    #modal-reglas, #modal-online, #modal-crear-grupo { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
     .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
+    
+    /* Estilos Multimedia */
     .chat-media { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; border: 1px solid #ddd; cursor: pointer; }
     .btn-adjuntar { background: #ccc; color: #333; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; font-weight: bold; }
     .btn-disabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); }
     .status-off { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px; display: none; }
-    
-    /* Estilo para la lista de grupos en el menú */
-    #mis-grupos-lista { border-top: 1px solid #eee; margin-top: 5px; max-height: 200px; overflow-y: auto; background: #fff; }
-    .grupo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+
+    /* Estilo Lista de Grupos en Menú */
+    #lista-grupos-menu { background: #eee; max-height: 150px; overflow-y: auto; }
+    .item-grupo { padding: 10px; font-size: 12px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -47,12 +49,9 @@
           <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
           <div class='dropdown-content' id='myDropdown'>
             <span onclick='abrirReglas()'>Reglas</span>
-            <span onclick='abrirModalGrupo()' style='color:#25d366; font-weight:bold;'>+ Crear Chat Grupal</span>
-            
-            <div id="mis-grupos-lista">
-                <small style="padding:10px; color:#999; display:block; text-align:center;">Cargando tus grupos...</small>
-            </div>
-
+            <span onclick='abrirModalGrupo()' style="color:#25d366; font-weight:bold;">+ Crear Chat Grupal</span>
+            <div style="background:#f0f0f0; padding:5px; font-size:10px; color:#666; font-weight:bold; text-align:center;">MIS GRUPOS</div>
+            <div id="lista-grupos-menu"></div>
             <div id="admin-limpieza-media" style="display:none;">
                 <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
                 <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
@@ -79,17 +78,54 @@
         <button id="btn-send-global" onclick='send()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>&gt;</button>
       </div>
     </div>
+
+    <div id='p-chat' style='display:none; position:fixed; bottom:0; right:15px; width:270px; background:white; border-radius:10px 10px 0 0; box-shadow:0 -5px 20px rgba(0,0,0,0.3); z-index:1000005; font-family:sans-serif; flex-direction:column; border:1px solid #075e54;'>
+      <div style='background:#075e54; color:white; padding:10px 12px; border-radius:10px 10px 0 0; display:flex; flex-direction:column;'>
+        <div style='display:flex; justify-content:space-between; align-items:center;'>
+          <span id='p-nombre' style='font-size:13px; font-weight:bold;'>Privado</span>
+          <span onclick='cerrarPrivado()' style='cursor:pointer; font-size:20px; font-weight:bold;'>X</span>
+        </div>
+        <small id='p-status' style='font-size:10px; color:#25d366; font-weight:bold; height:12px;'></small>
+      </div>
+      <div id='p-box' style='height:250px; overflow-y:auto; padding:10px; font-size:12px; background:#e5ddd5; display:flex; flex-direction:column; gap:8px;'></div>
+      <div style='padding:10px; background:#f0f0f0; display:flex; gap:5px; border-top:1px solid #ddd; align-items:center;'>
+        <button onclick="document.getElementById('file-privado').click()" style="background:#ccc; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer;">+</button>
+        <input type="file" id="file-privado" style="display:none" accept="image/*,video/*" onchange="subirMultimedia(this, 'privado')">
+        <input id='p-msg' oninput='notificarEscribiendo()' onkeypress='if(event.key==="Enter") enviarPrivado()' placeholder='Privado...' style='flex:1; border:1px solid #ccc; border-radius:15px; padding:8px 12px; outline:none; font-size:12px;' type='text'/>
+        <button id="btn-send-privado" onclick='enviarPrivado()' style='background:#075e54; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer;'>&gt;</button>
+      </div>
+    </div>
   </div>
 
-  <div id='modal-reglas'><div class='modal-box'><h3 style='color:#075e54; margin-top:0;'>Reglas</h3><div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'></div><div id='admin-editor' style='display:none;'><textarea id='edit-reglas' style='width:100%; height:60px;'></textarea><button onclick='guardarReglas()' style='width:100%; background:#075e54; color:white; border:none; padding:8px; margin-top:5px;'>ACTUALIZAR</button></div><button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:8px; margin-top:10px;'>CERRAR</button></div></div>
-  <div id='modal-online'><div class='modal-box' style='max-width:250px;'><h3 style='color:#075e54; margin-top:0;'>En línea</h3><div id='lista-online' style='max-height:250px; overflow-y:auto;'></div><div id='admin-limpiar' style='display:none;'><button onclick='limpiarPresencia()' style='width:100%; background:orange; color:white; border:none; padding:8px; margin-top:10px;'>LIMPIAR FANTASMAS</button></div><button onclick='document.getElementById("modal-online").style.display="none"' style='width:100%; background:#075e54; color:white; border:none; padding:8px; margin-top:10px;'>CERRAR</button></div></div>
+  <div id="modal-crear-grupo">
+    <div class="modal-box" style="max-width:300px;">
+        <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo</h3>
+        <input id="nom-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" type="text"/>
+        <button onclick="crearGrupoConfirmar()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:10px;">CREAR</button>
+        <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="width:100%; background:none; border:none; color:#777; margin-top:10px; cursor:pointer;">Cancelar</button>
+    </div>
+  </div>
 
-  <div id="modal-crear-grupo" style="display:none; position:fixed; z-index:1000005; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
-    <div style="background:white; padding:25px; border-radius:15px; width:85%; max-width:320px; font-family:sans-serif;">
-      <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo</h3>
-      <input type="text" id="nuevo-nombre-grupo" placeholder="Nombre..." style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;">
-      <button onclick="crearGrupoProceso()" style="width:100%; padding:14px; background:#075e54; color:white; border:none; border-radius:8px; font-weight:bold;">CREAR Y ENTRAR</button>
-      <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="width:100%; margin-top:10px; background:none; border:none; color:#999;">Cancelar</button>
+  <div id='modal-reglas'>
+    <div class='modal-box'>
+      <h3 style='color:#075e54; margin-top:0;'>Reglas</h3>
+      <div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'></div>
+      <div id='admin-editor' style='display:none; border-top:1px solid #eee; padding-top:10px;'>
+        <textarea id='edit-reglas' placeholder='Nuevas reglas...' style='width:100%; height:60px; font-size:12px;'></textarea>
+        <button onclick='guardarReglas()' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:5px;'>ACTUALIZAR</button>
+      </div>
+      <button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
+    </div>
+  </div>
+
+  <div id='modal-online'>
+    <div class='modal-box' style='max-width:250px;'>
+      <h3 style='color:#075e54; margin-top:0; font-size:16px;'>Usuarios en línea</h3>
+      <div id='lista-online' style='max-height:250px; overflow-y:auto; font-size:14px; color:#333; line-height:2;'></div>
+      <div id='admin-limpiar' style='display:none;'>
+          <button onclick='limpiarPresencia()' style='width:100%; background:orange; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px; font-size:11px; font-weight:bold;'>LIMPIAR FANTASMAS</button>
+      </div>
+      <button onclick='document.getElementById("modal-online").style.display="none"' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
     </div>
   </div>
 
@@ -106,7 +142,9 @@
 
     var ok = true;
     var miUsuario = "";
+    var usuarioDestino = "";
     var multimediaBloqueado = false;
+    var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
     const EMOJIS = ['❤️', '🥲', '🤣', '🥰'];
 
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
@@ -123,115 +161,179 @@
       return text.replace(urlPattern, function(url) { return '<a href="' + url + '" target="_blank" class="chat-link">' + url + '</a>'; });
     }
 
+    // --- LÓGICA DE GRUPOS ---
+    function abrirModalGrupo() { toggleMenu(); document.getElementById('modal-crear-grupo').style.display = 'flex'; }
+    
+    function crearGrupoConfirmar() {
+        var nom = document.getElementById('nom-grupo').value.trim();
+        if(!nom) return alert("Nombre de grupo requerido");
+        var idG = "g_" + Math.random().toString(36).substr(2, 9);
+        rdb.ref('lista_grupos/' + idG).set({
+            n: nom,
+            c: miUsuario,
+            f: Date.now()
+        }).then(() => {
+            document.getElementById('nom-grupo').value = "";
+            document.getElementById('modal-crear-grupo').style.display = 'none';
+            entrarAGrupo(idG);
+        });
+    }
+
+    function entrarAGrupo(id) {
+        // Guardamos el usuario para que grupo.html lo reconozca
+        localStorage.setItem('sincro_user', miUsuario);
+        window.location.href = "grupo.html?id=" + id;
+    }
+
+    function borrarGrupo(id) {
+        if(confirm("¿Eliminar este grupo definitivamente?")) {
+            rdb.ref('lista_grupos/' + id).remove();
+            rdb.ref('mensajes_grupos/' + id).remove();
+        }
+    }
+
+    function escucharMisGrupos() {
+        rdb.ref('lista_grupos').on('value', (snapshot) => {
+            var div = document.getElementById('lista-grupos-menu');
+            div.innerHTML = "";
+            snapshot.forEach((child) => {
+                var g = child.val();
+                // Mostramos todos, pero permitimos borrar solo los nuestros
+                var esMio = (g.c === miUsuario);
+                var item = document.createElement('div');
+                item.className = "item-grupo";
+                item.innerHTML = `
+                    <span onclick="entrarAGrupo('${child.key}')" style="cursor:pointer; flex:1;">📁 ${g.n}</span>
+                    ${esMio ? `<span onclick="borrarGrupo('${child.key}')" style="color:red; font-weight:bold; cursor:pointer; padding-left:10px;">X</span>` : ""}
+                `;
+                div.appendChild(item);
+            });
+        });
+    }
+
+    // --- FUNCIONES CORE (SIN CAMBIOS) ---
+    function generarIdSala(u1, u2) {
+      var comb = [u1.toLowerCase(), u2.toLowerCase()].sort().join("_");
+      var hash = 0; for (var i = 0; i < comb.length; i++) { hash = ((hash << 5) - hash) + comb.charCodeAt(i); hash |= 0; }
+      return "sala_" + Math.abs(hash);
+    }
+
+    function toggleMediaPublico() { rdb.ref('config/multimedia_bloqueado').set(!multimediaBloqueado); }
+
+    rdb.ref('config/multimedia_bloqueado').on('value', (s) => {
+        multimediaBloqueado = s.val() || false;
+        const btnPlus = document.getElementById('btn-plus-publico');
+        const labelOff = document.getElementById('label-off');
+        if(multimediaBloqueado) { if(btnPlus) btnPlus.classList.add('btn-disabled'); if(labelOff) labelOff.style.display = "block"; } 
+        else { if(btnPlus) btnPlus.classList.remove('btn-disabled'); if(labelOff) labelOff.style.display = "none"; }
+    });
+
+    async function subirMultimedia(input, tipo) {
+      if(tipo === 'global' && multimediaBloqueado) { alert("Bloqueado."); input.value = ""; return; }
+      const file = input.files[0]; if(!file) return;
+      const btn = (tipo === 'global') ? document.getElementById('btn-send-global') : document.getElementById('btn-send-privado');
+      btn.innerText = "...";
+      const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if(tipo === 'global') { document.getElementById('msg').value = data.secure_url; send(); } 
+        else { document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); }
+      } catch (err) { alert("Error"); } finally { btn.innerText = ">"; input.value = ""; }
+    }
+
     function entrar() {
       var uO = document.getElementById('usr').value.trim(); var p = document.getElementById('clv').value.trim(); var uM = uO.toLowerCase();
       if(!uO || !p) return alert("Escribe usuario y clave");
-      rdb.ref('usuarios/' + uM).once('value', (s) => {
-        if(s.exists() && s.val().toString() !== p.toString()) return alert("Clave incorrecta");
-        rdb.ref('usuarios/' + uM).set(p);
-        miUsuario = (uM === "chat") ? "Chat" : uO;
-        localStorage.setItem('g_user', miUsuario);
-        iniciar();
+      rdb.ref('usuarios/' + uM).once('value', (snapshot) => {
+        if(snapshot.exists()) {
+          if(snapshot.val().toString() === p.toString()) { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); } 
+          else { alert("Clave incorrecta."); }
+        } else {
+          rdb.ref('usuarios/' + uM).set(p).then(() => { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); });
+        }
       });
     }
 
     function iniciar() {
       document.getElementById('acceso').style.display = 'none';
       document.getElementById('chat').style.display = 'flex';
-      
       if(miUsuario === "Chat") { 
          document.getElementById('admin-editor').style.display = 'block'; 
          document.getElementById('btn-borrar-todo').style.display = 'block';
          document.getElementById('admin-limpieza-media').style.display = 'block';
       }
-
       rdb.ref('presencia/' + miUsuario.toLowerCase()).set(miUsuario).onDisconnect().remove();
       rdb.ref('presencia').on('value', (s) => {
-          var u = s.val() || {};
-          document.getElementById('online-count').innerText = "Conectados: " + Object.keys(u).length + " ▼";
-          document.getElementById('lista-online').innerHTML = Object.values(u).map(n => "• <b>"+n+"</b><br>").join("");
+        var usuarios = s.val() || {};
+        document.getElementById('online-count').innerText = "Conectados: " + Object.keys(usuarios).length + " ▼";
+        document.getElementById('lista-online').innerHTML = Object.values(usuarios).map(n => "• <b style='color:#075e54;'>"+n+"</b><br>").join("");
       });
-
-      rdb.ref('config/reglas').on('value', (s) => { document.getElementById('reglas-texto').innerText = s.val() || "Bienvenido"; });
+      rdb.ref('config/reglas').on('value', (s) => { document.getElementById('reglas-texto').innerText = s.val() || "Bienvenido."; });
       
-      // LECTURA DE MENSAJES ORIGINAL (CORREGIDA)
       rdb.ref('mensajes').on('value', (snapshot) => {
-        var box = document.getElementById('m-box'); box.innerHTML = "";
+        var box = document.getElementById('m-box'); box.innerHTML = ""; 
         snapshot.forEach((child) => {
           var m = child.val(), id = child.key, esMio = (m.u === miUsuario);
           var d = document.createElement('div');
           d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px; word-break:break-all;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-          
           var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; font-weight:bold;'>x</span>" : "") + 
-                     "<small style='color:#128c7e; font-weight:bold;'>"+m.u+"</small><br/>"+linkify(m.t) +
-                     "<div style='font-size:10px; color:#888; text-align:right;'>"+(m.h || "")+"</div>" +
-                     "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
-          
+                     "<small onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + 
+                     linkify(m.t) + "<div style='font-size:10px; color:#888; text-align:right;'>"+(m.h || "")+"</div><div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>";
           EMOJIS.forEach(emoji => {
             var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
             var activo = (m.reacciones && m.reacciones[emoji] && m.reacciones[emoji][miUsuario]);
             html += "<span onclick='reaccionar(\""+id+"\",\""+emoji+"\")' style='cursor:pointer; font-size:12px; background:"+(activo?"#c5e1a5":"#f0f0f0")+"; padding:2px 5px; border-radius:5px;'>" + emoji + (count > 0 ? " " + count : "") + "</span>";
           });
-          html += "</div>";
-          d.innerHTML = html; box.appendChild(d);
+          d.innerHTML = html + "</div>"; box.appendChild(d);
         });
         box.scrollTop = box.scrollHeight;
       });
 
-      cargarMisGrupos();
+      escucharMisGrupos();
     }
 
-    function reaccionar(msgId, emoji) {
-      rdb.ref('mensajes/' + msgId + '/reacciones').once('value', (s) => {
-        var data = s.val() || {};
-        EMOJIS.forEach(e => { if(data[e] && data[e][miUsuario]) rdb.ref('mensajes/'+msgId+'/reacciones/'+e+'/'+miUsuario).remove(); });
-        if(!data[emoji] || !data[emoji][miUsuario]) rdb.ref('mensajes/'+msgId+'/reacciones/'+emoji+'/'+miUsuario).set(true);
+    function verQuienesEstanOnline() { document.getElementById('modal-online').style.display = 'flex'; if(miUsuario === "Chat") document.getElementById('admin-limpiar').style.display = 'block'; }
+    function limpiarPresencia() { if(confirm("¿Limpiar?")) rdb.ref('presencia').remove().then(() => location.reload()); }
+    function abrirPrivado(n) { if(n === miUsuario) return; usuarioDestino = n; document.getElementById("p-nombre").innerText = "Privado: " + n; document.getElementById("p-chat").style.display = "flex"; escucharPrivados(); }
+    function cerrarPrivado() { document.getElementById("p-chat").style.display = "none"; usuarioDestino = ""; }
+    
+    function escucharPrivados() {
+      var id = generarIdSala(miUsuario, usuarioDestino);
+      rdb.ref("privados/" + id).on("value", (s) => {
+        var b = document.getElementById("p-box"); b.innerHTML = "";
+        s.forEach((c) => {
+          var m = c.val(), esMio = (m.u === miUsuario);
+          var d = document.createElement("div");
+          d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
+          d.innerHTML = "<b>"+m.u+"</b><br>"+linkify(m.t); b.appendChild(d);
+        });
+        b.scrollTop = b.scrollHeight;
+      });
+    }
+
+    function enviarPrivado() {
+      var i = document.getElementById("p-msg"), v = i.value.trim(); if(!v) return;
+      rdb.ref("privados/" + generarIdSala(miUsuario, usuarioDestino)).push({ u: miUsuario, t: v.replace(/</g, "&lt;") }); i.value = "";
+    }
+
+    function reaccionar(id, emoji) {
+      rdb.ref('mensajes/' + id + '/reacciones').once('value', (s) => {
+        var d = s.val() || {};
+        EMOJIS.forEach(e => { if(d[e] && d[e][miUsuario]) rdb.ref('mensajes/'+id+'/reacciones/'+e+'/'+miUsuario).remove(); });
+        if(!d[emoji] || !d[emoji][miUsuario]) rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true);
       });
     }
 
     function send() {
       var i = document.getElementById('msg'), t = i.value.trim(); if(!t || !ok) return;
       var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: h }); i.value = '';
+      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: h }).then(() => i.value = '');
     }
-
-    // --- FUNCIONES DE GRUPOS ---
-    function abrirModalGrupo() { toggleMenu(); document.getElementById('modal-crear-grupo').style.display='flex'; }
-    
-    async function crearGrupoProceso() {
-        const n = document.getElementById('nuevo-nombre-grupo').value.trim();
-        if(!n) return alert("Nombre obligatorio");
-        const id = "g-" + Math.random().toString(36).substring(2, 10);
-        await rdb.ref('lista_grupos/' + id).set({ nombre: n, creador: miUsuario, fecha: Date.now() });
-        window.location.href = "grupo.html?g=" + id;
-    }
-
-    function cargarMisGrupos() {
-        const div = document.getElementById('mis-grupos-lista');
-        rdb.ref('lista_grupos').on('value', s => {
-            div.innerHTML = ""; let hay = false;
-            s.forEach(c => {
-                const g = c.val();
-                if(g.creador === miUsuario) {
-                    hay = true;
-                    const item = document.createElement('div');
-                    item.className = "grupo-item";
-                    item.innerHTML = `<span onclick="location.href='grupo.html?g=${c.key}'" style="flex:1; font-size:13px;">📁 ${g.nombre}</span>
-                                      <span onclick="borrarGrupo('${c.key}')" style="color:red;">🗑️</span>`;
-                    div.appendChild(item);
-                }
-            });
-            if(!hay) div.innerHTML = "<small style='padding:10px; display:block; text-align:center; color:#999;'>Sin grupos</small>";
-        });
-    }
-
-    function borrarGrupo(id) { if(confirm("¿Eliminar grupo?")) { rdb.ref('lista_grupos/'+id).remove(); rdb.ref('chats_grupos/'+id).remove(); } }
 
     function lock() { ok = !ok; document.getElementById('tgl').innerText = ok ? "ACTIVO" : "BLOQUEADO"; document.getElementById('tgl').style.background = ok ? "#25d366" : "#ff5252"; }
-    function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/'+id).remove(); }
-    function borrarTodoElChat() { if(confirm("¿Vaciado?")) rdb.ref('mensajes').remove(); }
-    function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value); }
-    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } };
+    function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
+    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
   </script>
 </body>
 </html>
