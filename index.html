@@ -45,6 +45,8 @@
           <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
           <div class='dropdown-content' id='myDropdown'>
             <span onclick='abrirReglas()'>Reglas</span>
+            <span onclick='abrirModalGrupo()' style='color:#25d366; font-weight:bold;'>+ Crear Chat Grupal</span>
+
             <div id="admin-limpieza-media" style="display:none;">
                 <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
                 <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
@@ -405,9 +407,43 @@
     }
     function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
     window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
+  function abrirModalGrupo() {
+    document.getElementById("myDropdown").classList.remove("show");
+    document.getElementById('modal-crear-grupo').style.display = 'flex';
+}
+
+async function crearGrupoProceso() {
+    const n = document.getElementById('nuevo-nombre-grupo').value.trim();
+    if(!n) return alert("Escribe un nombre para el grupo");
+    const id = "g-" + Math.random().toString(36).substring(2, 10);
+    
+    // Guardar en Firebase (usando tu variable rdb)
+    await rdb.ref('lista_grupos/' + id).set({ 
+        nombre: n, 
+        creador: miUsuario, 
+        fecha: Date.now() 
+    });
+    
+    // Guardar seguridad para la página grupo.html
+    localStorage.setItem('g_token', btoa(id));
+    localStorage.setItem('g_user', miUsuario);
+    
+    // Redirigir a la página de Telegram
+    window.location.href = "grupo.html?g=" + id;
+}
+
   </script>
 
   <script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
+<div id="modal-crear-grupo" style="display:none; position:fixed; z-index:1000005; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; font-family:sans-serif;">
+  <div style="background:white; padding:25px; border-radius:15px; width:85%; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+    <h3 style="color:#075e54; margin:0 0 15px 0;">Nuevo Grupo</h3>
+    <input type="text" id="nuevo-nombre-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box; outline:none; font-size:16px;">
+    <button onclick="crearGrupoProceso()" style="width:100%; padding:14px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">CREAR Y ENTRAR</button>
+    <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="width:100%; margin-top:10px; background:none; border:none; color:#999; cursor:pointer;">Cancelar</button>
+  </div>
+</div>
 
+  
 </body>
 </html>
