@@ -406,36 +406,50 @@
       b.innerText = ok ? "ACTIVO" : "BLOQUEADO"; b.style.background = ok ? "#25d366" : "#ff5252"; i.disabled = !ok;
     }
     function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
-    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
-  function abrirModalGrupo() {
-    document.getElementById("myDropdown").classList.remove("show");
-    document.getElementById('modal-crear-grupo').style.display = 'flex';
-}
-function abrirModalGrupo() {
-    document.getElementById("myDropdown").classList.remove("show");
-    document.getElementById('modal-crear-grupo').style.display = 'flex';
-}
+        // Cierre correcto del clic fuera del menú
+    window.onclick = function(e) { 
+        if (!e.target.matches('.dropdown span')) { 
+            var d = document.getElementById("myDropdown"); 
+            if (d && d.classList.contains('show')) d.classList.remove('show'); 
+        } 
+    }; 
 
-    
-async function crearGrupoProceso() {
-    const n = document.getElementById('nuevo-nombre-grupo').value.trim();
-    if(!n) return alert("Escribe un nombre para el grupo");
-    const id = "g-" + Math.random().toString(36).substring(2, 10);
-    
-    // Guardar en Firebase (usando tu variable rdb)
-    await rdb.ref('lista_grupos/' + id).set({ 
-        nombre: n, 
-        creador: miUsuario, 
-        fecha: Date.now() 
-    });
-    
-    // Guardar seguridad para la página grupo.html
-    localStorage.setItem('g_token', btoa(id));
-    localStorage.setItem('g_user', miUsuario);
-    
-    // Redirigir a la página de Telegram
-    window.location.href = "grupo.html?g=" + id;
-}
+    // Función para mostrar el cuadrito de "Nuevo Grupo"
+    function abrirModalGrupo() {
+        var menu = document.getElementById("myDropdown");
+        if(menu) menu.classList.remove("show");
+        document.getElementById('modal-crear-grupo').style.display = 'flex';
+    }
+
+    // Función que guarda el grupo en Firebase y te redirige
+    async function crearGrupoProceso() {
+        const input = document.getElementById('nuevo-nombre-grupo');
+        const n = input.value.trim();
+        
+        if(!n) {
+            alert("Escribe un nombre para el grupo");
+            return;
+        }
+
+        const id = "g-" + Math.random().toString(36).substring(2, 10);
+        
+        try {
+            await rdb.ref('lista_grupos/' + id).set({
+                nombre: n,
+                creador: miUsuario,
+                fecha: Date.now()
+            });
+
+            localStorage.setItem('g_token', btoa(id));
+            localStorage.setItem('g_user', miUsuario);
+
+            // Esto te manda a la página del chat grupal
+            window.location.href = "grupo.html?g=" + id;
+        } catch(e) {
+            alert("Error al crear: " + e.message);
+        }
+    }
+
 
   </script>
 
