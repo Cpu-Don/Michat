@@ -1,469 +1,51 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Sincro - Red Social</title>
-    <meta content="width=device-width,initial-scale=1" name="viewport"/>
-    <style>
-        body { background: #f0f2f5; margin: 0; padding: 0; font-family: Segoe UI, Helvetica, Arial, sans-serif; transition: 0.3s; }
-        
-        /* --- SISTEMA DE TEMAS --- */
-        :root { --bg-body: #f0f2f5; --bg-card: white; --text-main: #1c1e21; --border: #ddd; }
-        body.tema-oscuro { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --border: #3e4042; }
-        body.tema-azul { --bg-body: #0a192f; --bg-card: #112240; --text-main: #ccd6f6; --border: #233554; }
-
-        body { background: var(--bg-body) !important; color: var(--text-main) !important; }
-        .card { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
-
-        /* Cabecera */
-        .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; background: #075e54; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
-        .header h1 { margin: 0; font-size: 24px; cursor: pointer; letter-spacing: 1px; }
-        
-        .nav-icons { display: flex; gap: 20px; align-items: center; }
-        .dm-icon { background: #054d44; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .dm-icon:hover { background: #25d366; }
-
-        .user-avatar { width: 35px; height: 35px; background: #25d366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid white; position: relative; background-size: cover; background-position: center; }
-        
-        /* Círculo de notificaciones */
-        #notif-badge { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; border: 1px solid white; }
-
-        .profile-menu { display: none; position: absolute; top: 45px; right: 0; background: var(--bg-card); color: var(--text-main); min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; z-index: 2000; border: 1px solid var(--border); }
-        .profile-menu div { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .profile-menu div:hover { background: rgba(0,0,0,0.05); }
-        .show { display: block !important; }
-
-        /* Inputs y Botones */
-        #acceso { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px; margin: 100px auto; color: black; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .btn-main { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        .tabs { display: flex; background: white; border-radius: 10px; padding: 5px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #65676b; }
-        .tab.active { color: #075e54; background: #e6f2f1; font-weight: bold; }
-
-        /* Estilos Perfil */
-        .profile-pic-container { position: relative; width: 110px; height: 110px; margin: -55px auto 10px auto; }
-        .profile-pic-circle { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--bg-body); background: #25d366; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; font-size: 40px; color: white; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .edit-btn-small { position: absolute; bottom: 5px; right: 5px; background: #075e54; color: white; border: 2px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
-        
-        .btn-delete { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 18px; opacity: 0.6; }
-        
-        /* Buscador */
-        .search-container { margin-bottom: 15px; }
-        .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; }
-    </style>
-</head>
-<body>
-
-<div id="app">
-    <div id="acceso">
-        <h1 style="color:#075e54;">Sincro</h1>
-        <input id="usr" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
-        <input id="clv" type="password" placeholder="Clave" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px; box-sizing: border-box;">
-        <button onclick="entrar()" class="btn-main" style="width:100%;">ENTRAR</button>
-    </div>
-
-    <div id="main-layout" style="display:none; max-width: 600px; margin: auto; padding: 20px; margin-top: 60px;">
-        <div class="header">
-            <h1 onclick="cerrarPerfil()">Sincro</h1>
-            <div class="nav-icons">
-                <div class="dm-icon" onclick="abrirDM()">DM ✉</div>
-                <div class="user-avatar" id="avatar-global" onclick="toggleMenu(event)">
-                    <span id="avatar-letra">U</span>
-                    <div id="notif-badge">0</div>
-                    <div id="menuPerfil" class="profile-menu">
-                        <div onclick="verPerfil()">👤 Mi Perfil</div>
-                        <div onclick="verSolicitudes()">📩 Solicitudes <span id="solic-count-text"></span></div>
-                        <div onclick="abrirConfig()">⚙️ Configuración</div>
-                        <div style="font-weight:bold; background:rgba(0,0,0,0.05); padding:5px 12px; font-size:11px;">FONDO:</div>
-                        <div onclick="cambiarFondo('blanco')">⚪ Blanco</div>
-                        <div onclick="cambiarFondo('oscuro')">⚫ Oscuro</div>
-                        <div onclick="cambiarFondo('azul')">🔵 Azulejo</div>
-                        <div onclick="location.reload()" style="color:red; border-top:1px solid #eee;">🚪 Salir</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <div id="tab-publico" class="tab active" onclick="cambiarSeccion('publico')">Noticias</div>
-            <div id="tab-amigos" class="tab" onclick="cambiarSeccion('amigos')">Amigos</div>
-        </div>
-
-        <div class="search-container">
-            <input type="text" class="search-box" id="user-search" placeholder="🔍 Buscar personas para agregar..." onkeyup="buscarUsuarios(this.value)">
-            <div id="resultados-busqueda"></div>
-        </div>
-
-        <div id="post-box-container">
-            <div class="card">
-                <textarea id="post-text" placeholder="¿Qué quieres compartir?" style="width:100%; border:none; outline:none; resize:none; background:transparent; color:inherit; font-size:16px; min-height: 60px;"></textarea>
-                <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <button onclick="document.getElementById('file-post').click()" style="background:#f0f2f5; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:13px; color: black;">📷 Galería</button>
-                        <select id="post-privacy" style="padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
-                            <option value="publico">🌍 Público</option>
-                            <option value="amigos">👥 Amigos</option>
-                        </select>
-                    </div>
-                    <button class="btn-main" id="btn-publicar" onclick="publicarPost()">Publicar</button>
-                </div>
-                <input type="file" id="file-post" style="display:none" accept="image/*,video/*">
-            </div>
-        </div>
-
-        <div id="muro-dinamico"></div>
-    </div>
-
-    <div id="panel-solicitudes" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:960; padding:20px; box-sizing:border-box;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom:20px;">
-            <h2 style="margin:0; color:#075e54;">Solicitudes de Amistad</h2>
-            <button onclick="document.getElementById('panel-solicitudes').style.display='none'" style="background:#ddd; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Cerrar</button>
-        </div>
-        <div id="lista-solicitudes"></div>
-    </div>
-
-    <div id="perfil-usuario" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:950; overflow-y:auto; padding-bottom:100px;">
-        <div id="portada-v" style="width:100%; height:200px; background:#075e54; position:relative; background-size:cover; background-position:center;">
-            <button id="btn-edit-portada" onclick="document.getElementById('f-portada').click()" style="display:none; position:absolute; bottom:15px; right:15px; background:rgba(0,0,0,0.6); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-size:12px;">Cambiar Portada</button>
-        </div>
-
-        <div style="text-align:center; padding: 0 20px;">
-            <div class="profile-pic-container">
-                <div id="foto-perfil-v" class="profile-pic-circle">U</div>
-                <div id="btn-edit-foto" class="edit-btn-small" style="display:none;" onclick="document.getElementById('f-perfil').click()">+</div>
-            </div>
-            
-            <h2 id="nom-perfil" style="margin:5px 0; font-size: 24px;">@Usuario</h2>
-            <div id="area-botones-perfil" style="margin-bottom: 20px; display:flex; justify-content:center; gap:10px;">
-                </div>
-        </div>
-
-        <div id="muro-perfil-container" style="max-width:600px; margin:20px auto; padding:0 20px;">
-            <div id="post-box-perfil"></div>
-            <div id="muro-perfil"></div>
-        </div>
-        
-        <input type="file" id="f-perfil" style="display:none" accept="image/*" onchange="subirImagen('foto')">
-        <input type="file" id="f-portada" style="display:none" accept="image/*" onchange="subirImagen('portada')">
-    </div>
-
-    <div id="dm-section" style="display:none; background:var(--bg-body); position:fixed; top:60px; left:0; width:100%; height:100%; z-index:900; padding:20px; box-sizing:border-box;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-            <h2 style="margin:0; color:#075e54;">Mensajes Directos</h2>
-            <button onclick="cerrarDM()" style="background:#ddd; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Volver</button>
-        </div>
-        <div id="lista-contactos-dm" style="margin-top:20px; text-align:center;">
-            <p style="color:gray;">Aquí aparecerán tus amigos para chatear.</p>
-        </div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 <script>
-    const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
-    firebase.initializeApp(firebaseConfig);
-    const rdb = firebase.database();
-
-    const CLOUD_NAME = "dhtyepcjg"; 
-    const UPLOAD_PRESET = "Historial";
-
-    let miUsuario = "";
-    let seccionActual = "publico";
-    let misAmigos = [];
-
-    // --- FUNCIÓN DE NOTIFICACIÓN MODERNA (Sin GitHub.io alert) ---
-    function toast(mensaje, tipo = 'exito') {
-        const t = document.createElement('div');
-        t.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${tipo==='exito'?'#25d366':'#ff4d4d'}; color:white; padding:12px 25px; border-radius:30px; z-index:10000; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:0.5s;`;
-        t.innerText = mensaje;
-        document.body.appendChild(t);
-        setTimeout(() => { t.style.top = '-100px'; setTimeout(() => t.remove(), 500); }, 3000);
-    }
-
-    function entrar() {
-        const u = document.getElementById('usr').value.trim().toLowerCase();
-        const p = document.getElementById('clv').value.trim();
-        if(!u || !p) return toast("Ingresa datos", "error");
-
-        rdb.ref('usuarios/' + u).once('value', s => {
-            if(s.exists() && s.val().toString() === p) {
-                miUsuario = u;
-                iniciarApp();
-            } else if(!s.exists()) {
-                rdb.ref('usuarios/' + u).set(p).then(() => {
-                    miUsuario = u;
-                    iniciarApp();
-                });
-            } else { toast("Error de clave", "error"); }
-        });
-    }
-
-    function iniciarApp() {
-        document.getElementById('acceso').style.display = 'none';
-        document.getElementById('main-layout').style.display = 'block';
-        
-        // Escuchar Amigos
-        rdb.ref('amigos/' + miUsuario).on('value', s => {
-            misAmigos = s.val() ? Object.keys(s.val()) : [];
-            escucharPosts();
-        });
-
-        // Escuchar Solicitudes
-        rdb.ref('solicitudes/' + miUsuario).on('value', s => {
-            const count = s.numChildren();
-            document.getElementById('notif-badge').innerText = count;
-            document.getElementById('notif-badge').style.display = count > 0 ? 'block' : 'none';
-            document.getElementById('solic-count-text').innerText = count > 0 ? `(${count})` : "";
-        });
-
-        actualizarAvatarUI();
-    activarFuncionesMaestras();
-    }
-
-    function cambiarSeccion(s) {
-        seccionActual = s;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-' + s).classList.add('active');
-        escucharPosts();
-    }
-
-    function buscarUsuarios(val) {
-        if(val.length < 2) { document.getElementById('resultados-busqueda').innerHTML = ""; return; }
-        rdb.ref('usuarios').once('value', s => {
-            let h = "";
-            s.forEach(u => {
-                if(u.key.includes(val.toLowerCase()) && u.key !== miUsuario) {
-                    h += `<div class="card" onclick="verPerfil('${u.key}')" style="padding:10px; cursor:pointer;">@${u.key}</div>`;
-                }
-            });
-            document.getElementById('resultados-busqueda').innerHTML = h;
-        });
-    }
-
-    function enviarSolicitud(target) {
-        rdb.ref('solicitudes/' + target.toLowerCase() + '/' + miUsuario).set(true)
-        .then(() => {
-            toast("Solicitud Enviada a @" + target);
-            verPerfil(target);
-        });
-    }
-
-    function verSolicitudes() {
-        document.getElementById('panel-solicitudes').style.display = 'block';
-        const lista = document.getElementById('lista-solicitudes');
-        rdb.ref('solicitudes/' + miUsuario).on('value', s => {
-            lista.innerHTML = s.exists() ? "" : "<p style='text-align:center;'>No tienes solicitudes pendientes.</p>";
-            s.forEach(sol => {
-                lista.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>@${sol.key}</span>
-                    <div style="display:flex; gap:5px;">
-                        <button onclick="aceptarAmigo('${sol.key}')" style="background:#25d366; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Aceptar</button>
-                        <button onclick="rechazarAmigo('${sol.key}')" style="background:#ff4d4d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">X</button>
-                    </div>
-                </div>`;
-            });
-        });
-    }
-
-    function aceptarAmigo(quien) {
-        rdb.ref('amigos/' + miUsuario + '/' + quien).set(true);
-        rdb.ref('amigos/' + quien + '/' + miUsuario).set(true);
-        rdb.ref('solicitudes/' + miUsuario + '/' + quien).remove();
-        toast("¡Ahora eres amigo de " + quien + "!");
-    }
-    
-    function rechazarAmigo(quien) {
-        rdb.ref('solicitudes/' + miUsuario + '/' + quien).remove();
-        toast("Solicitud eliminada", "error");
-    }
-
-    async function publicarPost() {
-        const texto = document.getElementById('post-text').value.trim();
-        const privacidad = document.getElementById('post-privacy').value;
-        const fileInput = document.getElementById('file-post');
-        const btn = document.getElementById('btn-publicar');
-        if(!texto && !fileInput.files[0]) return;
-        btn.disabled = true;
-        let mediaUrl = "";
-        if(fileInput.files[0]) {
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-            formData.append("upload_preset", UPLOAD_PRESET);
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-            const data = await res.json();
-            mediaUrl = data.secure_url;
-        }
-        rdb.ref('posts').push({ autor: miUsuario, texto: texto, img: mediaUrl, privacidad: privacidad, fecha: Date.now() })
-        .then(() => {
-            toast("Publicación compartida");
-            document.getElementById('post-text').value = "";
-            fileInput.value = "";
-            btn.disabled = false;
-        }); 
-    }
-
-    function eliminarPost(id) {
-        if(confirm("¿Borrar esta publicación?")) {
-            rdb.ref('posts/' + id).remove().then(() => toast("Post eliminado", "error"));
-        }
-    }
-
-    function escucharPosts() {
-        rdb.ref('posts').on('value', s => {
-            const muro = document.getElementById('muro-dinamico');
-            muro.innerHTML = "";
-            const posts = [];
-            s.forEach(child => { 
-                let data = child.val();
-                data.id = child.key;
-                posts.unshift(data); 
-            });
-
-            posts.forEach(p => {
-                let esAmigo = misAmigos.includes(p.autor.toLowerCase()) || p.autor === miUsuario;
-                let mostrar = (seccionActual === 'publico') ? (p.privacidad === 'publico' || p.autor === miUsuario) : esAmigo;
-
-                if(mostrar) {
-                    muro.innerHTML += `
-                        <div class="card">
-                            ${p.autor === miUsuario ? `<button class="btn-delete" onclick="eliminarPost('${p.id}')">×</button>` : ''}
-                            <div onclick="verPerfil('${p.autor}')" style="font-weight:bold; color:#075e54; cursor:pointer; margin-bottom:10px;">@${p.autor}</div>
-                            <p>${p.texto}</p>
-                            ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:8px; margin-top:10px;">` : ""}
-                        </div>`;
-                }
-            });
-        });
-    }
-
-    function verPerfil(user = miUsuario) {
-        user = user.toLowerCase();
-        document.getElementById('perfil-usuario').style.display = 'block';
-        document.getElementById('nom-perfil').innerText = "@" + user;
-        
-        const areaBtn = document.getElementById('area-botones-perfil');
-        if(user === miUsuario) {
-            areaBtn.innerHTML = `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
-            document.getElementById('btn-edit-portada').style.display = 'block';
-            document.getElementById('btn-edit-foto').style.display = 'flex';
-            document.getElementById('post-box-perfil').appendChild(document.getElementById('post-box-container'));
-        } else {
-            document.getElementById('btn-edit-portada').style.display = 'none';
-            document.getElementById('btn-edit-foto').style.display = 'none';
-            document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
-            
-            if(misAmigos.includes(user)) {
-                areaBtn.innerHTML = `<button class="btn-main" style="background:#ccc; cursor:default;">✓ Amigos</button>`;
-            } else {
-                rdb.ref(`solicitudes/${user}/${miUsuario}`).once('value', s => {
-                    areaBtn.innerHTML = s.exists() ? `<button class="btn-main" style="background:#888;">Solicitud Enviada</button>` : `<button onclick="enviarSolicitud('${user}')" class="btn-main">Agregar Amigo</button>`;
-                });
-            }
-            areaBtn.innerHTML += `<button onclick="cerrarPerfil()" class="btn-main" style="background:#ddd; color:black;">Volver</button>`;
-        }
-
-        rdb.ref('perfiles/' + user).on('value', s => {
-            const d = s.val();
-            const pic = document.getElementById('foto-perfil-v');
-            const port = document.getElementById('portada-v');
-            pic.style.backgroundImage = d && d.foto ? `url(${d.foto})` : "";
-            pic.innerText = d && d.foto ? "" : user.charAt(0).toUpperCase();
-            port.style.backgroundImage = d && d.portada ? `url(${d.portada})` : "";
-        });
-
-        rdb.ref('posts').orderByChild('autor').equalTo(user).on('value', s => {
-            const m = document.getElementById('muro-perfil'); m.innerHTML = "";
-            s.forEach(child => {
-                const p = child.val();
-                m.innerHTML = `<div class="card"><p>${p.texto}</p>${p.img ? `<img src="${p.img}" style="width:100%;">` : ""}</div>` + m.innerHTML;
-            });
-        });
-    }
-
-    async function subirImagen(tipo) {
-        const file = document.getElementById(tipo === 'foto' ? 'f-perfil' : 'f-portada').files[0];
-        if(!file) return;
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", UPLOAD_PRESET);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        const update = {};
-        update[tipo === 'foto' ? 'foto' : 'portada'] = data.secure_url;
-        rdb.ref('perfiles/' + miUsuario).update(update).then(() => toast("Perfil actualizado"));
-    }
-
-    function cerrarPerfil() { 
-        document.getElementById('perfil-usuario').style.display = 'none';
-        document.getElementById('main-layout').insertBefore(document.getElementById('post-box-container'), document.getElementById('muro-dinamico'));
-    }
-    
-    function actualizarAvatarUI() {
-        rdb.ref('perfiles/' + miUsuario).on('value', s => {
-            const d = s.val();
-            if(d && d.foto) document.getElementById('avatar-global').style.backgroundImage = `url(${d.foto})`;
-            document.getElementById('avatar-letra').innerText = d && d.foto ? "" : miUsuario.charAt(0).toUpperCase();
-        });
-    }
-
-    function toggleMenu(e) { e.stopPropagation(); document.getElementById('menuPerfil').classList.toggle('show'); }
-    function cambiarFondo(t) { document.body.className = t === 'blanco' ? '' : 'tema-' + t; }
-    function abrirDM() { document.getElementById('dm-section').style.display = 'block'; }
-    function cerrarDM() { document.getElementById('dm-section').style.display = 'none'; }
-    function abrirConfig() { toast("Pronto podrás cambiar tu nombre y clave.", "error"); }
-    window.onclick = () => document.getElementById('menuPerfil').classList.remove('show');
 /* ==========================================================================
-                /* ==========================================================================
-   SINCRO: MÓDULO MAESTRO (ADMIN, GRUPOS, ENGRANAJE, SPAM Y ALERTAS BONITAS)
+   SINCRO: EL MÓDULO MAESTRO DEFINITIVO (PILARES 1 AL 5)
    ========================================================================== */
 
 function activarFuncionesMaestras() {
-    // 1. Identidad Maestro (Super Admin)
-    if (typeof miUsuario !== 'undefined' && miUsuario === 'chat') { inyectarSuperAdminSincro(); }
+    // 1. Identidad Maestro (Super Admin para usuario 'chat')
+    if (miUsuario === 'chat') { inyectarSuperAdminSincro(); }
     
-    // 2. Inicialización de Sistemas (Spam, Perfiles, Grupos)
-    escucharSpamSincro();
-    iniciarObservadorPerfilesSincro();
-    inyectarBotonCrearGrupoPro();
+    // 2. Inicialización de Sistemas
     configurarMenuEngranajeSincro();
+    iniciarObservadorPerfilesSincro();
+    escucharSpamSincro();
+    inyectarBotonCrearGrupoPro();
 
-    // 3. REEMPLAZO TOTAL DE ALERTAS FEAS (GitHub/Navegador)
+    // 5. REEMPLAZO TOTAL DE ALERTAS FEAS (Ventanas Emergentes Bonitas)
     window.alert = function(msg) { sincroAviso(msg, 'info'); };
     window.confirm = function(msg) { return sincroConfirmar(msg); };
     window.prompt = function(msg) { return sincroPedirTexto(msg); };
 }
 
-/* --- 1. SUPER ADMIN: VISTA DE CARPETAS Y SCROLL MULTIMEDIA --- */
+/* --- 1. SUPER ADMIN: CARPETAS, SCROLL Y BORRADO --- */
 function inyectarSuperAdminSincro() {
     const menu = document.getElementById('menuPerfil');
     if (!menu || document.getElementById('btn-admin-pro')) return;
     
     const btn = document.createElement('div');
     btn.id = 'btn-admin-pro';
-    btn.innerHTML = "📂 MAESTRO DE ARCHIVOS";
-    btn.style = "padding:15px; border-bottom:2px solid #ddd; font-weight:bold; color:#075e54; background:#f0f7f6; cursor:pointer; text-align:center;";
+    btn.innerHTML = "📂 MAESTRO DE ARCHIVOS (ADMIN)";
+    btn.style = "padding:12px; border-bottom:1px solid #ddd; font-weight:bold; color:#075e54; background:#f0f7f6; cursor:pointer;";
     btn.onclick = () => { document.getElementById('panel-admin-sincro').style.display = 'block'; };
     menu.prepend(btn);
 
     const panel = document.createElement('div');
     panel.id = 'panel-admin-sincro';
-    panel.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:20000; overflow-y:auto; padding:20px; font-family:sans-serif;";
+    panel.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:10000; overflow-y:auto; padding:20px; color:black;";
     panel.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #075e54; padding-bottom:10px; margin-bottom:20px;">
-            <h2 style="margin:0; color:black;">Carpetas Firebase</h2>
-            <button onclick="document.getElementById('panel-admin-sincro').style.display='none'" style="padding:10px; border-radius:10px; border:none; background:#eee; font-weight:bold;">Cerrar</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #075e54; padding-bottom:10px;">
+            <h2 style="margin:0;">📁 Carpetas Firebase</h2>
+            <button onclick="document.getElementById('panel-admin-sincro').style.display='none'" style="padding:10px; background:#eee; border:none; border-radius:10px;">Cerrar</button>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-            <div onclick="adminListarCarpetas('msg_privados')" style="background:#075e54; color:white; padding:25px; border-radius:15px; text-align:center; cursor:pointer; font-weight:bold;">📂 PRIVADOS</div>
-            <div onclick="adminListarCarpetas('grupos')" style="background:#128c7e; color:white; padding:25px; border-radius:15px; text-align:center; cursor:pointer; font-weight:bold;">📂 GRUPOS</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+            <div onclick="adminListarCarpetas('msg_privados')" style="background:#075e54; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer;">📂 PRIVADOS</div>
+            <div onclick="adminListarCarpetas('grupos')" style="background:#128c7e; color:white; padding:20px; border-radius:15px; text-align:center; cursor:pointer;">📂 GRUPOS</div>
         </div>
-        <div id="lista-carpetas-sincro" style="margin-top:25px; color:black;"></div>
-        <div id="visor-scroll-admin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:20001; overflow-y:auto; padding:20px;">
-            <button onclick="document.getElementById('visor-scroll-admin').style.display='none'" style="width:100%; padding:15px; background:white; color:black; border-radius:15px; font-weight:bold; margin-bottom:20px;">CERRAR VISOR</button>
+        <div id="lista-carpetas-sincro" style="margin-top:20px;"></div>
+        <div id="visor-scroll-admin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10001; overflow-y:auto; padding:20px;">
+            <button onclick="document.getElementById('visor-scroll-admin').style.display='none'" style="width:100%; padding:15px; background:white; border-radius:10px; margin-bottom:20px;">CERRAR VISOR</button>
             <div id="contenedor-multimedia-admin"></div>
         </div>`;
     document.body.appendChild(panel);
@@ -471,15 +53,15 @@ function inyectarSuperAdminSincro() {
 
 function adminListarCarpetas(tipo) {
     const lista = document.getElementById('lista-carpetas-sincro');
-    lista.innerHTML = "Abriendo base de datos...";
-    rdb.ref(tipo).once('value', snapshot => {
+    lista.innerHTML = "Cargando...";
+    rdb.ref(tipo).once('value', s => {
         lista.innerHTML = "";
-        snapshot.forEach(h => {
+        s.forEach(h => {
             const item = document.createElement('div');
             item.style = "background:#f9f9f9; border:1px solid #ddd; padding:15px; margin-bottom:10px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;";
             item.innerHTML = `
-                <span onclick="adminVerScroll('${tipo}/${h.key}')" style="cursor:pointer; font-weight:bold; color:#333;">📁 ${h.key}</span>
-                <button onclick="confirm('¿BORRAR CHAT COMPLETO?').then(r=>{if(r) rdb.ref('${tipo}/${h.key}').remove()})" style="background:#ff4444; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:bold;">ELIMINAR</button>
+                <span onclick="adminVerScroll('${tipo}/${h.key}')" style="cursor:pointer; font-weight:bold;">📁 ${h.key}</span>
+                <button onclick="confirm('¿BORRAR TODO?').then(r=>{if(r) rdb.ref('${tipo}/${h.key}').remove()})" style="background:red; color:white; border:none; padding:8px; border-radius:8px;">ELIMINAR</button>
             `;
             lista.appendChild(item);
         });
@@ -489,18 +71,16 @@ function adminListarCarpetas(tipo) {
 function adminVerScroll(ruta) {
     const visor = document.getElementById('visor-scroll-admin');
     const contenedor = document.getElementById('contenedor-multimedia-admin');
-    visor.style.display = 'block';
-    contenedor.innerHTML = "";
-    
-    rdb.ref(ruta).once('value', snapshot => {
-        snapshot.forEach(msg => {
-            const data = msg.val();
-            if(data.img || data.video) {
+    visor.style.display = 'block'; contenedor.innerHTML = "";
+    rdb.ref(ruta).once('value', s => {
+        s.forEach(msg => {
+            const d = msg.val();
+            if(d.img || d.video) {
                 const card = document.createElement('div');
-                card.style = "margin-bottom:25px; text-align:center; position:relative; background:#222; padding:10px; border-radius:15px;";
+                card.style = "margin-bottom:20px; text-align:center; position:relative;";
                 card.innerHTML = `
-                    ${data.img ? `<img src="${data.img}" style="max-width:100%; border-radius:10px;">` : `<video src="${data.video}" controls style="max-width:100%; border-radius:10px;"></video>`}
-                    <button onclick="rdb.ref('${ruta}/${msg.key}').remove(); this.parentElement.remove();" style="position:absolute; top:15px; right:15px; background:rgba(255,0,0,0.8); color:white; border:none; width:40px; height:40px; border-radius:50%; font-weight:bold; cursor:pointer;">✕</button>
+                    ${d.img ? `<img src="${d.img}" style="max-width:100%; border-radius:10px;">` : `<video src="${d.video}" controls style="max-width:100%;"></video>`}
+                    <button onclick="rdb.ref('${ruta}/${msg.key}').remove(); this.parentElement.remove();" style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; width:35px; height:35px; border-radius:50%;">✕</button>
                 `;
                 contenedor.appendChild(card);
             }
@@ -508,40 +88,39 @@ function adminVerScroll(ruta) {
     });
 }
 
-/* --- 2. LÓGICA DE GRUPOS: ACCESO DIRECTO --- */
+/* --- 2. LÓGICA DE GRUPOS (Acceso Directo e Invitaciones) --- */
 function inyectarBotonCrearGrupoPro() {
     const layout = document.getElementById('main-layout');
-    if(!layout || document.getElementById('btn-new-group-pro')) return;
+    if(!layout || document.getElementById('btn-g-pro')) return;
     const btn = document.createElement('button');
-    btn.id = 'btn-new-group-pro';
-    btn.innerHTML = "➕ CREAR GRUPO Y ENTRAR";
-    btn.style = "background:#128c7e; color:white; border:none; padding:15px; width:90%; margin:15px 5%; border-radius:15px; font-weight:bold; cursor:pointer;";
+    btn.id = 'btn-g-pro';
+    btn.innerHTML = "➕ CREAR NUEVO GRUPO";
+    btn.style = "background:#128c7e; color:white; border:none; padding:15px; width:90%; margin:10px 5%; border-radius:15px; font-weight:bold;";
     btn.onclick = () => {
-        prompt("Nombre del nuevo grupo:").then(nom => {
+        prompt("Nombre del grupo:").then(nom => {
             if(nom) {
                 const idG = 'grupo_' + Date.now();
-                rdb.ref(`grupos/${idG}`).set({ nombre: nom, creador: miUsuario, miembros: {[miUsuario]: true} }).then(() => {
-                    sincroAviso("Grupo creado. Entrando...", "info");
-                    if(typeof abrirChatGrupo === 'function') abrirChatGrupo(idG, nom);
-                });
+                rdb.ref('grupos/' + idG).set({ nombre: nom, creador: miUsuario, miembros: {[miUsuario]: true} });
+                sincroAviso("Grupo creado", "info");
+                abrirChatGrupo(idG, nom); // Abre directo
             }
         });
     };
     layout.prepend(btn);
 }
 
-/* --- 3. ENGRANAJE (⚙️) CON 4 FUNCIONES --- */
+/* --- 3. MENÚ ENGRANAJE (⚙️) - 4 FUNCIONES --- */
 function configurarMenuEngranajeSincro() {
     setInterval(() => {
-        const header = document.querySelector('.chat-header') || document.querySelector('#headerChat');
+        const header = document.querySelector('.header') || document.querySelector('.chat-header');
         if (header && !document.getElementById('gear-sincro')) {
             const gear = document.createElement('span');
             gear.id = 'gear-sincro';
             gear.innerHTML = " ⚙️ ";
-            gear.style = "cursor:pointer; float:right; font-size:22px; color:white;";
+            gear.style = "cursor:pointer; font-size:20px; margin-left:10px;";
             gear.onclick = () => {
-                confirm("OPCIONES DEL CHAT:\n1. Multimedia\n2. Mutear\n3. Bloquear\n4. Eliminar Todo (Admin)").then(res => {
-                    if(res) sincroAviso("Función activada", "info");
+                confirm("OPCIONES: 1. Multimedia | 2. Mutear | 3. Bloquear | 4. Eliminar").then(r => {
+                    if(r) sincroAviso("Opción seleccionada", "info");
                 });
             };
             header.appendChild(gear);
@@ -549,86 +128,85 @@ function configurarMenuEngranajeSincro() {
     }, 2000);
 }
 
-/* --- 4. PERFILES, SPAM Y ALERTAS BONITAS --- */
+/* --- 4. PERFILES, SPAM Y BURBUJA ROJA --- */
 function iniciarObservadorPerfilesSincro() {
     setInterval(() => {
-        const h2 = document.querySelector('h2');
-        const target = h2?.innerText.replace('@', '').trim();
-        const btnV = document.querySelector('button[onclick*="enviarSolicitud"]');
-        if (target && target !== miUsuario && btnV && !document.getElementById('btns-perfil-sincro')) {
-            btnV.style.display = 'none';
+        const h2 = document.getElementById('nom-perfil');
+        const target = h2?.innerText.replace('@', '').trim().toLowerCase();
+        const area = document.getElementById('area-botones-perfil');
+        if (target && target !== miUsuario && area && !document.getElementById('btns-sincro-fix')) {
             const div = document.createElement('div');
-            div.id = 'btns-perfil-sincro';
-            div.style = "display:flex; flex-direction:column; gap:10px; width:80%; margin:15px auto;";
+            div.id = 'btns-sincro-fix';
+            div.style = "display:flex; flex-direction:column; gap:10px; width:100%; margin-top:10px;";
             div.innerHTML = `
-                <button onclick="verPerfil('${target}')" style="background:#075e54; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold;">📩 ENVIAR DM</button>
-                <button id="b-add-${target}" onclick="sincroLógicaAdd('${target}')" style="background:#128c7e; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold;">👤 AGREGAR AMIGO</button>
-                <button onclick="sincroLógicaBlock('${target}')" style="background:#ff4444; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold;">🚫 BLOQUEAR</button>
+                <button onclick="verPerfil('${target}')" class="btn-main">📩 ENVIAR DM</button>
+                <button onclick="enviarSolicitud('${target}')" class="btn-main" style="background:#128c7e;">👤 AGREGAR</button>
+                <button onclick="sincroBloquear('${target}')" class="btn-main" style="background:#ff4d4d;">🚫 BLOQUEAR</button>
             `;
-            btnV.parentNode.appendChild(div);
+            area.prepend(div);
         }
-    }, 2000);
+    }, 1500);
 }
 
-function sincroLógicaAdd(id) {
-    rdb.ref(`solicitudes/${id}/${miUsuario}`).set({remitente: miUsuario, estado: "pendiente"}).then(() => {
-        const b = document.getElementById('b-add-'+id);
-        if(b) { b.innerText = "⏳ ENVIADA"; b.style.background = "#aaa"; b.disabled = true; }
-        sincroAviso("Solicitud enviada a " + id, "info");
-    });
-}
-
-function sincroLógicaBlock(id) {
-    confirm(`¿Bloquear a ${id}?`).then(r => {
-        if(r) { rdb.ref(`bloqueados/${miUsuario}/${id}`).set(true); sincroAviso("Usuario bloqueado", "error"); }
+function sincroBloquear(id) {
+    confirm("¿Bloquear a " + id + "?").then(r => {
+        if(r) { rdb.ref('bloqueados/'+miUsuario+'/'+id).set(true); sincroAviso("Bloqueado", "error"); }
     });
 }
 
 function escucharSpamSincro() {
     rdb.ref('spam/' + miUsuario).on('value', s => {
         const count = s.numChildren();
-        if(count > 0) sincroAviso("Tienes " + count + " mensajes en Spam 🔴", "error");
+        if(count > 0) {
+            sincroAviso("Tienes " + count + " mensajes en Spam 🔴", "error");
+            document.getElementById('notif-badge').style.display = 'block';
+            document.getElementById('notif-badge').style.background = 'red';
+        }
     });
 }
 
-/* --- SISTEMA DE DIÁLOGOS SINCRO (ELIMINA CUADROS GRISES) --- */
+/* --- 5. VENTANAS BONITAS (SINCRO UI) --- */
 function sincroAviso(txt, tipo) {
-    const color = tipo === 'error' ? "#e74c3c" : "#075e54";
+    const color = tipo === 'error' ? "#ff4d4d" : "#075e54";
     const el = document.createElement('div');
-    el.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${color}; color:white; padding:15px 30px; border-radius:30px; z-index:99999; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.3); font-family:sans-serif;`;
+    el.style = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${color}; color:white; padding:12px 25px; border-radius:30px; z-index:99999; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2);`;
     el.innerHTML = txt;
     document.body.appendChild(el);
-    setTimeout(() => { el.style.opacity="0"; setTimeout(()=>el.remove(), 500); }, 3500);
+    setTimeout(() => { el.style.opacity="0"; setTimeout(()=>el.remove(), 500); }, 3000);
 }
 
-window.sincroConfirmar = function(msg) {
+function sincroConfirmar(msg) {
     return new Promise(resolve => {
         const d = document.createElement('div');
         d.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100000; display:flex; align-items:center; justify-content:center; font-family:sans-serif;";
         d.innerHTML = `<div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:320px; text-align:center; color:black;">
-            <p style="font-weight:bold;">Sincro</p><p style="font-size:14px; margin-bottom:20px;">${msg}</p>
+            <p style="font-weight:bold; color:#075e54;">Sincro</p><p style="font-size:14px; margin-bottom:20px;">${msg}</p>
             <div style="display:flex; gap:10px;"><button id="s-canc" style="flex:1; padding:12px; border-radius:12px; border:none; background:#eee;">Cancelar</button>
             <button id="s-ok" style="flex:1; padding:12px; border-radius:12px; border:none; background:#075e54; color:white; font-weight:bold;">Aceptar</button></div></div>`;
         document.body.appendChild(d);
         document.getElementById('s-ok').onclick = () => { d.remove(); resolve(true); };
         document.getElementById('s-canc').onclick = () => { d.remove(); resolve(false); };
     });
-};
+}
 
-window.sincroPedirTexto = function(titulo) {
+function sincroPedirTexto(titulo) {
     return new Promise(resolve => {
         const d = document.createElement('div');
         d.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100000; display:flex; align-items:center; justify-content:center; font-family:sans-serif;";
         d.innerHTML = `<div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:320px; text-align:center; color:black;">
-            <p style="font-weight:bold;">${titulo}</p><input type="text" id="sincro-in" style="width:90%; padding:12px; border-radius:12px; border:2px solid #075e54; margin-bottom:20px; outline:none;">
+            <p style="font-weight:bold; color:#075e54;">${titulo}</p><input type="text" id="sincro-in" style="width:90%; padding:12px; border-radius:12px; border:2px solid #075e54; margin-bottom:20px; outline:none;">
             <div style="display:flex; gap:10px;"><button id="sp-canc" style="flex:1; padding:12px; border-radius:12px; border:none; background:#eee;">Cancelar</button>
-            <button id="sp-ok" style="flex:1; padding:12px; border-radius:12px; border:none; background:#075e54; color:white; font-weight:bold;">Crear</button></div></div>`;
-        document.body.appendChild(d); const input = document.getElementById('sincro-in'); input.focus();
-        document.getElementById('sp-ok').onclick = () => { const v = input.value; d.remove(); resolve(v); };
+            <button id="sp-ok" style="flex:1; padding:12px; border-radius:12px; border:none; background:#075e54; color:white; font-weight:bold;">Confirmar</button></div></div>`;
+        document.body.appendChild(d); document.getElementById('sincro-in').focus();
+        document.getElementById('sp-ok').onclick = () => { const v = document.getElementById('sincro-in').value; d.remove(); resolve(v); };
         document.getElementById('sp-canc').onclick = () => { d.remove(); resolve(null); };
     });
-};
-</script>
+}
 
-</body>
-</html>
+// INYECTAR DISPARADOR AL INICIAR APP
+const originalIniciarApp = iniciarApp;
+iniciarApp = function() {
+    originalIniciarApp();
+    activarFuncionesMaestras();
+}
+</script>
