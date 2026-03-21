@@ -1,19 +1,88 @@
-async function crearGrupoProceso() {
-    const nombre = document.getElementById('nuevo-nombre-grupo').value.trim();
-    if(!nombre) return alert("Ponle nombre al grupo");
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sincro - Grupo</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1'/>
+    <style>
+        /* Diseño estilo Telegram */
+        body { background:#e5ddd5; margin:0; font-family: sans-serif; height:100vh; display:flex; flex-direction:column; }
+        .header { background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .messages { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        .msg { padding:10px; border-radius:10px; max-width:75%; font-size:14px; position:relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .msg-me { background:#dcf8c6; align-self:flex-end; }
+        .msg-them { background:white; align-self:flex-start; }
+        .input-area { background:#f0f0f0; padding:10px; display:flex; gap:10px; align-items:center; }
+        .input-area input { flex:1; padding:12px; border-radius:20px; border:none; outline:none; }
+        .btn-send { background:#075e54; color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; font-weight:bold; }
+    </style>
+</head>
+<body>
 
-    const idGrupo = "grupo_" + Math.random().toString(36).substring(2, 8);
+<div class="header">
+    <div>
+        <b id="gn">Grupo</b><br>
+        <small id="status">En línea</small>
+    </div>
+    <button onclick="window.location.href='index.html'" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px; font-size:12px;">VOLVER</button>
+</div>
+
+<div id="m-box" class="messages"></div>
+
+<div class="input-area">
+    <input type="text" id="msg" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviar()">
+    <button class="btn-send" onclick="enviar()">></button>
+</div>
+
+<script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
+<script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
+
+<script>
+    // Tu configuración de Firebase que vi en tus fotos
+    const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const rdb = firebase.database();
+
+    // Obtener el ID del grupo de la URL (?g=grupo_xyz)
+    const params = new URLSearchParams(window.location.search);
+    const gid = params.get('g');
     
-    // Guardar en Firebase
-    await rdb.ref('lista_grupos/' + idGrupo).set({
-        nombre: nombre,
-        creador: miUsuario
+    // Obtener el nombre del usuario que guardamos en index.html
+    const miUser = localStorage.getItem('g_user') || "Usuario";
+
+    if(!gid) { window.location.href = "index.html"; }
+
+    // 1. Mostrar el nombre real del grupo en la cabecera
+    rdb.ref('lista_grupos/' + gid).once('value', s => { 
+        if(s.exists()) document.getElementById('gn').innerText = s.val().nombre; 
     });
 
-    // Guardar token y usuario para la otra página
-    localStorage.setItem('g_token', btoa(idGrupo));
-    localStorage.setItem('g_user', miUsuario);
-    
-    // REDIRIGIR a la nueva página en GitHub
-    window.location.href = "grupo.html?g=" + idGrupo;
-}
+    // 2. Cargar y escuchar mensajes en tiempo real para este grupo
+    rdb.ref('mensajes_grupos/' + gid).on('value', snap => {
+        const box = document.getElementById('m-box');
+        box.innerHTML = "";
+        snap.forEach(child => {
+            const m = child.val();
+            const div = document.createElement('div');
+            // Si el mensaje es mío, sale verde a la derecha. Si no, blanco a la izquierda.
+            div.className = `msg ${m.u === miUser ? 'msg-me' : 'msg-them'}`;
+            div.innerHTML = `<small style="color:#075e54; font-weight:bold;">${m.u}</small><br>${m.t}`;
+            box.appendChild(div);
+        });
+        box.scrollTop = box.scrollHeight; // Auto-scroll al último mensaje
+    });
+
+    // 3. Función para enviar mensajes
+    function enviar() {
+        const i = document.getElementById('msg'), t = i.value.trim();
+        if(!t) return;
+        rdb.ref('mensajes_grupos/' + gid).push({ 
+            u: miUser, 
+            t: t,
+            h: new Date().getHours() + ":" + new Date().getMinutes()
+        });
+        i.value = "";
+    }
+</script>
+</body>
+</html>
