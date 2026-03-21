@@ -411,7 +411,12 @@
     document.getElementById("myDropdown").classList.remove("show");
     document.getElementById('modal-crear-grupo').style.display = 'flex';
 }
+function abrirModalGrupo() {
+    document.getElementById("myDropdown").classList.remove("show");
+    document.getElementById('modal-crear-grupo').style.display = 'flex';
+}
 
+    
 async function crearGrupoProceso() {
     const n = document.getElementById('nuevo-nombre-grupo').value.trim();
     if(!n) return alert("Escribe un nombre para el grupo");
