@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Online</title>
+  <title>Sincro - Chat Online</title>
   <meta content='width=device-width,initial-scale=1' name='viewport'/>
   <style>
     body { background:#f0f2f5 !important; margin:0; padding:0; height:100vh; width:100vw; display:flex !important; overflow:hidden; }
@@ -13,19 +13,21 @@
     .dropdown-content span { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; }
     .dropdown-content span:hover { background-color: #f1f1f1; }
     .show { display: block !important; }
-    #modal-reglas, #modal-online, #modal-crear-grupo { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
-    .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
-    .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
     
-    /* Estilos Multimedia */
+    /* MODALES CORREGIDOS */
+    #modal-reglas, #modal-online, #modal-crear-grupo { display: none; position: fixed; z-index: 9999999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; font-family: sans-serif; }
+    .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
+    
+    .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
     .chat-media { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; border: 1px solid #ddd; cursor: pointer; }
     .btn-adjuntar { background: #ccc; color: #333; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; font-weight: bold; }
     .btn-disabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); }
     .status-off { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px; display: none; }
 
-    /* Estilo Lista de Grupos en Menú */
-    #lista-grupos-menu { background: #eee; max-height: 150px; overflow-y: auto; }
-    .item-grupo { padding: 10px; font-size: 12px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+    /* LISTA DE GRUPOS EN MENÚ */
+    #lista-grupos-menu { background: #fff; max-height: 150px; overflow-y: auto; border-top: 1px solid #ddd; }
+    .item-grupo { padding: 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; color: #333; }
+    .item-grupo:hover { background: #f9f9f9; }
   </style>
 </head>
 <body>
@@ -101,33 +103,13 @@
     <div class="modal-box" style="max-width:300px;">
         <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo</h3>
         <input id="nom-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" type="text"/>
-        <button onclick="crearGrupoConfirmar()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:10px;">CREAR</button>
+        <button onclick="crearGrupoConfirmar()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:10px;">CREAR Y ENTRAR</button>
         <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="width:100%; background:none; border:none; color:#777; margin-top:10px; cursor:pointer;">Cancelar</button>
     </div>
   </div>
 
-  <div id='modal-reglas'>
-    <div class='modal-box'>
-      <h3 style='color:#075e54; margin-top:0;'>Reglas</h3>
-      <div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'></div>
-      <div id='admin-editor' style='display:none; border-top:1px solid #eee; padding-top:10px;'>
-        <textarea id='edit-reglas' placeholder='Nuevas reglas...' style='width:100%; height:60px; font-size:12px;'></textarea>
-        <button onclick='guardarReglas()' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:5px;'>ACTUALIZAR</button>
-      </div>
-      <button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
-    </div>
-  </div>
-
-  <div id='modal-online'>
-    <div class='modal-box' style='max-width:250px;'>
-      <h3 style='color:#075e54; margin-top:0; font-size:16px;'>Usuarios en línea</h3>
-      <div id='lista-online' style='max-height:250px; overflow-y:auto; font-size:14px; color:#333; line-height:2;'></div>
-      <div id='admin-limpiar' style='display:none;'>
-          <button onclick='limpiarPresencia()' style='width:100%; background:orange; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px; font-size:11px; font-weight:bold;'>LIMPIAR FANTASMAS</button>
-      </div>
-      <button onclick='document.getElementById("modal-online").style.display="none"' style='width:100%; background:#075e54; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:10px;'>CERRAR</button>
-    </div>
-  </div>
+  <div id='modal-reglas'><div class='modal-box'><h3 style='color:#075e54; margin-top:0;'>Reglas</h3><div id='reglas-texto' style='font-size:14px; margin-bottom:15px; white-space:pre-wrap; max-height:200px; overflow-y:auto; padding:10px; background:#f9f9f9;'></div><div id='admin-editor' style='display:none;'><textarea id='edit-reglas' style='width:100%; height:60px;'></textarea><button onclick='guardarReglas()' style='width:100%; background:#075e54; color:white; border:none; padding:8px; margin-top:5px;'>ACTUALIZAR</button></div><button onclick='cerrarReglas()' style='width:100%; background:#777; color:white; border:none; padding:8px; margin-top:10px;'>CERRAR</button></div></div>
+  <div id='modal-online'><div class='modal-box' style='max-width:250px;'><h3 style='color:#075e54; margin-top:0;'>En línea</h3><div id='lista-online' style='max-height:250px; overflow-y:auto;'></div><div id='admin-limpiar' style='display:none;'><button onclick='limpiarPresencia()' style='width:100%; background:orange; color:white; border:none; padding:8px; margin-top:10px;'>LIMPIAR FANTASMAS</button></div><button onclick='document.getElementById("modal-online").style.display="none"' style='width:100%; background:#075e54; color:white; border:none; padding:8px; margin-top:10px;'>CERRAR</button></div></div>
 
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
@@ -144,49 +126,40 @@
     var miUsuario = "";
     var usuarioDestino = "";
     var multimediaBloqueado = false;
-    var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
     const EMOJIS = ['❤️', '🥲', '🤣', '🥰'];
 
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
     function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
     function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
 
-    function linkify(text) {
-      if(!text) return "";
-      if(text.includes("res.cloudinary.com")) {
-          if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return '<img src="'+text+'" class="chat-media" onclick="window.open(this.src)">';
-          if(text.match(/\.(mp4|mov|avi|webm)$/i)) return '<video src="'+text+'" class="chat-media" controls></video>';
-      }
-      var urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-      return text.replace(urlPattern, function(url) { return '<a href="' + url + '" target="_blank" class="chat-link">' + url + '</a>'; });
+    // --- LÓGICA DE GRUPOS CORREGIDA ---
+    function abrirModalGrupo() { 
+        document.getElementById("myDropdown").classList.remove("show");
+        document.getElementById('modal-crear-grupo').style.display = 'flex'; 
     }
-
-    // --- LÓGICA DE GRUPOS ---
-    function abrirModalGrupo() { toggleMenu(); document.getElementById('modal-crear-grupo').style.display = 'flex'; }
     
     function crearGrupoConfirmar() {
         var nom = document.getElementById('nom-grupo').value.trim();
-        if(!nom) return alert("Nombre de grupo requerido");
+        if(!nom) return alert("Nombre requerido");
+        
         var idG = "g_" + Math.random().toString(36).substr(2, 9);
         rdb.ref('lista_grupos/' + idG).set({
             n: nom,
             c: miUsuario,
             f: Date.now()
         }).then(() => {
-            document.getElementById('nom-grupo').value = "";
-            document.getElementById('modal-crear-grupo').style.display = 'none';
-            entrarAGrupo(idG);
+            localStorage.setItem('sincro_user', miUsuario);
+            window.location.href = "grupo.html?id=" + idG;
         });
     }
 
     function entrarAGrupo(id) {
-        // Guardamos el usuario para que grupo.html lo reconozca
         localStorage.setItem('sincro_user', miUsuario);
         window.location.href = "grupo.html?id=" + id;
     }
 
     function borrarGrupo(id) {
-        if(confirm("¿Eliminar este grupo definitivamente?")) {
+        if(confirm("¿Eliminar grupo?")) {
             rdb.ref('lista_grupos/' + id).remove();
             rdb.ref('mensajes_grupos/' + id).remove();
         }
@@ -198,79 +171,49 @@
             div.innerHTML = "";
             snapshot.forEach((child) => {
                 var g = child.val();
-                // Mostramos todos, pero permitimos borrar solo los nuestros
                 var esMio = (g.c === miUsuario);
                 var item = document.createElement('div');
                 item.className = "item-grupo";
                 item.innerHTML = `
                     <span onclick="entrarAGrupo('${child.key}')" style="cursor:pointer; flex:1;">📁 ${g.n}</span>
-                    ${esMio ? `<span onclick="borrarGrupo('${child.key}')" style="color:red; font-weight:bold; cursor:pointer; padding-left:10px;">X</span>` : ""}
+                    ${esMio ? `<span onclick="borrarGrupo('${child.key}')" style="color:red; font-weight:bold; cursor:pointer;">X</span>` : ""}
                 `;
                 div.appendChild(item);
             });
         });
     }
 
-    // --- FUNCIONES CORE (SIN CAMBIOS) ---
-    function generarIdSala(u1, u2) {
-      var comb = [u1.toLowerCase(), u2.toLowerCase()].sort().join("_");
-      var hash = 0; for (var i = 0; i < comb.length; i++) { hash = ((hash << 5) - hash) + comb.charCodeAt(i); hash |= 0; }
-      return "sala_" + Math.abs(hash);
-    }
-
-    function toggleMediaPublico() { rdb.ref('config/multimedia_bloqueado').set(!multimediaBloqueado); }
-
-    rdb.ref('config/multimedia_bloqueado').on('value', (s) => {
-        multimediaBloqueado = s.val() || false;
-        const btnPlus = document.getElementById('btn-plus-publico');
-        const labelOff = document.getElementById('label-off');
-        if(multimediaBloqueado) { if(btnPlus) btnPlus.classList.add('btn-disabled'); if(labelOff) labelOff.style.display = "block"; } 
-        else { if(btnPlus) btnPlus.classList.remove('btn-disabled'); if(labelOff) labelOff.style.display = "none"; }
-    });
-
-    async function subirMultimedia(input, tipo) {
-      if(tipo === 'global' && multimediaBloqueado) { alert("Bloqueado."); input.value = ""; return; }
-      const file = input.files[0]; if(!file) return;
-      const btn = (tipo === 'global') ? document.getElementById('btn-send-global') : document.getElementById('btn-send-privado');
-      btn.innerText = "...";
-      const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", UPLOAD_PRESET);
-      try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        if(tipo === 'global') { document.getElementById('msg').value = data.secure_url; send(); } 
-        else { document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); }
-      } catch (err) { alert("Error"); } finally { btn.innerText = ">"; input.value = ""; }
-    }
-
+    // --- FUNCIONES CORE ---
     function entrar() {
-      var uO = document.getElementById('usr').value.trim(); var p = document.getElementById('clv').value.trim(); var uM = uO.toLowerCase();
+      var uO = document.getElementById('usr').value.trim();
+      var p = document.getElementById('clv').value.trim();
+      var uM = uO.toLowerCase();
       if(!uO || !p) return alert("Escribe usuario y clave");
-      rdb.ref('usuarios/' + uM).once('value', (snapshot) => {
-        if(snapshot.exists()) {
-          if(snapshot.val().toString() === p.toString()) { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); } 
-          else { alert("Clave incorrecta."); }
-        } else {
-          rdb.ref('usuarios/' + uM).set(p).then(() => { miUsuario = (uM === "chat") ? "Chat" : uO; iniciar(); });
-        }
+      rdb.ref('usuarios/' + uM).once('value', (s) => {
+        if(s.exists() && s.val().toString() !== p.toString()) return alert("Clave incorrecta");
+        rdb.ref('usuarios/' + uM).set(p);
+        miUsuario = (uM === "chat") ? "Chat" : uO;
+        iniciar();
       });
     }
 
     function iniciar() {
       document.getElementById('acceso').style.display = 'none';
       document.getElementById('chat').style.display = 'flex';
+      
       if(miUsuario === "Chat") { 
          document.getElementById('admin-editor').style.display = 'block'; 
          document.getElementById('btn-borrar-todo').style.display = 'block';
          document.getElementById('admin-limpieza-media').style.display = 'block';
       }
+
       rdb.ref('presencia/' + miUsuario.toLowerCase()).set(miUsuario).onDisconnect().remove();
       rdb.ref('presencia').on('value', (s) => {
-        var usuarios = s.val() || {};
-        document.getElementById('online-count').innerText = "Conectados: " + Object.keys(usuarios).length + " ▼";
-        document.getElementById('lista-online').innerHTML = Object.values(usuarios).map(n => "• <b style='color:#075e54;'>"+n+"</b><br>").join("");
+        var u = s.val() || {};
+        document.getElementById('online-count').innerText = "Conectados: " + Object.keys(u).length + " ▼";
+        document.getElementById('lista-online').innerHTML = Object.values(u).map(n => "• <b>"+n+"</b><br>").join("");
       });
-      rdb.ref('config/reglas').on('value', (s) => { document.getElementById('reglas-texto').innerText = s.val() || "Bienvenido."; });
-      
+
       rdb.ref('mensajes').on('value', (snapshot) => {
         var box = document.getElementById('m-box'); box.innerHTML = ""; 
         snapshot.forEach((child) => {
@@ -293,28 +236,19 @@
       escucharMisGrupos();
     }
 
-    function verQuienesEstanOnline() { document.getElementById('modal-online').style.display = 'flex'; if(miUsuario === "Chat") document.getElementById('admin-limpiar').style.display = 'block'; }
-    function limpiarPresencia() { if(confirm("¿Limpiar?")) rdb.ref('presencia').remove().then(() => location.reload()); }
-    function abrirPrivado(n) { if(n === miUsuario) return; usuarioDestino = n; document.getElementById("p-nombre").innerText = "Privado: " + n; document.getElementById("p-chat").style.display = "flex"; escucharPrivados(); }
-    function cerrarPrivado() { document.getElementById("p-chat").style.display = "none"; usuarioDestino = ""; }
-    
-    function escucharPrivados() {
-      var id = generarIdSala(miUsuario, usuarioDestino);
-      rdb.ref("privados/" + id).on("value", (s) => {
-        var b = document.getElementById("p-box"); b.innerHTML = "";
-        s.forEach((c) => {
-          var m = c.val(), esMio = (m.u === miUsuario);
-          var d = document.createElement("div");
-          d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-          d.innerHTML = "<b>"+m.u+"</b><br>"+linkify(m.t); b.appendChild(d);
-        });
-        b.scrollTop = b.scrollHeight;
-      });
+    function linkify(text) {
+      if(!text) return "";
+      if(text.includes("res.cloudinary.com")) {
+          if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return '<img src="'+text+'" class="chat-media" onclick="window.open(this.src)">';
+          if(text.match(/\.(mp4|mov|avi|webm)$/i)) return '<video src="'+text+'" class="chat-media" controls></video>';
+      }
+      return text.replace(/(\b(https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, url => `<a href="${url}" target="_blank" class="chat-link">${url}</a>`);
     }
 
-    function enviarPrivado() {
-      var i = document.getElementById("p-msg"), v = i.value.trim(); if(!v) return;
-      rdb.ref("privados/" + generarIdSala(miUsuario, usuarioDestino)).push({ u: miUsuario, t: v.replace(/</g, "&lt;") }); i.value = "";
+    function send() {
+      var i = document.getElementById('msg'), t = i.value.trim(); if(!t || !ok) return;
+      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: h }).then(() => i.value = '');
     }
 
     function reaccionar(id, emoji) {
@@ -323,12 +257,6 @@
         EMOJIS.forEach(e => { if(d[e] && d[e][miUsuario]) rdb.ref('mensajes/'+id+'/reacciones/'+e+'/'+miUsuario).remove(); });
         if(!d[emoji] || !d[emoji][miUsuario]) rdb.ref('mensajes/'+id+'/reacciones/'+emoji+'/'+miUsuario).set(true);
       });
-    }
-
-    function send() {
-      var i = document.getElementById('msg'), t = i.value.trim(); if(!t || !ok) return;
-      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-      rdb.ref('mensajes').push({ u: miUsuario, t: t.replace(/</g, "&lt;"), h: h }).then(() => i.value = '');
     }
 
     function lock() { ok = !ok; document.getElementById('tgl').innerText = ok ? "ACTIVO" : "BLOQUEADO"; document.getElementById('tgl').style.background = ok ? "#25d366" : "#ff5252"; }
