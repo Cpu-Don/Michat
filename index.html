@@ -1,175 +1,184 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Sincro - Chat Corregido</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body { background:#f0f2f5; margin:0; font-family: sans-serif; overflow:hidden; }
-    #app { height:100vh; display:flex; justify-content:center; align-items:center; }
-    
-    /* MODAL - Aseguramos que se vea por encima de TODO */
-    #modal-crear-grupo { 
-      display: none; position: fixed; z-index: 99999; 
-      left: 0; top: 0; width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.8); justify-content: center; align-items: center; 
-    }
-    .modal-box { background: white; padding: 20px; border-radius: 10px; width: 80%; max-width: 300px; text-align: center; }
+    <meta charset="UTF-8">
+    <title>Sincro - Chat</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* Base */
+        body { background:#f0f2f5; margin:0; font-family: sans-serif; overflow:hidden; }
+        #app { height:100vh; display:flex; justify-content:center; align-items:center; }
+        
+        /* MODAL DE GRUPO - Forzado al frente */
+        #modal-crear-grupo { 
+            display: none; position: fixed; z-index: 9999999; 
+            left: 0; top: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); justify-content: center; align-items: center; 
+        }
+        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-box input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn-crear { background: #075e54; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-    /* Estilos Chat */
-    #chat { width:100%; max-width:500px; height:100%; background:#e5ddd5; display:none; flex-direction:column; }
-    .header { background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; }
-    
-    /* Menú Desplegable */
-    .dropdown { position: relative; }
-    .dropdown-content { 
-      display: none; position: absolute; right: 0; background: white; 
-      min-width: 160px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000; 
-    }
-    .dropdown-content span { color: black; padding: 12px; display: block; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
-    .show { display: block !important; }
+        /* Interfaz Chat */
+        #chat { width:100%; max-width:500px; height:100%; background:#e5ddd5; display:none; flex-direction:column; position: relative; }
+        .header { background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index: 100; }
+        
+        /* Menú Dropdown */
+        .dropdown { position: relative; }
+        .dropdown-content { 
+            display: none; position: absolute; right: 0; background: white; 
+            min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 200; border-radius: 8px; overflow: hidden;
+        }
+        .dropdown-content span { color: #333; padding: 12px 15px; display: block; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .dropdown-content span:hover { background: #f5f5f5; }
+        .show { display: block !important; }
 
-    #m-box { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
-    .msg { padding:8px 12px; border-radius:8px; max-width:80%; font-size: 14px; }
-    .input-area { background:#f0f0f0; padding:10px; display:flex; gap:8px; }
-    input { flex:1; padding:10px; border-radius:20px; border:1px solid #ccc; outline:none; }
-    button { background:#075e54; color:white; border:none; padding:10px 15px; border-radius:50%; cursor:pointer; }
-  </style>
+        #m-box { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+        .msg { background: white; padding: 10px; border-radius: 8px; font-size: 14px; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .mio { background: #dcf8c6; align-self: flex-end; }
+        
+        .input-area { background:#f0f0f0; padding:12px; display:flex; gap:10px; align-items:center; }
+        .input-area input { flex:1; padding:12px; border-radius:25px; border:1px solid #ccc; outline:none; }
+        .btn-send { background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-weight: bold; font-size: 20px; }
+    </style>
 </head>
 <body>
 
-  <div id="modal-crear-grupo">
-    <div class="modal-box">
-      <h4 style="margin:0 0 15px 0;">Nombre del Grupo</h4>
-      <input id="nom-grupo" type="text" placeholder="Ej: Amigos" style="width:90%; margin-bottom:15px;">
-      <button onclick="crearGrupoConfirmar()" style="width:100%; border-radius:5px;">CREAR GRUPO</button>
-      <button onclick="cerrarModal()" style="background:none; color:gray; margin-top:10px; width:100%;">Cancelar</button>
-    </div>
-  </div>
-
-  <div id="app">
-    <div id="acceso" style="background:white; padding:25px; border-radius:10px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-      <h3>Sincro</h3>
-      <input id="usr" placeholder="Usuario" type="text" style="width:100%; margin-bottom:10px; box-sizing:border-box;"><br>
-      <input id="clv" placeholder="Clave" type="password" style="width:100%; margin-bottom:15px; box-sizing:border-box;"><br>
-      <button onclick="entrar()" style="width:100%; border-radius:5px;">ENTRAR</button>
-    </div>
-
-    <div id="chat">
-      <div class="header">
-        <div><b>Chat Global</b></div>
-        <div class="dropdown">
-          <button onclick="toggleMenu()" style="background:#054d44; font-size:12px;">MENÚ ▼</button>
-          <div id="myDropdown" class="dropdown-content">
-            <span onclick="abrirModal()" style="color:#25d366; font-weight:bold;">+ Crear Grupo</span>
-            <div style="background:#f9f9f9; font-size:11px; padding:5px; color:gray; text-align:center;">MIS GRUPOS</div>
-            <div id="lista-grupos-menu"></div>
-            <span onclick="location.reload()">Cerrar Sesión</span>
-          </div>
+    <div id="modal-crear-grupo">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color:#075e54;">Nuevo Grupo</h3>
+            <input id="nom-grupo" type="text" placeholder="Nombre del grupo...">
+            <button class="btn-crear" onclick="confirmarNuevoGrupo()">CREAR AHORA</button>
+            <button onclick="cerrarElModal()" style="background:none; border:none; color:#999; margin-top:15px; cursor:pointer;">Cancelar</button>
         </div>
-      </div>
-
-      <div id="m-box"></div>
-
-      <div class="input-area">
-        <input id="msg" type="text" placeholder="Mensaje..." onkeypress="if(event.key==='Enter') enviar()">
-        <button onclick="enviar()">></button>
-      </div>
     </div>
-  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <div id="app">
+        <div id="acceso" style="background:white; padding:30px; border-radius:15px; text-align:center; width:280px;">
+            <h2 style="color:#075e54;">Sincro</h2>
+            <input id="usr" placeholder="Usuario" type="text" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;"><br>
+            <input id="clv" placeholder="Clave" type="password" style="width:100%; padding:10px; margin-bottom:20px; box-sizing:border-box;"><br>
+            <button onclick="entrarAlSistema()" style="width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">ENTRAR</button>
+        </div>
 
-  <script>
-    const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
-    firebase.initializeApp(firebaseConfig);
-    const rdb = firebase.database();
+        <div id="chat">
+            <div class="header">
+                <span><b>Sincro Chat</b></span>
+                <div class="dropdown">
+                    <button onclick="abrirMenu()" style="background:#054d44; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;">MENÚ ▼</button>
+                    <div id="dropMenu" class="dropdown-content">
+                        <span onclick="mostrarModalGrupo()" style="color:#25d366; font-weight:bold;">+ Crear Grupo</span>
+                        <div style="background:#eee; font-size:10px; padding:5px; text-align:center; color:#666;">MIS GRUPOS</div>
+                        <div id="lista-grupos-menu"></div>
+                        <span onclick="location.reload()" style="color:red;">Cerrar Sesión</span>
+                    </div>
+                </div>
+            </div>
 
-    let miUsuario = "";
+            <div id="m-box"></div>
 
-    function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
-    function abrirModal() { 
-      document.getElementById("myDropdown").classList.remove("show");
-      document.getElementById("modal-crear-grupo").style.display = "flex"; 
-    }
-    function cerrarModal() { document.getElementById("modal-crear-grupo").style.display = "none"; }
+            <div class="input-area">
+                <input id="msgInput" type="text" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()">
+                <button class="btn-send" onclick="enviarMensaje()">></button>
+            </div>
+        </div>
+    </div>
 
-    function entrar() {
-      const u = document.getElementById("usr").value.trim();
-      const c = document.getElementById("clv").value.trim();
-      if(!u || !c) return alert("Completa los datos");
-      
-      miUsuario = u;
-      document.getElementById("acceso").style.display = "none";
-      document.getElementById("chat").style.display = "flex";
-      
-      // Guardamos usuario en el navegador
-      localStorage.setItem('sincro_user', miUsuario);
-      
-      iniciarChat();
-      escucharGrupos();
-    }
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    function iniciarChat() {
-      rdb.ref('mensajes').limitToLast(20).on('value', snap => {
-        const box = document.getElementById("m-box");
-        box.innerHTML = "";
-        snap.forEach(child => {
-          const m = child.val();
-          const esMio = (m.u === miUsuario);
-          const d = document.createElement("div");
-          d.className = "msg";
-          d.style = esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;";
-          d.innerHTML = `<small style="color:#075e54; font-weight:bold;">${m.u}</small><br>${m.t}`;
-          box.appendChild(d);
-        });
-        box.scrollTop = box.scrollHeight;
-      });
-    }
+    <script>
+        const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const rdb = firebase.database();
 
-    function enviar() {
-      const i = document.getElementById("msg");
-      if(!i.value.trim()) return;
-      rdb.ref('mensajes').push({ u: miUsuario, t: i.value });
-      i.value = "";
-    }
+        let miUser = "";
 
-    // --- LÓGICA DE GRUPOS ---
-    function crearGrupoConfirmar() {
-      const nom = document.getElementById("nom-grupo").value.trim();
-      if(!nom) return alert("Pon un nombre");
+        // Funciones de Interfaz
+        function abrirMenu() { document.getElementById("dropMenu").classList.toggle("show"); }
+        function mostrarModalGrupo() { 
+            document.getElementById("dropMenu").classList.remove("show");
+            document.getElementById("modal-crear-grupo").style.display = "flex"; 
+        }
+        function cerrarElModal() { document.getElementById("modal-crear-grupo").style.display = "none"; }
 
-      const idG = "g_" + Date.now();
-      rdb.ref('lista_grupos/' + idG).set({
-        n: nom,
-        c: miUsuario
-      }).then(() => {
-        cerrarModal();
-        window.location.href = "grupo.html?id=" + idG;
-      });
-    }
+        // Login
+        function entrarAlSistema() {
+            const u = document.getElementById("usr").value.trim();
+            const c = document.getElementById("clv").value.trim();
+            if(!u || !c) return alert("Faltan datos");
+            
+            miUser = u;
+            localStorage.setItem('sincro_user', miUser);
+            document.getElementById("acceso").style.display = "none";
+            document.getElementById("chat").style.display = "flex";
+            
+            cargarChatGlobal();
+            escucharListaGrupos();
+        }
 
-    function escucharGrupos() {
-      rdb.ref('lista_grupos').on('value', snap => {
-        const menu = document.getElementById("lista-grupos-menu");
-        menu.innerHTML = "";
-        snap.forEach(child => {
-          const g = child.val();
-          const s = document.createElement("span");
-          s.innerHTML = "📁 " + g.n;
-          s.onclick = () => window.location.href = "grupo.html?id=" + child.key;
-          menu.appendChild(s);
-        });
-      });
-    }
+        // Chat Global
+        function cargarChatGlobal() {
+            rdb.ref('mensajes').limitToLast(30).on('value', snap => {
+                const box = document.getElementById("m-box");
+                box.innerHTML = "";
+                snap.forEach(child => {
+                    const m = child.val();
+                    const d = document.createElement("div");
+                    d.className = "msg " + (m.u === miUser ? "mio" : "");
+                    d.innerHTML = `<small style="color:#075e54; font-weight:bold;">${m.u}</small><br>${m.t}`;
+                    box.appendChild(d);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
 
-    // Cerrar menú si haces clic fuera
-    window.onclick = function(event) {
-      if (!event.target.matches('button')) {
-        document.getElementById("myDropdown").classList.remove("show");
-      }
-    }
-  </script>
+        function enviarMensaje() {
+            const input = document.getElementById("msgInput");
+            if(!input.value.trim()) return;
+            rdb.ref('mensajes').push({ u: miUser, t: input.value.trim() });
+            input.value = "";
+        }
+
+        // --- LÓGICA DE GRUPOS (CORREGIDA) ---
+        function confirmarNuevoGrupo() {
+            const nombre = document.getElementById("nom-grupo").value.trim();
+            if(!nombre) return alert("Escribe un nombre");
+
+            // Generamos ID único
+            const idGrupo = "g_" + Date.now();
+            
+            rdb.ref('lista_grupos/' + idGrupo).set({
+                n: nombre,
+                c: miUser
+            }).then(() => {
+                cerrarElModal();
+                // Redirigimos a la página del grupo
+                window.location.href = "grupo.html?id=" + idGrupo;
+            }).catch(e => alert("Error: " + e.message));
+        }
+
+        function escucharListaGrupos() {
+            rdb.ref('lista_grupos').on('value', snap => {
+                const contenedor = document.getElementById("lista-grupos-menu");
+                contenedor.innerHTML = "";
+                snap.forEach(child => {
+                    const g = child.val();
+                    const s = document.createElement("span");
+                    s.innerHTML = "📁 " + g.n;
+                    s.style.background = "#fff";
+                    s.onclick = () => window.location.href = "grupo.html?id=" + child.key;
+                    contenedor.appendChild(s);
+                });
+            });
+        }
+
+        // Cerrar menú si haces clic fuera
+        window.onclick = (e) => {
+            if (!e.target.closest('.dropdown')) {
+                document.getElementById("dropMenu").classList.remove("show");
+            }
+        }
+    </script>
 </body>
 </html>
