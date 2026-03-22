@@ -41,17 +41,23 @@
           <span><b>Chat Online</b></span>
           <small id='online-count' style='font-size:10px; color:#25d366; font-weight:bold;'>Conectados: 0 &#9660;</small>
         </div>
-        <div class='dropdown'>
-          <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
-          <div class='dropdown-content' id='myDropdown'>
-            <span onclick='abrirReglas()'>Reglas</span>
-            <div id="admin-limpieza-media" style="display:none;">
-                <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
-                <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
-                <span onclick='limpiarMultimedia("publico")' style='color:#4CAF50;'>Limpiar Fotos Públicas</span>
-                <span onclick='limpiarMultimedia("total")' style='color:red; font-weight:bold;'>LIMPIEZA TOTAL FOTOS</span>
-          <span onclick="abrirModalCrearGrupo()" style="color:#25d366; font-weight:bold;">+ Crear Grupo</span>
-<div id="lista-grupos-nav" style="background:#f1f1f1; max-height:150px; overflow-y:auto;"></div>
+        <div class='dropdown-content' id='myDropdown'>
+  <span onclick='abrirReglas()'>Reglas</span>
+  <div style="background:#f0f2f5; padding:5px; border-bottom:1px solid #eee;">
+    <span onclick="abrirModalCrearGrupo()" style="color:#128c7e; font-weight:bold; border:none;">+ CREAR GRUPO</span>
+  </div>
+  <div id="lista-grupos-nav" style="max-height:150px; overflow-y:auto; background:white;">
+    </div>
+  <hr style="margin:0; border:0; border-top:1px solid #eee;">
+  <div id="admin-limpieza-media" style="display:none;">
+      <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
+      <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
+      <span onclick='limpiarMultimedia("publico")' style='color:#4CAF50;'>Limpiar Fotos Públicas</span>
+      <span onclick='limpiarMultimedia("total")' style='color:red; font-weight:bold;'>LIMPIEZA TOTAL FOTOS</span>
+  </div>
+  <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat Texto</span>
+  <span onclick='location.reload()' style='color:red;'>Salir</span>
+</div>
 
             </div>
             <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat Texto</span>
@@ -447,6 +453,62 @@ function cargarGruposMenu() {
     });
   });
 }
+// --- FUNCIONES DE GRUPOS SINCRO ---
+
+function abrirModalCrearGrupo() {
+  document.getElementById("myDropdown").classList.remove("show");
+  document.getElementById("modal-crear-grupo").style.display = "flex";
+}
+
+function confirmarCrearGrupo() {
+  var nom = document.getElementById("nom-grupo").value.trim();
+  if(!nom) return alert("Escribe un nombre");
+  
+  var idReal = "g_" + Date.now();
+  // Generamos el Token Aleatorio de invitación
+  var tokenAleatorio = "Sincro-" + Math.random().toString(36).substr(2, 7).toUpperCase();
+
+  rdb.ref('lista_grupos/' + idReal).set({
+    n: nom,             // Nombre del grupo
+    c: miUsuario,       // Creador (Admin)
+    t: tokenAleatorio,  // Token de invitación
+    f: Date.now()       // Fecha
+  }).then(() => {
+    document.getElementById("modal-crear-grupo").style.display = "none";
+    document.getElementById("nom-grupo").value = "";
+    // Redirige a la página del grupo
+    window.location.href = "grupo.html?id=" + idReal;
+  });
+}
+
+function cargarGruposMenu() {
+  rdb.ref('lista_grupos').on('value', (snap) => {
+    var menu = document.getElementById("lista-grupos-nav");
+    if(!menu) return;
+    menu.innerHTML = "";
+    
+    if(!snap.exists()) {
+      menu.innerHTML = "<small style='display:block; padding:10px; color:#999; text-align:center;'>Sin grupos activos</small>";
+      return;
+    }
+
+    snap.forEach((child) => {
+      var g = child.val();
+      var item = document.createElement("span");
+      // Diseño de cada grupo en la lista
+      item.style = "padding:12px 16px; border-bottom:1px solid #f0f0f0; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:13px; color:#333;";
+      item.innerHTML = `
+        <div style="width:10px; height:10px; background:#25d366; border-radius:50%;"></div>
+        <div style="display:flex; flex-direction:column;">
+          <b>${g.n}</b>
+          <small style="color:#999; font-size:9px;">Admin: ${g.c}</small>
+        </div>
+      `;
+      item.onclick = () => { window.location.href = "grupo.html?id=" + child.key; };
+      menu.appendChild(item);
+    });
+  });
+}
 
   </script>
 
@@ -460,6 +522,15 @@ function cargarGruposMenu() {
     <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="margin-top:10px; background:none; border:none; color:gray; cursor:pointer;">Cancelar</button>
   </div>
 </div>
+<div id="modal-crear-grupo" style="display:none; position:fixed; z-index:1000002; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); justify-content:center; align-items:center; font-family:sans-serif;">
+  <div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:320px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+    <h3 style="color:#075e54; margin-top:0;">Nuevo Grupo Sincro</h3>
+    <input id="nom-grupo" placeholder="Nombre del grupo..." style="width:100%; padding:14px; border:1px solid #ddd; border-radius:12px; box-sizing:border-box; margin-bottom:20px; outline:none; font-size:16px; background:#f9f9f9;" type="text"/>
+    <button onclick="confirmarCrearGrupo()" style="width:100%; padding:14px; background:#25d366; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:15px; box-shadow:0 4px 12px rgba(37,211,102,0.4);">CREAR AHORA</button>
+    <button onclick="document.getElementById('modal-crear-grupo').style.display='none'" style="margin-top:15px; background:none; border:none; color:#999; cursor:pointer; font-size:13px;">Cancelar</button>
+  </div>
+</div>
 
+  
 </body>
 </html>
