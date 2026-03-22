@@ -41,26 +41,19 @@
           <span><b>Chat Online</b></span>
           <small id='online-count' style='font-size:10px; color:#25d366; font-weight:bold;'>Conectados: 0 &#9660;</small>
         </div>
-        <div class='dropdown-content' id='myDropdown' style="right: 0; top: 100%;">
-  <span <div class='dropdown-content' id='myDropdown' style="right: 0;">
-  <span onclick='abrirReglas()'>Reglas</span>
-  
-  <div style="background:#f0f2f5; padding:8px; border-bottom:1px solid #ddd; text-align:center;">
-    <button onclick="abrirModalCrearGrupo()" style="background:#128c7e; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px; width:95%;">+ CREAR GRUPO</button>
-  </div>
-  <div id="lista-grupos-nav" style="max-height:180px; overflow-y:auto; background:white;">
-    </div>
-  <hr style="margin:0; border:0; border-top:1px solid #eee;">
-  
-  <div id="admin-limpieza-media" style="display:none;">
-      <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
-      <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
-      <span onclick='limpiarMultimedia("publico")' style='color:#4CAF50;'>Limpiar Fotos Públicas</span>
-      <span onclick='limpiarMultimedia("total")' style='color:red; font-weight:bold;'>LIMPIEZA TOTAL</span>
-  </div>
-  <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat Texto</span>
-  <span onclick='location.reload()' style='color:red;'>Salir</span>
-</div>
+<div class='dropdown'>
+          <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
+          <div class='dropdown-content' id='myDropdown'>
+            <span onclick='abrirReglas()'>Reglas</span>
+            <div id="admin-limpieza-media" style="display:none;">
+                <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
+                <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
+                <span onclick='limpiarMultimedia("publico")' style='color:#4CAF50;'>Limpiar Fotos Públicas</span>
+                <span onclick='limpiarMultimedia("total")' style='color:red; font-weight:bold;'>LIMPIEZA TOTAL FOTOS</span>
+            </div>
+            <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat Texto</span>
+            <span onclick='location.reload()' style='color:red;'>Salir</span>
+          </div>
 
   <span id='btn-borrar-todo' onclick='borrarTodoElChat()' style='color:orange; display:none;'>Borrar Chat Texto</span>
   <span onclick='location.reload()' style='color:red;'>Salir</span>
