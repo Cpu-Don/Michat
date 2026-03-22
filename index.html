@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -14,7 +13,7 @@
     .dropdown-content span { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; font-size: 14px; border-bottom: 1px solid #eee; }
     .dropdown-content span:hover { background-color: #f1f1f1; }
     .show { display: block !important; }
-    #modal-reglas, #modal-online { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
+    #modal-reglas, #modal-online, #modal-ajustes { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; font-family: sans-serif; }
     .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 400px; position: relative; }
     .chat-link { color: #075e54; text-decoration: underline; font-weight: bold; }
     
@@ -23,6 +22,40 @@
     .btn-adjuntar { background: #ccc; color: #333; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; font-weight: bold; }
     .btn-disabled { opacity: 0.4; cursor: not-allowed !important; filter: grayscale(1); }
     .status-off { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 8px; padding: 2px 4px; border-radius: 4px; display: none; }
+
+    /* Estilos para Ajustes del Grupo */
+    #ajustes-grupo .input-group, #ajustes-grupo .member-list-item {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    #ajustes-grupo label {
+        display: inline-block;
+        width: 100px;
+        margin-right: 10px;
+        font-weight: bold;
+        color: #075e54;
+    }
+    #ajustes-grupo input[type="text"] {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    #ajustes-grupo button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .btn-reset { background-color: #ffc107; color: white; }
+    .btn-expulsar { background-color: #dc3545; color: white; }
+    .btn-guardar { background-color: #075e54; color: white; }
+    .member-list-item { justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 5px;}
+    .member-list-item span { margin-right: 10px; }
+    .member-list-item .btn-expulsar { padding: 5px 10px; font-size: 11px; }
+    .member-list { max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 5px; margin-top: 10px;}
   </style>
 </head>
 <body>
@@ -39,13 +72,14 @@
     <div id='chat' style='width:100%; max-width:500px; height:100%; background:#e5ddd5; display:none; flex-direction:column; font-family:sans-serif;'>
       <div style='background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;'>
         <div onclick='verQuienesEstanOnline()' style='display:flex; flex-direction:column; cursor:pointer;'>
-          <span><b>Chat Online</b></span>
+          <span id="chat-title"><b>Chat Online</b></span>
           <small id='online-count' style='font-size:10px; color:#25d366; font-weight:bold;'>Conectados: 0 &#9660;</small>
         </div>
         <div class='dropdown'>
           <span onclick='toggleMenu()' style='cursor:pointer; font-size:12px; background:#054d44; padding:5px 10px; border-radius:5px; font-weight:bold;'>OPCIONES &#9660;</span>
           <div class='dropdown-content' id='myDropdown'>
             <span onclick='abrirReglas()'>Reglas</span>
+            <span onclick='abrirAjustesGrupo()' id="btn-ajustes-grupo-menu" style="display:none;">Ajustes del Grupo</span>
             <div id="admin-limpieza-media" style="display:none;">
                 <span id="btn-lock-media" onclick='toggleMediaPublico()' style='color:#E91E63; font-weight:bold;'>Bloquear Multimedia</span>
                 <span onclick='limpiarMultimedia("privado")' style='color:#2196F3;'>Limpiar Fotos Privadas</span>
@@ -114,6 +148,29 @@
     </div>
   </div>
 
+  <!-- Modal de Ajustes del Grupo -->
+  <div id='modal-ajustes'>
+    <div class='modal-box'>
+      <h3 style='color:#075e54; margin-top:0;'>Ajustes del Grupo</h3>
+      <div id="ajustes-grupo">
+        <div class="input-group">
+          <label>Nombre:</label>
+          <input type="text" id="grupo-nombre-input" placeholder="Nombre del grupo">
+        </div>
+        <div class="input-group">
+          <label>Link:</label>
+          <input type="text" id="grupo-link-actual" readonly>
+          <button class="btn-reset" onclick="restablecerLink()">Restablecer enlace</button>
+        </div>
+        <h4>Miembros:</h4>
+        <div id="lista-miembros-ajustes" class="member-list">
+          <!-- Los miembros se cargarán aquí dinámicamente -->
+        </div>
+      </div>
+      <button onclick='cerrarAjustesGrupo()' style='width:100%; background:#777; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer; margin-top:15px;'>CERRAR</button>
+    </div>
+  </div>
+
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
   <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
 
@@ -125,326 +182,48 @@
     const CLOUD_NAME = "dhtyepcjg";
     const UPLOAD_PRESET = "Historial"; 
 
-    var ok = true; // Estado del chat (activo/bloqueado)
-    var miUsuario = ""; // Nombre del usuario actual
-    var usuarioDestino = ""; // Nombre del usuario en chat privado
-    var escribiendoTimeout; // Temporizador para notificar escritura
-    var multimediaBloqueado = false; // Estado del bloqueo de multimedia
-    var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3"); // Audio de notificación
-    const EMOJIS = ['❤️', '🥲', '🤣', '🥰']; // Emojis para reacciones
+    var ok = true; // Estado del chat global (activo/bloqueado)
+    var miUsuario = "";
+    var usuarioDestino = ""; // Usuario con el que se está chateando en privado
+    var escribiendoTimeout;
+    var multimediaBloqueado = false;
+    var audioNotif = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
+    const EMOJIS = ['❤️', '🥲', '🤣', '🥰'];
 
-    // --- FUNCIONES GENERALES DE UI ---
+    // --- Manejo de Elementos del DOM y Eventos ---
     function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
     function abrirReglas() { document.getElementById("modal-reglas").style.display = "flex"; }
     function cerrarReglas() { document.getElementById("modal-reglas").style.display = "none"; }
 
-    // Función para convertir URLs en enlaces o mostrar multimedia
+    function abrirAjustesGrupo() {
+        document.getElementById("modal-ajustes").style.display = "flex";
+        cargarDatosAjustesGrupo();
+    }
+    function cerrarAjustesGrupo() { document.getElementById("modal-ajustes").style.display = "none"; }
+
+    // --- Funciones de Utilidad ---
     function linkify(text) {
       if(!text) return "";
+      // Verifica si el texto es una URL de Cloudinary y si es imagen/video
       if(text.includes("res.cloudinary.com")) {
-          if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return '<img src="'+text+'" class="chat-media" onclick="window.open(this.src)">';
-          if(text.match(/\.(mp4|mov|avi|webm)$/i)) return '<video src="'+text+'" class="chat-media" controls></video>';
+          if(text.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return `<img src="${text}" class="chat-media" onclick="window.open(this.src)">`;
+          if(text.match(/\.(mp4|mov|avi|webm)$/i)) return `<video src="${text}" class="chat-media" controls></video>`;
       }
+      // Convierte URLs normales a enlaces clicables
       var urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
       return text.replace(urlPattern, function(url) {
-        return '<a href="' + url + '" target="_blank" class="chat-link">' + url + '</a>';
+        return `<a href="${url}" target="_blank" class="chat-link">${url}</a>`;
       });
     }
 
-    // Genera un ID único para las salas de chat privado basado en los nombres de usuario
     function generarIdSala(u1, u2) {
       var comb = [u1.toLowerCase(), u2.toLowerCase()].sort().join("_");
       var hash = 0;
       for (var i = 0; i < comb.length; i++) {
         hash = ((hash << 5) - hash) + comb.charCodeAt(i);
-        hash |= 0;
+        hash |= 0; // Convert to 32bit integer
       }
       return "sala_" + Math.abs(hash);
     }
 
-    // --- MANEJO DE BLOQUEO MULTIMEDIA ---
-    function toggleMediaPublico() {
-        let nuevoEstado = !multimediaBloqueado;
-        rdb.ref('config/multimedia_bloqueado').set(nuevoEstado); // Actualiza el estado en Firebase
-    }
-
-    // Escucha cambios en el estado del bloqueo de multimedia
-    rdb.ref('config/multimedia_bloqueado').on('value', (s) => {
-        multimediaBloqueado = s.val() || false; // Obtiene el valor o usa false por defecto
-        const btnPlus = document.getElementById('btn-plus-publico');
-        const btnMenu = document.getElementById('btn-lock-media');
-        const labelOff = document.getElementById('label-off');
-        if(multimediaBloqueado) {
-            if(btnPlus) btnPlus.classList.add('btn-disabled'); // Deshabilita el botón de adjuntar
-            if(labelOff) labelOff.style.display = "block"; // Muestra el indicador "OFF"
-            if(btnMenu) btnMenu.innerText = "Activar Multimedia"; // Cambia el texto del botón del menú
-        } else {
-            if(btnPlus) btnPlus.classList.remove('btn-disabled'); // Habilita el botón de adjuntar
-            if(labelOff) labelOff.style.display = "none"; // Oculta el indicador "OFF"
-            if(btnMenu) btnMenu.innerText = "Bloquear Multimedia"; // Cambia el texto del botón del menú
-        }
-    });
-
-    // Sube multimedia a Cloudinary y envía la URL al chat
-    async function subirMultimedia(input, tipo) {
-      // Verificación instantánea en Firebase antes de subir
-      if(tipo === 'global') {
-          const s = await rdb.ref('config/multimedia_bloqueado').once('value');
-          if(s.val() === true) { 
-              alert("Multimedia bloqueado por administrador."); 
-              input.value = ""; return; 
-          }
-      }
-      
-      const file = input.files[0];
-      if(!file) return;
-      const btn = (tipo === 'global') ? document.getElementById('btn-send-global') : document.getElementById('btn-send-privado');
-      btn.innerText = "..."; // Muestra "..." mientras se sube
-      
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", UPLOAD_PRESET);
-      
-      try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        if(tipo === 'global') { 
-            if(multimediaBloqueado) { alert("Bloqueo activo."); return; }
-            document.getElementById('msg').value = data.secure_url; send(); // Envía la URL del multimedia como mensaje
-        } else { 
-            document.getElementById('p-msg').value = data.secure_url; enviarPrivado(); // Envía la URL del multimedia como mensaje privado
-        }
-      } catch (err) { alert("Error al subir"); } finally { btn.innerText = ">"; input.value = ""; } // Restaura el botón y limpia el input
-    }
-
-    // Limpia los mensajes multimedia de Firebase según el tipo
-    function limpiarMultimedia(tipo) {
-        const esMedia = (url) => url && url.includes("res.cloudinary.com"); // Función auxiliar para verificar si es una URL de media
-        if(tipo === "publico" || tipo === "total") {
-            rdb.ref('mensajes').once('value', (s) => { s.forEach((c) => { if(esMedia(c.val().t)) rdb.ref('mensajes/'+c.key).remove(); }); }); // Elimina mensajes multimedia del chat global
-        }
-        if(tipo === "privado" || tipo === "total") {
-            rdb.ref('privados').once('value', (s) => { s.forEach((sala) => { sala.forEach((msg) => { if(esMedia(msg.val().t)) rdb.ref('privados/'+sala.key+'/'+msg.key).remove(); }); }); }); // Elimina mensajes multimedia de chats privados
-        }
-    }
-
-    // --- MANEJO DE AUTENTICACIÓN Y ENTRADA AL CHAT ---
-    function entrar() {
-      var uO = document.getElementById('usr').value.trim();
-      var p = document.getElementById('clv').value.trim();
-      var uM = uO.toLowerCase(); // Usuario en minúsculas para la base de datos
-      if(!uO || !p) { alert("Escribe usuario y clave"); return; }
-      rdb.ref('usuarios/' + uM).once('value', (snapshot) => {
-        if(snapshot.exists()) {
-          if(snapshot.val().toString() === p.toString()) { // Compara la clave ingresada con la almacenada
-            miUsuario = (uM === "chat") ? "Chat" : uO; // Asigna el nombre de usuario, especial para el admin "chat"
-            iniciar(); // Inicia la interfaz del chat
-          } else { alert("Clave incorrecta."); }
-        } else {
-          if(uM === "chat" && uO !== "Chat") { alert("Nombre reservado."); return; } // Evita que se use "chat" como nombre de usuario normal
-          rdb.ref('usuarios/' + uM).set(p).then(() => { // Registra al nuevo usuario
-            miUsuario = (uM === "chat") ? "Chat" : uO;
-            iniciar();
-          });
-        }
-      });
-    }
-
-    // --- INICIALIZACIÓN DEL CHAT Y ESCUCHA DE EVENTOS ---
-    function iniciar() {
-      document.getElementById('acceso').style.display = 'none'; // Oculta la pantalla de acceso
-      document.getElementById('chat').style.display = 'flex'; // Muestra la interfaz del chat
-      
-      // Configuración especial para el usuario "Chat" (administrador)
-      if(miUsuario === "Chat") { 
-         document.getElementById('admin-editor').style.display = 'block'; // Muestra el editor de reglas
-         document.getElementById('btn-borrar-todo').style.display = 'block'; // Muestra el botón de borrar chat
-         document.getElementById('admin-limpieza-media').style.display = 'block'; // Muestra opciones de limpieza de multimedia
-
-         // --- RELOJ DE LIMPIEZA AUTOMÁTICA (CADA 4 HORAS) ---
-         console.log("Sistema de limpieza automática 4h activado.");
-         setInterval(function() {
-             limpiarMultimedia("total"); // Ejecuta la limpieza total de multimedia
-             console.log("Limpieza programada ejecutada.");
-         }, 4 * 60 * 60 * 1000); // Intervalo de 4 horas
-      }
-
-      // Configuración de presencia del usuario
-      var presRef = rdb.ref('presencia/' + miUsuario.toLowerCase());
-      presRef.set(miUsuario); // Marca al usuario como presente
-      presRef.onDisconnect().remove(); // Elimina al usuario de la lista de presentes si se desconecta
-
-      // Escucha cambios en la lista de presencia
-      rdb.ref('presencia').on('value', (s) => {
-        var usuarios = s.val() || {};
-        var count = Object.keys(usuarios).length;
-        document.getElementById('online-count').innerText = "Conectados: " + count + " ▼"; // Actualiza el contador de conectados
-        var listaDiv = document.getElementById('lista-online');
-        listaDiv.innerHTML = ""; // Limpia la lista anterior
-        Object.values(usuarios).forEach(nombre => { // Añade cada usuario presente a la lista
-          var item = document.createElement('div');
-          item.innerHTML = "• <b style='color:#075e54;'>" + nombre + "</b>";
-          listaDiv.appendChild(item);
-        });
-      });
-
-      // Escucha cambios en las reglas del chat
-      rdb.ref('config/reglas').on('value', (s) => {
-        document.getElementById('reglas-texto').innerText = s.exists() ? s.val() : "Bienvenido."; // Muestra las reglas o un mensaje por defecto
-      });
-      
-      // Escucha nuevos mensajes en el chat global
-      rdb.ref('mensajes').on('value', (snapshot) => {
-        var box = document.getElementById('m-box');
-        if (!box) return; // Si el contenedor de mensajes no existe, sale
-        box.innerHTML = ""; // Limpia el contenedor antes de añadir los mensajes
-        if(snapshot.exists()){
-          snapshot.forEach((child) => { // Itera sobre cada mensaje
-            var m = child.val(), id = child.key, esMio = (m.u === miUsuario); // Obtiene datos del mensaje
-            var d = document.createElement('div');
-            // Estilos del mensaje (derecha si es propio, izquierda si es de otro)
-            d.style = "padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; margin-bottom:5px; word-break:break-all;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start;");
-            
-            var textoProcesado = linkify(m.t || ""); // Procesa el texto para enlaces y multimedia
-            
-            // Estructura HTML del mensaje
-            var html = (miUsuario === "Chat" ? "<span onclick='borrarMensaje(\""+id+"\")' style='color:red; cursor:pointer; float:right; margin-left:10px; font-weight:bold;'>x</span>" : "") + // Botón de borrar para el admin
-                       "<small id='user-"+id+"' onclick='abrirPrivado(\""+m.u+"\")' style='color:#128c7e; font-weight:bold; cursor:pointer; text-decoration:underline;'>" + m.u + "</small><br/>" + // Nombre del usuario con enlace a chat privado
-                       textoProcesado + // Texto del mensaje procesado
-                       "<div style='font-size:10px; color:#888; text-align:right; margin-top:4px;'>" + (m.h || "") + "</div>" + // Hora del mensaje
-                       "<div style='display:flex; gap:5px; margin-top:5px; border-top:1px solid #eee; padding-top:5px;'>"; // Contenedor de reacciones
-            
-            // Añade botones de reacción
-            EMOJIS.forEach(emoji => {
-              var count = (m.reacciones && m.reacciones[emoji]) ? Object.keys(m.reacciones[emoji]).length : 0;
-              var activo = (m.reacciones && m.reacciones[emoji] && m.reacciones[emoji][miUsuario]); // Verifica si el usuario actual ya reaccionó
-              html += "<span onclick='reaccionar(\""+id+"\",\""+emoji+"\")' style='cursor:pointer; font-size:12px; background:"+(activo?"#c5e1a5":"#f0f0f0")+"; padding:2px 5px; border-radius:5px;'>" + emoji + (count > 0 ? " " + count : "") + "</span>";
-            });
-            html += "</div>";
-            d.innerHTML = html; box.appendChild(d); // Inserta el mensaje en el DOM
-          });
-          box.scrollTop = box.scrollHeight; // Desplaza la vista al último mensaje
-        }
-      });
-    }
-
-    // --- FUNCIONES DEL MODAL DE USUARIOS EN LÍNEA ---
-    function verQuienesEstanOnline() {
-      document.getElementById('modal-online').style.display = 'flex';
-      if(miUsuario === "Chat") document.getElementById('admin-limpiar').style.display = 'block'; // Muestra botón de limpieza para admin
-    }
-
-    // Limpia la lista de presencia (elimina "fantasmas")
-    function limpiarPresencia() {
-      if(confirm("¿Eliminar usuarios fantasmas?")) {
-        rdb.ref('presencia').remove().then(() => { location.reload(); }); // Borra todos los presentes y recarga la página
-      }
-    }
-
-    // --- FUNCIONES DE CHAT PRIVADO ---
-    function abrirPrivado(nombre) {
-      if (nombre === miUsuario) return; // No permite abrir chat consigo mismo
-      usuarioDestino = nombre;
-      document.getElementById("p-nombre").innerText = "Privado con: " + nombre;
-      document.getElementById("p-chat").style.display = "flex"; // Muestra la ventana de chat privado
-      escucharPrivados(); // Comienza a escuchar mensajes privados
-    }
-
-    function cerrarPrivado() {
-      if(usuarioDestino) {
-        var idSala = generarIdSala(miUsuario, usuarioDestino);
-        rdb.ref("privados/" + idSala).off(); // Detiene la escucha de mensajes en esta sala
-        rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove(); // Elimina la notificación de escritura
-      }
-      document.getElementById("p-chat").style.display = "none"; // Oculta la ventana de chat privado
-      usuarioDestino = ""; // Limpia el usuario destino
-    }
-
-    // Escucha mensajes y notificaciones de escritura en el chat privado
-    function escucharPrivados() {
-      var idSala = generarIdSala(miUsuario, usuarioDestino);
-      var primero = true; // Bandera para evitar la notificación de audio en la carga inicial
-      rdb.ref("privados/" + idSala).on("value", (snapshot) => {
-        var pBox = document.getElementById("p-box"); pBox.innerHTML = ""; // Limpia el contenedor de mensajes
-        if(snapshot.exists()){
-          snapshot.forEach((child) => { // Itera sobre los mensajes
-            var m = child.val(), esMio = (m.u === miUsuario);
-            var d = document.createElement("div");
-            // Estilos del mensaje privado
-            d.style = "padding:8px; border-radius:8px; max-width:85%; font-size:12px; line-height:1.4;" + (esMio ? "background:#dcf8c6; align-self:flex-end;" : "background:white; align-self:flex-start; border:1px solid #ddd;");
-            var textoProcesado = linkify(m.t || ""); // Procesa el texto
-            d.innerHTML = "<b>" + m.u + "</b><br/>" + textoProcesado; pBox.appendChild(d); // Añade el mensaje
-          });
-          pBox.scrollTop = pBox.scrollHeight; // Desplaza a la última línea
-          if(!primero) audioNotif.play().catch(function(e){}); // Reproduce sonido si no es la carga inicial
-          primero = false;
-        }
-      });
-      // Escucha notificaciones de escritura del otro usuario
-      rdb.ref("escribiendo/" + idSala + "/" + usuarioDestino).on("value", (s) => {
-        document.getElementById("p-status").innerText = s.exists() ? usuarioDestino + " está escribiendo..." : "";
-      });
-    }
-
-    // Notifica que el usuario actual está escribiendo
-    function notificarEscribiendo() {
-      if(!usuarioDestino) return;
-      var idSala = generarIdSala(miUsuario, usuarioDestino);
-      rdb.ref("escribiendo/" + idSala + "/" + miUsuario).set(true); // Marca como escribiendo
-      clearTimeout(escribiendoTimeout); // Limpia el temporizador anterior
-      escribiendoTimeout = setTimeout(() => { rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove(); }, 2000); // Elimina la notificación después de 2 segundos de inactividad
-    }
-
-    // Envía un mensaje privado
-    function enviarPrivado() {
-      var input = document.getElementById("p-msg"), val = input.value.trim();
-      if (!val || !usuarioDestino) return; // Si no hay texto o no hay usuario destino, no hace nada
-      var idSala = generarIdSala(miUsuario, usuarioDestino);
-      rdb.ref("privados/" + idSala).push({ u: miUsuario, t: val.replace(/</g, "&lt;"), h: new Date().getHours() + ":" + (new Date().getMinutes()<10?"0":"") + new Date().getMinutes() }).then(() => { // Guarda el mensaje en Firebase
-          input.value = ""; // Limpia el input
-          rdb.ref("escribiendo/" + idSala + "/" + miUsuario).remove(); // Elimina la notificación de escritura
-      });
-    }
-
-    // --- FUNCIONES DE REACCIONES ---
-    function reaccionar(msgId, emoji) {
-      rdb.ref('mensajes/' + msgId + '/reacciones').once('value', (s) => {
-        var data = s.val() || {};
-        // Elimina la reacción del usuario si ya existe en otro emoji
-        EMOJIS.forEach(e => { if(data[e] && data[e][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + e + '/' + miUsuario).remove(); });
-        // Añade la nueva reacción si no existe
-        if(!data[emoji] || !data[emoji][miUsuario]) rdb.ref('mensajes/' + msgId + '/reacciones/' + emoji + '/' + miUsuario).set(true);
-      });
-    }
-
-    // --- FUNCIONES DE ADMINISTRADOR ---
-    function borrarTodoElChat() { if(confirm("¿Vaciado total?")) rdb.ref('mensajes').remove().then(() => { alert("Vaciado."); toggleMenu(); }); } // Borra todos los mensajes del chat global
-    function guardarReglas() { rdb.ref('config/reglas').set(document.getElementById('edit-reglas').value).then(() => { alert("Actualizado"); }); } // Guarda las nuevas reglas
-    
-    // --- FUNCIONES DE ENVÍO DE MENSAJES ---
-    function send() {
-      if(!ok) return; // Si el chat está bloqueado, no permite enviar
-      var i = document.getElementById('msg'), texto = i.value.trim();
-      if(!texto) return; // Si el texto está vacío, no hace nada
-      if(multimediaBloqueado && texto.includes("res.cloudinary.com")) { 
-          alert("Multimedia bloqueado."); i.value = ""; return; 
-      }
-      var h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-      rdb.ref('mensajes').push({ u: miUsuario, t: texto.replace(/</g, "&lt;"), h: h }).then(()=>{ i.value = ''; }); // Guarda el mensaje en Firebase y limpia el input
-    }
-
-    // Bloquea/Desbloquea el envío de mensajes en el chat global
-    function lock() {
-      ok = !ok; var b = document.getElementById('tgl'), i = document.getElementById('msg');
-      b.innerText = ok ? "ACTIVO" : "BLOQUEADO"; b.style.background = ok ? "#25d366" : "#ff5252"; i.disabled = !ok; // Cambia el texto, color del botón y estado del input
-    }
-    function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); } // Borra un mensaje específico por su ID
-    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } } // Cierra el menú desplegable si se hace clic fuera
-  </script>
-
-  <!-- Script para anuncios -->
-  <script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
-
-</body>
-</html>
-```
+    // ---
