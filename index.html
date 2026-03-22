@@ -2,16 +2,13 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Sincro Telegram Web</title>
+<title>Sincro Telegram Web PRO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body { margin:0; font-family:system-ui; background:#0e1621; }
 
-#app {
-  display:flex;
-  height:100vh;
-}
+#app { display:flex; height:100vh; }
 
 /* SIDEBAR */
 #sidebar {
@@ -27,12 +24,12 @@ body { margin:0; font-family:system-ui; background:#0e1621; }
   color:white;
   font-weight:bold;
   border-bottom:1px solid #222;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-#chat-list {
-  flex:1;
-  overflow-y:auto;
-}
+#chat-list { flex:1; overflow-y:auto; }
 
 .chat-item {
   padding:10px;
@@ -41,17 +38,10 @@ body { margin:0; font-family:system-ui; background:#0e1621; }
   border-bottom:1px solid #222;
 }
 
-.chat-item:hover {
-  background:#2a3a4a;
-}
+.chat-item:hover { background:#2a3a4a; }
 
 /* CHAT */
-#chat {
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  background:#0e1621;
-}
+#chat { flex:1; display:flex; flex-direction:column; }
 
 #top {
   padding:10px;
@@ -69,6 +59,7 @@ body { margin:0; font-family:system-ui; background:#0e1621; }
   gap:8px;
 }
 
+/* MENSAJES */
 .msg {
   max-width:70%;
   padding:8px;
@@ -79,9 +70,9 @@ body { margin:0; font-family:system-ui; background:#0e1621; }
 .otro { background:#182533; align-self:flex-start; color:white; }
 
 .nombre { font-size:11px; color:#6ab0f3; }
-
 .hora { font-size:10px; color:#aaa; text-align:right; }
 
+/* INPUT */
 #input {
   display:flex;
   padding:10px;
@@ -106,6 +97,7 @@ button {
   height:40px;
   background:#2b5278;
   color:white;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -135,21 +127,30 @@ button {
 
 </div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
 <script>
 const firebaseConfig = {
   databaseURL:"https://micanalmaestro-default-rtdb.firebaseio.com/"
 };
+
 firebase.initializeApp(firebaseConfig);
+
 const rdb = firebase.database();
-
-/* USER */
-let user = localStorage.getItem("user") || prompt("Tu nombre");
-localStorage.setItem("user", user);
-
+let user = null;
 let currentChat = "";
+let lastMsgTime = 0;
+
+/* LOGIN */
+firebase.auth().signInAnonymously()
+.then(res=>{
+  user = res.user.uid;
+  cargarChats();
+})
+.catch(err=>console.log(err));
 
 /* CREAR GRUPO */
 function crearGrupo(){
@@ -161,28 +162,36 @@ function crearGrupo(){
   rdb.ref("grupos/"+id).set({
     nombre,
     creador:user
+  }).then(()=>{
+    rdb.ref("grupos/"+id+"/miembros/"+user).set(true);
   });
-
-  rdb.ref("grupos/"+id+"/miembros/"+user).set(true);
 }
 
-/* LISTA DE CHATS */
-rdb.ref("grupos").on("value", snap=>{
-  let list = document.getElementById("chat-list");
-  list.innerHTML="";
+/* CARGAR CHATS */
+function cargarChats(){
+  rdb.ref("grupos").on("value", snap=>{
+    let list = document.getElementById("chat-list");
+    list.innerHTML="";
 
-  snap.forEach(g=>{
-    let data = g.val();
+    snap.forEach(g=>{
+      let data = g.val();
 
-    let div = document.createElement("div");
-    div.className="chat-item";
-    div.innerText = data.nombre;
+      if(!data.miembros || !data.miembros[user]) return;
 
-    div.onclick = ()=>abrirChat(g.key);
+      let div = document.createElement("div");
+      div.className="chat-item";
+      div.innerText = data.nombre;
 
-    list.appendChild(div);
+      div.onclick = ()=>{
+        document.querySelectorAll(".chat-item").forEach(e=>e.style.background="");
+        div.style.background="#2a3a4a";
+        abrirChat(g.key);
+      };
+
+      list.appendChild(div);
+    });
   });
-});
+}
 
 /* ABRIR CHAT */
 function abrirChat(id){
@@ -194,6 +203,9 @@ function abrirChat(id){
 
   rdb.ref("grupos/"+id+"/mensajes").on("value", snap=>{
     let box = document.getElementById("m-box");
+
+    let shouldScroll = box.scrollTop + box.clientHeight >= box.scrollHeight - 50;
+
     box.innerHTML="";
 
     snap.forEach(c=>{
@@ -205,36 +217,48 @@ function abrirChat(id){
       let html="";
 
       if(m.u!==user){
-        html += `<div class="nombre">${m.u}</div>`;
+        html += `<div class="nombre">${m.u.substring(0,6)}</div>`;
       }
 
-      html += m.t;
+      html += escapeHTML(m.t);
       html += `<div class="hora">${m.h}</div>`;
 
       div.innerHTML = html;
       box.appendChild(div);
     });
 
-    box.scrollTop = box.scrollHeight;
+    if(shouldScroll){
+      box.scrollTop = box.scrollHeight;
+    }
   });
 }
 
-/* SEND */
+/* ENVIAR */
 function send(){
   if(!currentChat) return;
 
-  let t = document.getElementById("msg").value.trim();
+  let now = Date.now();
+  if(now - lastMsgTime < 800) return;
+  lastMsgTime = now;
+
+  let input = document.getElementById("msg");
+  let t = input.value.trim();
   if(!t) return;
 
   let h = new Date().getHours()+":"+("0"+new Date().getMinutes()).slice(-2);
 
   rdb.ref("grupos/"+currentChat+"/mensajes").push({
     u:user,
-    t:t.replace(/</g,"&lt;"),
+    t:escapeHTML(t),
     h:h
   });
 
-  document.getElementById("msg").value="";
+  input.value="";
+}
+
+/* SEGURIDAD */
+function escapeHTML(str){
+  return str.replace(/</g,"&lt;");
 }
 </script>
 
