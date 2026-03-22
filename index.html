@@ -1,64 +1,237 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Chat FUNCIONAL</title>
-<style>
-body{margin:0;background:#111;color:white;font-family:sans-serif}
-#chat{height:100vh;display:flex;flex-direction:column}
-#msgs{flex:1;overflow:auto;padding:10px}
-.msg{margin:5px;padding:8px;border-radius:8px;background:#222}
-#input{display:flex}
-input{flex:1;padding:10px}
-button{padding:10px}
-</style>
-</head>
+  <meta charset="UTF-8">
+  <title>Sincro - Grupos Estilo Telegram</title>
+  <meta content='width=device-width,initial-scale=1' name='viewport'/>
+  <style>
+    /* Estilos Base de tu Proyecto Sincro */
+    body { background:#f0f2f5 !important; margin:0; padding:0; height:100vh; width:100vw; display:flex !important; overflow:hidden; font-family: sans-serif; }
+    #app { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; }
+    
+    /* Estilos del Chat */
+    #chat { width:100%; max-width:500px; height:100%; background:#e5ddd5; display:none; flex-direction:column; }
+    .header-chat { background:#075e54; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; }
+    .m-box { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+    
+    /* Burbujas */
+    .msg-burbuja { padding:10px; border-radius:8px; font-size:14px; max-width:80%; position:relative; word-break:break-all; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+    .msg-mio { background:#dcf8c6; align-self:flex-end; }
+    .msg-otro { background:white; align-self:flex-start; }
 
+    /* Modales */
+    .modal-overlay { display: none; position: fixed; z-index: 1000001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+    .modal-box { background: white; padding: 20px; border-radius: 12px; width: 85%; max-width: 350px; }
+    
+    /* Dropdown */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content { display: none; position: absolute; right: 0; background: white; min-width: 160px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 10; border-radius: 5px; }
+    .dropdown-content span { color: black; padding: 12px; display: block; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+    .show { display: block !important; }
+
+    /* Ajustes Grupo */
+    .link-display { background: #f1f1f1; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; margin: 10px 0; color: #075e54; border: 1px dashed #075e54; }
+    .btn-expulsar { color: red; border: none; background: none; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
 <body>
 
-<div id="chat">
-<div id="msgs"></div>
-<div id="input">
-<input id="txt" placeholder="Mensaje">
-<button onclick="send()">Enviar</button>
-</div>
-</div>
+  <div id='app'>
+    <div id='acceso' style='background:white; padding:30px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1); width:280px; text-align:center;'>
+      <h2 style='color:#075e54; margin:0 0 20px 0;'>Sincro Grupos</h2>
+      <input id='usr' placeholder='Usuario' style='width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='text'/>
+      <input id='clv' placeholder='Clave' style='width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;' type='password'/>
+      <button onclick='entrar()' style='width:100%; padding:12px; background:#075e54; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;'>ENTRAR</button>
+    </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <div id='chat'>
+      <div class='header-chat'>
+        <div id="info-grupo-header" style="cursor:pointer;">
+          <b id="nombre-grupo-titulo">Cargando...</b><br>
+          <small id="status-miembros" style="font-size:10px; color:#25d366;">online</small>
+        </div>
+        <div class='dropdown'>
+          <span onclick='toggleMenu()' style='cursor:pointer; background:#054d44; padding:5px 10px; border-radius:5px; font-size:12px;'>MENÚ ▼</span>
+          <div class='dropdown-content' id='myDropdown'>
+            <span onclick='verAjustesGrupo()'>⚙️ Ajustes del Grupo</span>
+            <span onclick='invitarAlGrupo()' style="color:#2196F3;">🔗 Invitar</span>
+            <span onclick='location.reload()' style='color:red;'>Cerrar Sesión</span>
+          </div>
+        </div>
+      </div>
 
-<script>
-firebase.initializeApp({
- databaseURL:"https://micanalmaestro-default-rtdb.firebaseio.com/"
-});
+      <div id='m-box' class="m-box"></div>
 
-let user = "user_" + Math.floor(Math.random()*1000);
-let db = firebase.database();
+      <div style='background:#f0f0f0; padding:15px; display:flex; gap:10px;'>
+        <input id='msg' onkeypress='if(event.key==="Enter") enviarMensajeGrupo()' placeholder='Escribe un mensaje...' style='flex:1; padding:12px; border-radius:20px; border:1px solid #ccc; outline:none;'/>
+        <button onclick='enviarMensajeGrupo()' style='background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%; cursor:pointer;'>></button>
+      </div>
+    </div>
+  </div>
 
-db.ref("test").on("value", snap=>{
- let box = document.getElementById("msgs");
- box.innerHTML="";
- snap.forEach(c=>{
-  let m=c.val();
-  let d=document.createElement("div");
-  d.className="msg";
-  d.innerText = m.u + ": " + m.t;
-  box.appendChild(d);
- });
-});
+  <div id='modal-ajustes-grupo' class="modal-overlay">
+    <div class='modal-box'>
+      <h3 style='color:#075e54; margin-top:0;'>Ajustes del Grupo</h3>
+      <label style="font-size:12px;">Nombre del Grupo:</label>
+      <input id='edit-nombre-grupo' style='width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;'>
+      
+      <div class="link-display">
+        <small>Link de Invitación:</small><br>
+        <span id="link-grupo-display">sincro.com/unirse?t=...</span>
+        <button onclick="restablecerLink()" style="display:block; margin-top:5px; border:none; background:#075e54; color:white; border-radius:3px; cursor:pointer; font-size:10px; padding:3px 8px;">GENERAR NUEVO LINK</button>
+      </div>
 
-function send(){
- let t=document.getElementById("txt").value;
- if(!t) return;
+      <label style="font-size:12px;">Miembros:</label>
+      <div id='lista-miembros-grupo' style='max-height:150px; overflow-y:auto; border:1px solid #eee; padding:5px; margin-top:5px;'></div>
 
- db.ref("test").push({
-  u:user,
-  t:t
- });
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="guardarAjustes()" style='flex:1; background:#075e54; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;'>GUARDAR</button>
+        <button onclick="cerrarModales()" style='flex:1; background:#777; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;'>CERRAR</button>
+      </div>
+    </div>
+  </div>
 
- document.getElementById("txt").value="";
-}
-</script>
+  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js'></script>
+  <script src='https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js'></script>
 
+  <script>
+    // --- CONFIGURACIÓN FIREBASE (REEMPLAZA CON TU URL) ---
+    const firebaseConfig = { databaseURL: "https://micanalmaestro-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const rdb = firebase.database();
+
+    var miUsuario = "";
+    var grupoActualId = "-OnY-TU-ID-AQUI"; // ID del grupo por defecto o cargado por URL
+
+    function toggleMenu() { document.getElementById("myDropdown").classList.toggle("show"); }
+    function cerrarModales() { document.getElementById('modal-ajustes-grupo').style.display = 'none'; }
+
+    // --- LÓGICA DE ACCESO ---
+    function entrar() {
+      var u = document.getElementById('usr').value.trim();
+      var p = document.getElementById('clv').value.trim();
+      if(!u || !p) return alert("Completa los datos");
+      
+      rdb.ref('usuarios/' + u.toLowerCase()).once('value', (s) => {
+        if(s.exists() && s.val().toString() === p.toString()){
+          miUsuario = u; iniciarApp();
+        } else if(!s.exists()){
+          rdb.ref('usuarios/' + u.toLowerCase()).set(p);
+          miUsuario = u; iniciarApp();
+        } else { alert("Clave incorrecta"); }
+      });
+    }
+
+    function iniciarApp() {
+      document.getElementById('acceso').style.display = 'none';
+      document.getElementById('chat').style.display = 'flex';
+      
+      // Simulación: Si no hay grupo en la URL, creamos uno o nos unimos al principal
+      // Para este ejemplo, cargamos un grupo fijo "General"
+      cargarGrupo(grupoActualId);
+    }
+
+    // --- SISTEMA DE GRUPOS TIPO TELEGRAM ---
+
+    function generarToken() {
+        return "Sincro-" + Math.random().toString(36).substr(2, 6);
+    }
+
+    function cargarGrupo(gId) {
+        grupoActualId = gId;
+        rdb.ref('grupos/' + gId).on('value', (s) => {
+            const data = s.val();
+            if(!data) return;
+            document.getElementById('nombre-grupo-titulo').innerText = data.info.nombre;
+            document.getElementById('status-miembros').innerText = Object.keys(data.miembros).length + " miembros";
+            
+            // Cargar Mensajes
+            mostrarMensajes(data.mensajes);
+        });
+    }
+
+    function mostrarMensajes(mensajes) {
+        const box = document.getElementById('m-box');
+        box.innerHTML = "";
+        if(!mensajes) return;
+        Object.values(mensajes).forEach(m => {
+            const esMio = (m.u === miUsuario);
+            const d = document.createElement('div');
+            d.className = "msg-burbuja " + (esMio ? "msg-mio" : "msg-otro");
+            d.innerHTML = `<small style="color:#075e54; font-weight:bold;">${m.u}</small><br>${m.t}<br><small style="font-size:9px; float:right; color:#999;">${m.h}</small>`;
+            box.appendChild(d);
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function enviarMensajeGrupo() {
+        const input = document.getElementById('msg');
+        const txt = input.value.trim();
+        if(!txt) return;
+
+        const h = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+        rdb.ref('grupos/' + grupoActualId + '/mensajes').push({
+            u: miUsuario,
+            t: txt,
+            h: h
+        });
+        input.value = "";
+    }
+
+    // --- AJUSTES Y SEGURIDAD ---
+
+    function verAjustesGrupo() {
+        rdb.ref('grupos/' + grupoActualId).once('value', (s) => {
+            const data = s.val();
+            if(data.info.creador !== miUsuario) return alert("Solo el creador tiene acceso.");
+            
+            document.getElementById('modal-ajustes-grupo').style.display = 'flex';
+            document.getElementById('edit-nombre-grupo').value = data.info.nombre;
+            document.getElementById('link-grupo-display').innerText = "sincro.com/unirse?t=" + data.info.token;
+            
+            const lista = document.getElementById('lista-miembros-grupo');
+            lista.innerHTML = "";
+            Object.values(data.miembros).forEach(m => {
+                lista.innerHTML += `<div style="display:flex; justify-content:space-between; padding:5px; font-size:13px; border-bottom:1px solid #eee;">
+                    <span>${m.n}</span>
+                    ${m.n !== miUsuario ? `<button class="btn-expulsar" onclick="expulsarMiembro('${m.n}')">❌ Expulsar</button>` : '<b>Tú</b>'}
+                </div>`;
+            });
+        });
+    }
+
+    function restablecerLink() {
+        const nuevoT = generarToken();
+        rdb.ref('grupos/' + grupoActualId + '/info/token').set(nuevoT);
+        document.getElementById('link-grupo-display').innerText = "sincro.com/unirse?t=" + nuevoT;
+        alert("Enlace anterior invalidado.");
+    }
+
+    function expulsarMiembro(uNombre) {
+        if(confirm("¿Expulsar y banear a " + uNombre + "?")){
+            // 1. Quitar de miembros
+            rdb.ref('grupos/' + grupoActualId + '/miembros/' + uNombre.toLowerCase()).remove();
+            // 2. Agregar a Baneados (ID Real en el sistema)
+            rdb.ref('grupos/' + grupoActualId + '/baneados/' + uNombre.toLowerCase()).set(true);
+            verAjustesGrupo(); // Refrescar lista
+        }
+    }
+
+    function guardarAjustes() {
+        const nuevoNombre = document.getElementById('edit-nombre-grupo').value;
+        rdb.ref('grupos/' + grupoActualId + '/info/nombre').set(nuevoNombre).then(() => {
+            cerrarModales();
+        });
+    }
+
+    function invitarAlGrupo() {
+        rdb.ref('grupos/' + grupoActualId + '/info/token').once('value', (s) => {
+            const link = "sincro.com/unirse?t=" + s.val();
+            prompt("Copia este link para invitar amigos:", link);
+        });
+    }
+
+    window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
+  </script>
 </body>
 </html>
