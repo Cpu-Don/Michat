@@ -417,6 +417,17 @@
     }
     function borrarMensaje(id) { if(confirm("¿Borrar?")) rdb.ref('mensajes/' + id).remove(); }
     window.onclick = function(e) { if (!e.target.matches('.dropdown span')) { var d = document.getElementById("myDropdown"); if (d && d.classList.contains('show')) d.classList.remove('show'); } }
+  
+    function iniciar() {
+  document.getElementById('acceso').style.display = 'none';
+  document.getElementById('chat').style.display = 'flex';
+  
+  // ... (aquí está todo tu código de presencia y mensajes) ...
+
+  // AGREGA ESTA LÍNEA AL FINAL DE iniciar()
+  escucharMisGrupos(); 
+}
+
   </script>
 
   <script src="https://pl28843986.effectivegatecpm.com/32/96/fa/3296fa9ea72356eb5eb96a44ecd1a8cc.js"></script>
