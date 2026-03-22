@@ -1,32 +1,81 @@
-Perfecto — aquí tienes tu archivo HTML COMPLETO ya integrado con el sistema de grupos + ajustes, listo para copiar y usar 🔥
-✅ INCLUYE:
-Crear grupo
-Unirse con token
-Chat por grupo
-Ajustes del grupo
-Editar nombre en tiempo real
-Resetear link
-Expulsar usuarios
-Mantiene tu chat original
-🧩 CÓDIGO COMPLETO
-👉 Copia TODO esto y reemplaza tu archivo:
-HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Chat con Grupos</title>
+<title>Sincro Chat PRO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body { margin:0; font-family:sans-serif; background:#f0f2f5; }
-#chat { display:flex; flex-direction:column; height:100vh; max-width:500px; margin:auto; background:#e5ddd5; }
-#top { background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between; }
-#m-box { flex:1; overflow:auto; padding:10px; }
-#input { display:flex; padding:10px; background:#eee; }
-input { flex:1; padding:10px; border-radius:20px; border:1px solid #ccc; }
-button { margin-left:5px; }
-.msg { background:white; padding:8px; border-radius:8px; margin:5px 0; max-width:80%; }
+body { margin:0; font-family:sans-serif; background:#111; }
+
+#chat {
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  max-width:500px;
+  margin:auto;
+  background:#0b141a;
+}
+
+#top {
+  background:#202c33;
+  color:white;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+#m-box {
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.msg {
+  padding:8px 12px;
+  border-radius:10px;
+  max-width:75%;
+  font-size:14px;
+}
+
+.yo {
+  background:#005c4b;
+  align-self:flex-end;
+  color:white;
+}
+
+.otro {
+  background:#202c33;
+  align-self:flex-start;
+  color:white;
+}
+
+#input {
+  display:flex;
+  padding:10px;
+  background:#202c33;
+}
+
+input {
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:none;
+  outline:none;
+}
+
+button {
+  margin-left:5px;
+  border:none;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -35,7 +84,7 @@ button { margin-left:5px; }
 <div id="chat">
 
 <div id="top">
-  <b id="nombre-chat">Chat Global</b>
+  <b id="nombre-chat">Chat</b>
   <div>
     <button onclick="crearGrupo()">➕</button>
     <button onclick="unirseGrupo()">🔗</button>
@@ -45,26 +94,28 @@ button { margin-left:5px; }
 
 <div id="m-box"></div>
 
+<div style="color:#ccc; font-size:12px; padding-left:10px;" id="typing"></div>
+
 <div id="input">
-  <input id="msg" placeholder="Escribe..." onkeypress="if(event.key==='Enter')send()">
+  <input id="msg" placeholder="Escribe..." oninput="escribiendo()" onkeypress="if(event.key==='Enter')send()">
   <button onclick="send()">➤</button>
 </div>
 
 </div>
 
-<!-- AJUSTES -->
-<div id="grupo-settings" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
-  <div style="background:white; padding:20px; width:300px; margin:50px auto; border-radius:10px;">
+<!-- SETTINGS -->
+<div id="grupo-settings" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6);">
+  <div style="background:#202c33; color:white; padding:20px; width:300px; margin:50px auto; border-radius:10px;">
     
-    <h3>Ajustes del Grupo</h3>
+    <h3>Ajustes</h3>
 
     📝 Nombre:
     <input id="g-nombre" style="width:100%; margin-bottom:10px;">
 
-    🔗 Link actual:
+    🔗 Link:
     <div id="g-link" style="font-size:12px; margin-bottom:10px;"></div>
 
-    <button onclick="resetearLink()">🔄 Restablecer enlace</button>
+    <button onclick="resetearLink()">🔄 Reset</button>
 
     <h4>👥 Miembros</h4>
     <div id="g-miembros"></div>
@@ -83,56 +134,50 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const rdb = firebase.database();
 
-let miUsuario = prompt("Tu nombre:");
-let grupoActual = "";
-let tokenGrupo = "";
-let soyCreador = false;
+/* USUARIO */
+let miUsuario = localStorage.getItem("user") || prompt("Tu nombre:");
+localStorage.setItem("user", miUsuario);
 
-/* CREAR GRUPO */
+/* VARIABLES */
+let grupoActual = "";
+let soyCreador = false;
+let typingTimeout;
+let audio = new Audio("https://cdn.pixabay.com/audio/2022/03/24/audio_7839176318.mp3");
+
+/* CREAR */
 function crearGrupo(){
-  let nombre = prompt("Nombre del grupo:");
+  let nombre = prompt("Nombre:");
   if(!nombre) return;
 
-  let id = "grp_" + Date.now();
-  let token = "Sincro-" + Math.random().toString(36).substr(2,6);
+  let id="grp_"+Date.now();
+  let token="Sincro-"+Math.random().toString(36).substr(2,6);
 
   rdb.ref("grupos/"+id).set({
-    nombre:nombre,
-    creador:miUsuario,
-    token:token
+    nombre, creador:miUsuario, token
   });
 
   rdb.ref("grupos/"+id+"/miembros/"+miUsuario).set(true);
 
-  grupoActual = id;
-  tokenGrupo = token;
-  soyCreador = true;
+  grupoActual=id;
+  soyCreador=true;
 
   abrirGrupo(id);
 }
 
-/* UNIRSE */
+/* UNIR */
 function unirseGrupo(){
-  let token = prompt("Token:");
+  let token=prompt("Token:");
   if(!token) return;
 
   rdb.ref("grupos").once("value", snap=>{
-    let ok=false;
     snap.forEach(g=>{
       if(g.val().token===token){
-        let id=g.key;
-
-        rdb.ref("grupos/"+id+"/miembros/"+miUsuario).set(true);
-
-        grupoActual=id;
-        tokenGrupo=token;
+        grupoActual=g.key;
         soyCreador=(g.val().creador===miUsuario);
-
-        abrirGrupo(id);
-        ok=true;
+        rdb.ref("grupos/"+g.key+"/miembros/"+miUsuario).set(true);
+        abrirGrupo(g.key);
       }
     });
-    if(!ok) alert("Token inválido");
   });
 }
 
@@ -148,11 +193,33 @@ function abrirGrupo(id){
 
     snap.forEach(c=>{
       let m=c.val();
+
       let div=document.createElement("div");
-      div.className="msg";
-      div.innerHTML="<b>"+m.u+"</b><br>"+m.t;
+      div.className="msg "+(m.u===miUsuario?"yo":"otro");
+
+      div.innerHTML=
+        "<b>"+m.u+"</b><br>"+escapeHTML(m.t)+
+        "<div style='font-size:10px;text-align:right;'>"+(m.visto?"✔✔":"✔")+"</div>";
+
       box.appendChild(div);
     });
+
+    box.scrollTop=box.scrollHeight;
+  });
+
+  /* VISTO */
+  rdb.ref("grupos/"+id+"/mensajes").once("value", snap=>{
+    snap.forEach(c=>{
+      rdb.ref("grupos/"+id+"/mensajes/"+c.key+"/visto").set(true);
+    });
+  });
+
+  /* TYPING */
+  rdb.ref("typing/"+id).on("value", s=>{
+    let data=s.val()||{};
+    let otros=Object.keys(data).filter(u=>u!==miUsuario);
+    document.getElementById("typing").innerText=
+      otros.length?otros.join(", ")+" escribiendo...":"";
   });
 }
 
@@ -161,20 +228,34 @@ function send(){
   let texto=document.getElementById("msg").value.trim();
   if(!texto) return;
 
-  if(grupoActual){
-    rdb.ref("grupos/"+grupoActual+"/mensajes").push({
-      u:miUsuario,
-      t:texto
-    });
-  }
+  rdb.ref("grupos/"+grupoActual+"/mensajes").push({
+    u:miUsuario,
+    t:texto,
+    visto:false
+  });
 
   document.getElementById("msg").value="";
+  rdb.ref("typing/"+grupoActual+"/"+miUsuario).remove();
+  audio.play().catch(()=>{});
+}
+
+/* ESCAPAR HTML */
+function escapeHTML(str){
+  return str.replace(/</g,"&lt;");
+}
+
+/* TYPING */
+function escribiendo(){
+  rdb.ref("typing/"+grupoActual+"/"+miUsuario).set(true);
+
+  clearTimeout(typingTimeout);
+  typingTimeout=setTimeout(()=>{
+    rdb.ref("typing/"+grupoActual+"/"+miUsuario).remove();
+  },2000);
 }
 
 /* SETTINGS */
 function abrirGrupoSettings(){
-  if(!grupoActual) return;
-
   document.getElementById("grupo-settings").style.display="block";
 
   rdb.ref("grupos/"+grupoActual).once("value", snap=>{
@@ -194,14 +275,13 @@ function abrirGrupoSettings(){
   });
 }
 
-/* CAMBIAR NOMBRE */
-document.addEventListener("input", function(e){
+document.addEventListener("input", e=>{
   if(e.target.id==="g-nombre" && soyCreador){
     rdb.ref("grupos/"+grupoActual+"/nombre").set(e.target.value);
   }
 });
 
-/* RESET LINK */
+/* RESET */
 function resetearLink(){
   if(!soyCreador) return;
   let nuevo="Sincro-"+Math.random().toString(36).substr(2,6);
@@ -210,7 +290,6 @@ function resetearLink(){
 
 /* EXPULSAR */
 function expulsar(u){
-  if(!soyCreador) return;
   rdb.ref("grupos/"+grupoActual+"/miembros/"+u).remove();
 }
 
@@ -222,13 +301,3 @@ function cerrarGrupoSettings(){
 
 </body>
 </html>
-🚀 LISTO
-Con esto ya tienes tu sistema funcionando tipo app real.
-🔥 Si quieres el siguiente nivel:
-Puedo agregarte:
-🔔 Notificaciones reales
-📱 Diseño tipo WhatsApp
-👑 Admin / moderadores
-🚫 Sistema de baneos
-💾 Guardar sesión automática
-Solo dime: “hazlo más pro” 😎
