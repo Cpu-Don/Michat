@@ -141,8 +141,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-
-      /* Recomendación para que el banner se ajuste al ancho del sidebar */
+        /* Recomendación para que el banner se ajuste al ancho del sidebar */
 .ad-container-sincro iframe {
     max-width: 100% !important; /* Evita que el banner se corte en móviles */
     height: auto !important;
@@ -156,6 +155,7 @@
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
+
 
         
     </style>
@@ -374,11 +374,10 @@
                 <button id="btn-edit-group" onclick="editarNombreGrupo()" style="display:none; background:none; border:1px solid #0088cc; color:#0088cc; border-radius:5px; padding:5px 12px; font-size:11px; cursor:pointer; margin-top:8px;">Editar Info</button>
             </div>
 
-          <!-- PEGAR DESPUÉS DEL BOTÓN DE EDITAR (Línea 360) -->
-<button id="btn-edit-group" onclick="editarNombreGrupo()" style="display:none; background:none; border:1px solid #ccc; padding:5px; border-radius:5px; cursor:pointer;">Editar Info</button>
-
-<!-- INICIO DEL ANUNCIO RECOMENDADO -->
+            <!-- RECOMENDACIÓN: Contenedor centrado para el Banner de Info del Grupo -->
 <div class="ad-container-sincro" style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 10px 0; margin: 15px 0; background: #fafafa; border-radius: 12px; min-height: 250px; overflow: hidden;">
+    
+    <!-- Tu Script de Adsterra -->
     <div id="at-banner-300x250">
         <script type="text/javascript">
           atOptions = {
@@ -391,13 +390,11 @@
         </script>
         <script src="https://www.highperformanceformat.com/a474e797518c7de8fb11f33e69f0be26/invoke.js"></script>
     </div>
+
 </div>
-<!-- FIN DEL ANUNCIO -->
 
-<button id="btn-add-member" onclick="mostrarListaParaAgregar()" style="width:100%; padding:10px; margin-top:10px; background:#0088cc; color:white; border:none; border-radius:5px; cursor:pointer;">+ Añadir Miembros</button>
-
-          
-          <button id="btn-add-member" onclick="mostrarListaParaAgregar()" style="width:100%; padding:10px; margin-top:10px; background:#0088cc; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
+            
+            <button id="btn-add-member" onclick="mostrarListaParaAgregar()" style="width:100%; padding:10px; margin-top:10px; background:#0088cc; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
    ➕ Añadir Miembros
 </button>
 
