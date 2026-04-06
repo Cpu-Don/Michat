@@ -141,21 +141,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-        /* Recomendación para que el banner se ajuste al ancho del sidebar */
-.ad-container-sincro iframe {
-    max-width: 100% !important; /* Evita que el banner se corte en móviles */
-    height: auto !important;
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Sombra suave para que se vea profesional */
-}
-
-/* Asegura que el sidebar derecho no bloquee el scroll */
-#sidebar-right {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-
 
         
     </style>
@@ -373,18 +358,7 @@
                 <h3 id="info-name" style="margin:5px 0; font-size: 18px;">Sincro MD</h3>
                 <button id="btn-edit-group" onclick="editarNombreGrupo()" style="display:none; background:none; border:1px solid #0088cc; color:#0088cc; border-radius:5px; padding:5px 12px; font-size:11px; cursor:pointer; margin-top:8px;">Editar Info</button>
             </div>
-
-
-    <!-- Contenedor del anuncio -->
-<div id="at-banner-wrapper" style="min-height: 250px; width: 300px; margin: 10px auto; display: flex; justify-content: center; align-items: center; background: #f9f9f9; border-radius: 8px;">
-    <p style="color: #ccc;">Cargando anuncio...</p>
-</div>
-
-
-
-
-            
-            <button id="btn-add-member" onclick="mostrarListaParaAgregar()" style="width:100%; padding:10px; margin-top:10px; background:#0088cc; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
+           <button id="btn-add-member" onclick="mostrarListaParaAgregar()" style="width:100%; padding:10px; margin-top:10px; background:#0088cc; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
    ➕ Añadir Miembros
 </button>
 
@@ -399,6 +373,18 @@
     <button onclick="vaciarChat()" style="width:100%; padding:10px; background:#fff; border:1px solid #d9534f; color:#d9534f; border-radius:5px; cursor:pointer; font-size:12px;">🗑️ Vaciar Chat</button>
 </div>
 
+<script>
+  atOptions = {
+    'key' : 'a474e797518c7de8fb11f33e69f0be26',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/a474e797518c7de8fb11f33e69f0be26/invoke.js"></script>
+
+			
         </aside>
     </div>
 </div>
@@ -1390,19 +1376,5 @@ function procesarInvitacionPorNombre() {
 
 
 </script>
-
-        <!-- ... Aquí terminan tus otros scripts de Firebase o Supabase ... -->
-<script type="text/javascript">
-	atOptions = {
-		'key' : 'a474e797518c7de8fb11f33e69f0be26',
-		'format' : 'iframe',
-		'height' : 250,
-		'width' : 300,
-		'at-banner-wrapper' : 'at-banner-wrapper'
-	};
-</script>
-<script type="text/javascript" src="https://www.highperformanceformat.com/a474e797518c7de8fb11f33e69f0be26/invoke.js"></script>
-
-    
 </body>
 </html>
